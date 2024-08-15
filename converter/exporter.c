@@ -525,6 +525,17 @@ bool exporter_Export(const struct export_settings *settings,
                                            settings->StartTime,
                                            settings->EndTime);
 
+            {
+                struct trc_creature *playerCreature;
+                if (!creaturelist_GetCreature(&gamestate->CreatureList,
+                                              gamestate->Player.Id,
+                                              &playerCreature)) {
+                  return trc_ReportError("Failed to get the player creature");
+                }
+                printf("player name [%s]\n", playerCreature->Name);
+                printf("player level [%d]\n", gamestate->Player.Stats.Level);
+            }
+
             gamestate_Free(gamestate);
         }
 
