@@ -125,7 +125,7 @@ target_compile_definitions(tibiarc PUBLIC "LEVEL1_DCACHE_LINESIZE=${LEVEL1_DCACH
 if(MSVC)
   target_compile_options(tibiarc PRIVATE /W4 /WX)
 else()
-  target_link_libraries(tibiarc PRIVATE stdc++_libbacktrace)
+  target_link_libraries(tibiarc PRIVATE stdc++exp)
   target_compile_options(tibiarc PRIVATE -Wall -Wextra)
 endif()
 
@@ -256,6 +256,18 @@ add_executable(miner
 )
 target_include_directories(miner PRIVATE "utils")
 target_link_libraries(miner PRIVATE tibiarc)
+
+# ########################################################################### #
+## Identify
+# ########################################################################### #
+
+add_executable(identify
+  "identify/identify.cpp"
+  "utils/memoryfile.cpp"
+  "utils/memoryfile.hpp"
+)
+target_include_directories(identify PRIVATE "utils")
+target_link_libraries(identify PRIVATE tibiarc)
 
 # ########################################################################### #
 ## player
