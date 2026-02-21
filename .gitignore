@@ -2,6 +2,7 @@
 items/
 _analyze/
 build/
+build_*/
 *.bmp
 perf.data
 perf.data.old
