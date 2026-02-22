@@ -131,20 +131,26 @@ void main_loop() {
     }
 }
 
-void load_files(uintptr_t recording_data,
-                int recording_length,
-                uintptr_t pic_data,
-                int pic_length,
-                uintptr_t spr_data,
-                int spr_length,
-                uintptr_t dat_data,
-                int dat_length) {
+extern "C" void load_files(uintptr_t recording_data,
+                           int recording_length,
+                           uintptr_t pic_data,
+                           int pic_length,
+                           uintptr_t spr_data,
+                           int spr_length,
+                           uintptr_t dat_data,
+                           int dat_length,
+                           int version_major,
+                           int version_minor,
+                           int version_preview) {
     DataReader recording(recording_length, (const uint8_t *)recording_data);
     DataReader pic(pic_length, (const uint8_t *)pic_data);
     DataReader spr(spr_length, (const uint8_t *)spr_data);
     DataReader dat(dat_length, (const uint8_t *)dat_data);
+    VersionTriplet version(version_major, version_minor, version_preview);
 
-    playback = std::make_unique<Playback>(recording, "", pic, spr, dat);
+    std::cerr << "Version: " << version.Major << "." << version.Minor << "." << version.Preview << std::endl;
+
+    playback = std::make_unique<Playback>(recording, "test.trp", pic, spr, dat, version);
 }
 
 int main(int argc, char *argv[]) {
@@ -165,6 +171,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    VersionTriplet version(major, minor, preview);
+
     try {
         const std::filesystem::path dataFolder = argv[1],
                                     recordingName = argv[2];
@@ -178,9 +186,7 @@ int main(int argc, char *argv[]) {
                                               pictures.Reader(),
                                               sprites.Reader(),
                                               types.Reader(),
-                                              major,
-                                              minor,
-                                              preview);
+                                              version);
     } catch (const trc::ErrorBase &error) {
         std::cerr << "Unrecoverable error (" << error.Description() << ")"
                   << std::endl;

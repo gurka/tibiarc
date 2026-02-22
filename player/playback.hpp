@@ -49,9 +49,7 @@ public:
              const DataReader &pic,
              const DataReader &spr,
              const DataReader &dat,
-             int major = 0,
-             int minor = 0,
-             int preview = 0);
+             const VersionTriplet& version);
 
     int64_t GetPlaybackTick();
     void ProcessPackets();

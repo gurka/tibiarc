@@ -14,13 +14,21 @@
 <canvas id="canvas" oncontextmenu="event.preventDefault()" style="margin: auto;"></canvas>
 
 <script>
+    let moduleReady = false;
     var Module = {
-        canvas: (function() { return document.getElementById('canvas'); })()
+        canvas: (function() { return document.getElementById('canvas'); })(),
+        onRuntimeInitialized: function() {
+            moduleReady = true;
+            processFiles();
+        }
     };
     let fileRecording = null;
     let filePic = null;
     let fileSpr = null;
     let fileDat = null;
+    let versionMajor = null;
+    let versionMinor = null;
+    let versionPreview = null;
 
     function updateFilesLoaded() {
         const element = document.getElementById("files-loaded");
@@ -40,7 +48,7 @@
     }
 
     function processFiles() {
-        if (!allFilesLoaded()) {
+        if (!allFilesLoaded() || !moduleReady) {
             return;
         }
 
@@ -66,8 +74,8 @@
         // Start playback
         Module.ccall('load_files',
             null,
-            ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'],
-            [heapBufferRecording, bufferRecording.length, heapBufferPic, bufferPic.length, heapBufferSpr, bufferSpr.length, heapBufferDat, bufferDat.length]
+            ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'],
+            [heapBufferRecording, bufferRecording.length, heapBufferPic, bufferPic.length, heapBufferSpr, bufferSpr.length, heapBufferDat, bufferDat.length, versionMajor, versionMinor, versionPreview]
         );
 
         updateLoadingMessage("Playback started!");
@@ -111,26 +119,36 @@
             pic: params.get('pic'),
             spr: params.get('spr'),
             dat: params.get('dat'),
-            recording: params.get('recording') || params.get('rec')
+            recording: params.get('recording'),
+            version: params.get('version'),
         };
     }
 
     async function loadFromUrls() {
-        const urls = parseQueryParams();
+        const params = parseQueryParams();
 
-        if (!urls.pic || !urls.spr || !urls.dat || !urls.recording) {
-            updateLoadingMessage("Error: Missing required URL parameters. Please provide: pic, spr, dat, and recording (or rec)");
+        if (!params.pic || !params.spr || !params.dat || !params.recording || !params.version) {
+            updateLoadingMessage("Error: Missing required URL parameters. Please provide: pic, spr, dat, recording and version");
             return;
         }
+
+        const versionParts = params.version.split('.');
+        if (versionParts.length !== 2) {
+            updateLoadingMessage("Error: Invalid version format. Expected format: major.minor (e.g., 7.30)");
+            return;
+        }
+        versionMajor = versionParts[0];
+        versionMinor = versionParts[1];
+        versionPreview = 0;
 
         updateLoadingMessage("Starting downloads...");
 
         // Download all files in parallel
         await Promise.all([
-            downloadFile(urls.pic, 'pic'),
-            downloadFile(urls.spr, 'spr'),
-            downloadFile(urls.dat, 'dat'),
-            downloadFile(urls.recording, 'recording')
+            downloadFile(params.pic, 'pic'),
+            downloadFile(params.spr, 'spr'),
+            downloadFile(params.dat, 'dat'),
+            downloadFile(params.recording, 'recording')
         ]);
     }
 

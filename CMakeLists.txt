@@ -449,23 +449,26 @@ if(EMSCRIPTEN OR SDL2_FOUND)
       endif()
     endif()
   else()
-    set_target_properties(converter PROPERTIES EXCLUDE_FROM_ALL 1)
     set_target_properties(player PROPERTIES SUFFIX ".html")
+
     target_compile_options(player PRIVATE -sUSE_SDL=2)
     target_link_options(player PRIVATE
                           -sUSE_SDL=2
                           -sALLOW_MEMORY_GROWTH=1
                           -sEXPORTED_FUNCTIONS=_main,_load_files,_malloc
-                          -sEXPORTED_RUNTIME_METHODS=ccall)
+                          -sEXPORTED_RUNTIME_METHODS=HEAPU8,ccall)
+
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       target_link_options(player PRIVATE
                             -sEXCEPTION_DEBUG=1
                             -sASSERTIONS=1
                             -sSAFE_HEAP=1
-                            -sDEMANGLE_SUPPORT=1)
+                            -sNO_DISABLE_EXCEPTION_CATCHING)
     endif()
+
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/player/index.html"
                      "${CMAKE_BINARY_DIR}/index.html" COPYONLY)
+    add_custom_target(run emrun 'index.html?pic=Tibia.pic&dat=Tibia.dat&spr=Tibia.spr&recording=test.trp&version=8.52' DEPENDS player)
   endif()
 endif()
 

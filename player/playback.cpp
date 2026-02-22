@@ -33,22 +33,10 @@ Playback::Playback(const DataReader &file,
                    const DataReader &pic,
                    const DataReader &spr,
                    const DataReader &dat,
-                   int major,
-                   int minor,
-                   int preview)
+                   const VersionTriplet& version)
     : Scale(1.0), ScaleTick(SDL_GetTicks()), BaseTick(0) {
     auto format = Recordings::GuessFormat(name, file);
-
-    if ((major | minor | preview) == 0) {
-        trc::VersionTriplet version(major, minor, preview);
-        if (!Recordings::QueryTibiaVersion(format,
-                                           file,
-                                           version)) {
-            throw InvalidDataError();
-        }
-    }
-
-    Version = std::make_unique<trc::Version>(trc::VersionTriplet(major, minor, preview),
+    Version = std::make_unique<trc::Version>(version,
                                              pic,
                                              spr,
                                              dat);
@@ -56,6 +44,7 @@ Playback::Playback(const DataReader &file,
     auto [recording, partial] = Recordings::Read(format, file, *Version);
 
     if (partial) {
+        std::cerr << "Partial recording detected\n";
         throw InvalidDataError();
     }
 
