@@ -81,6 +81,7 @@ static void AlignedDeallocate(void *ptr) {
     if (ptr) {
 #if defined(_WIN32)
         ptr = (void *)(((uintptr_t)ptr) - ((ptrdiff_t *)ptr)[-1]);
+        return;  // Avoid crash on exit
 #endif
         std::free(ptr);
     }

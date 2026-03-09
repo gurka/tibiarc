@@ -92,6 +92,7 @@ void Playback::ProcessPackets() {
 
 void Playback::Toggle() {
     if (Scale > 0.0) {
+        SetSpeed(0.0);
         std::cout << "Playback paused" << std::endl;
     } else {
         SetSpeed(1.0);

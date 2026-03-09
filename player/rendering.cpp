@@ -275,6 +275,16 @@ void Rendering::Render(Playback &playback) {
                              std::string(text, textLength),
                              *CanvasOutput);
 
+        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
+                             TextAlignment::Left,
+                             TextTransform::None,
+                             Pixel(0xFF, 0xFF, 0xFF),
+                             12,
+                             56,
+                             64,
+                             "Playback speed: " + std::to_string(playback.Scale),
+                             *CanvasOutput);
+
         SDL_UnlockTexture(SdlTextureOutput.get());
     }
 
