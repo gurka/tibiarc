@@ -35,6 +35,7 @@ class Icons {
     const trc::Canvas &Canvas;
 
 public:
+    Sprite All;
     Sprite ClientBackground;
     Sprite EmptyStatusBar;
     Sprite HealthBar;

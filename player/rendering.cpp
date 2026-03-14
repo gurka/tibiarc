@@ -125,21 +125,58 @@ void Rendering::HandleResize() {
                                             Renderer::NativeResolutionY);
     }
 
-    CanvasOutput = std::make_unique<Canvas>(RenderOptions.Width,
-                                            RenderOptions.Height,
-                                            Canvas::Type::External);
-    SdlTextureOutput = CreateTexture(RenderOptions.Width, RenderOptions.Height);
+    /* Calculate how much to scale the gamestate.
+     * We want it to be centered in an area starting at the top-left of
+     * the window, with at least 160 pixels free on the right side for the sidebar
+     * and 160 pixels free at the bottom for the chat.
+     * We also want a small margin between the gamestate and everything else */
+    int margin = 10;
+    int max_w = RenderOptions.Width - 160 - (margin * 2);
+    int max_h = RenderOptions.Height - 160 - (margin * 2);
+    float scale = std::min(max_w / (float)Renderer::NativeResolutionX,
+                           max_h / (float)Renderer::NativeResolutionY);
 
-    int max_x = RenderOptions.Width - 160;
-    int max_y = RenderOptions.Height;
-    float minScale = std::min(max_x / (float)Renderer::NativeResolutionX,
-                              max_y / (float)Renderer::NativeResolutionY);
-    OverlaySliceRect.x =
-            (max_x - (int)(Renderer::NativeResolutionX * minScale)) / 2;
-    OverlaySliceRect.y =
-            (max_y - (int)(Renderer::NativeResolutionY * minScale)) / 2;
-    OverlaySliceRect.w = (int)(Renderer::NativeResolutionX * minScale);
-    OverlaySliceRect.h = (int)(Renderer::NativeResolutionY * minScale);
+    /* Now calculate where to render the gamestate. */
+    GamestateScaledRect.x =
+            ((max_w - (int)(Renderer::NativeResolutionX * scale)) / 2) + margin;
+    GamestateScaledRect.y =
+            ((max_h - (int)(Renderer::NativeResolutionY * scale)) / 2) + margin;
+    GamestateScaledRect.w = (int)(Renderer::NativeResolutionX * scale);
+    GamestateScaledRect.h = (int)(Renderer::NativeResolutionY * scale);
+
+    CanvasOverlay = std::make_unique<Canvas>(GamestateScaledRect.w,
+                                             GamestateScaledRect.h,
+                                             Canvas::Type::External);
+    SdlTextureOverlay = CreateTexture(GamestateScaledRect.w, GamestateScaledRect.h);
+
+    /* We always render the sidebar on the far right side of the screen */
+    SidebarRect.x = RenderOptions.Width - 160;
+    SidebarRect.y = 0;
+    SidebarRect.w = 160;
+    SidebarRect.h = RenderOptions.Height;
+    CanvasSidebar = std::make_unique<Canvas>(SidebarRect.w,
+                                             SidebarRect.h,
+                                             Canvas::Type::External);
+    SdlTextureSidebar = CreateTexture(SidebarRect.w, SidebarRect.h);
+
+    ChatRect.x = 0;
+    ChatRect.y = RenderOptions.Height - 160;
+    ChatRect.w = RenderOptions.Width - 160;
+    ChatRect.h = 160;
+    CanvasChat = std::make_unique<Canvas>(ChatRect.w,
+                                          ChatRect.h,
+                                          Canvas::Type::External);
+    SdlTextureChat = CreateTexture(ChatRect.w, ChatRect.h);
+
+    /* Debug. */
+    std::cout << "Window size: " << RenderOptions.Width << "x" << RenderOptions.Height << std::endl;
+    std::cout << "Gamestate scale: " << scale << std::endl;
+    std::cout << "Gamestate rect position: " << GamestateScaledRect.x << ", " << GamestateScaledRect.y << std::endl;
+    std::cout << "Gamestate rect size: " << GamestateScaledRect.w << "x" << GamestateScaledRect.h << std::endl;
+    std::cout << "Sidebar rect position: " << SidebarRect.x << ", " << SidebarRect.y << std::endl;
+    std::cout << "Sidebar rect size: " << SidebarRect.w << "x" << SidebarRect.h << std::endl;
+    std::cout << "Chat rect position: " << ChatRect.x << ", " << ChatRect.y << std::endl;
+    std::cout << "Chat rect size: " << ChatRect.w << "x" << ChatRect.h << std::endl;
 }
 
 void Rendering::Render(Playback &playback) {
@@ -155,12 +192,22 @@ void Rendering::Render(Playback &playback) {
                                      (void **)&background.Buffer,
                                      &background.Stride));
 
+        // Draw background on the whole canvas
         Renderer::DrawClientBackground(*playback.Gamestate,
                                        background,
                                        0,
                                        0,
                                        background.Width,
                                        background.Height);
+
+        // Draw gamestate background border
+        Renderer::DrawBorder(background,
+                             GamestateScaledRect.x - 1,
+                             GamestateScaledRect.y - 1,
+                             GamestateScaledRect.x + GamestateScaledRect.w + 1,
+                             GamestateScaledRect.y + GamestateScaledRect.h + 1);
+
+
         SDL_UnlockTexture(SdlTextureBackground.get());
         BackgroundRendered = true;
     }
@@ -184,56 +231,22 @@ void Rendering::Render(Playback &playback) {
     /* FIXME: C++ migration. */
     playback.Gamestate->Messages.Prune(playback.Gamestate->CurrentTick);
 
-    /* Render the rest */
+    /* Render overlay */
     {
-        AbortUnless(!SDL_LockTexture(SdlTextureOutput.get(),
+        AbortUnless(!SDL_LockTexture(SdlTextureOverlay.get(),
                                      NULL,
-                                     (void **)&CanvasOutput->Buffer,
-                                     &CanvasOutput->Stride));
+                                     (void **)&CanvasOverlay->Buffer,
+                                     &CanvasOverlay->Stride));
 
-        CanvasOutput->Wipe();
+        CanvasOverlay->Wipe();
 
-        auto overlay =
-                CanvasOutput->Slice(OverlaySliceRect.x,
-                                    OverlaySliceRect.y,
-                                    OverlaySliceRect.x + OverlaySliceRect.w,
-                                    OverlaySliceRect.y + OverlaySliceRect.h);
-        Renderer::DrawOverlay(RenderOptions, *playback.Gamestate, overlay);
+        //Renderer::DrawOverlay(RenderOptions, *playback.Gamestate, *CanvasOverlay);
 
-        int offsetX = CanvasOutput->Width - 160 + 12;
-        int offsetY = 4;
-
-        Renderer::DrawStatusBars(*playback.Gamestate,
-                                 *CanvasOutput,
-                                 offsetX,
-                                 offsetY);
-
-        Renderer::DrawInventoryArea(*playback.Gamestate,
-                                    *CanvasOutput,
-                                    offsetX,
-                                    offsetY);
-
-        if (playback.Gamestate->Version.Features.IconBar) {
-            Renderer::DrawIconBar(*playback.Gamestate,
-                                  *CanvasOutput,
-                                  offsetX,
-                                  offsetY);
-        }
-
-        int max_container_y = CanvasOutput->Height - 4 - 32;
-
-        for (auto &[_, container] : playback.Gamestate->Containers) {
-            Renderer::DrawContainer(*playback.Gamestate,
-                                    *CanvasOutput,
-                                    container,
-                                    false,
-                                    CanvasOutput->Width,
-                                    max_container_y,
-                                    offsetX,
-                                    offsetY);
-        }
+        //const auto &test = playback.Gamestate->Version.Icons.Test;
+        //CanvasOverlay->Draw(test, 0, 0, test.Width, test.Height);
 
         /* Render playback info */
+        /*
         char text[64];
         int textLength = snprintf(text,
                                   sizeof(text) / sizeof(text[0]),
@@ -247,7 +260,7 @@ void Rendering::Render(Playback &playback) {
                              14,
                              64,
                              std::string(text, textLength),
-                             *CanvasOutput);
+                             *CanvasOverlay);
 
         textLength = formatTime(text,
                                 sizeof(text) / sizeof(text[0]),
@@ -260,7 +273,7 @@ void Rendering::Render(Playback &playback) {
                              28,
                              64,
                              std::string(text, textLength),
-                             *CanvasOutput);
+                             *CanvasOverlay);
 
         textLength = formatTime(text,
                                 sizeof(text) / sizeof(text[0]),
@@ -273,7 +286,7 @@ void Rendering::Render(Playback &playback) {
                              42,
                              64,
                              std::string(text, textLength),
-                             *CanvasOutput);
+                             *CanvasOverlay);
 
         TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
                              TextAlignment::Left,
@@ -283,9 +296,77 @@ void Rendering::Render(Playback &playback) {
                              56,
                              64,
                              "Playback speed: " + std::to_string(playback.Scale),
-                             *CanvasOutput);
+                             *CanvasOverlay);
+        */
+        SDL_UnlockTexture(SdlTextureOverlay.get());
+    }
 
-        SDL_UnlockTexture(SdlTextureOutput.get());
+    /* Render sidebar */
+    {
+        AbortUnless(!SDL_LockTexture(SdlTextureSidebar.get(),
+                                     NULL,
+                                     (void **)&CanvasSidebar->Buffer,
+                                     &CanvasSidebar->Stride));
+
+        CanvasSidebar->Wipe();
+        int offsetX = 4;
+        int offsetY = 4;
+
+        Renderer::DrawStatusBars(*playback.Gamestate,
+                                 *CanvasSidebar,
+                                 offsetX,
+                                 offsetY);
+
+        Renderer::DrawInventoryArea(*playback.Gamestate,
+                                    *CanvasSidebar,
+                                    offsetX,
+                                    offsetY);
+
+        if (playback.Gamestate->Version.Features.IconBar) {
+            Renderer::DrawIconBar(*playback.Gamestate,
+                                  *CanvasSidebar,
+                                  offsetX,
+                                  offsetY);
+        }
+
+        Renderer::DrawSkills(*playback.Gamestate,
+                             *CanvasSidebar,
+                             160 - 24,
+                             offsetX,
+                             offsetY);
+
+        /*
+        int max_container_y = CanvasSidebar->Height - 4 - 32;
+
+        for (auto &[_, container] : playback.Gamestate->Containers) {
+            Renderer::DrawContainer(*playback.Gamestate,
+                                    *CanvasSidebar,
+                                    container,
+                                    false,
+                                    CanvasSidebar->Width,
+                                    max_container_y,
+                                    offsetX,
+                                    offsetY);
+        }
+        */
+
+        SDL_UnlockTexture(SdlTextureSidebar.get());
+    }
+
+    /* Render chat */
+    {
+        AbortUnless(!SDL_LockTexture(SdlTextureChat.get(),
+                                     NULL,
+                                     (void **)&CanvasChat->Buffer,
+                                     &CanvasChat->Stride));
+
+        CanvasChat->DrawRectangle(Pixel(0, 0, 64),
+                                  0,
+                                  0,
+                                  CanvasChat->Width,
+                                  CanvasChat->Height);
+
+        SDL_UnlockTexture(SdlTextureChat.get());
     }
 
     /* Render textures to screen */
@@ -299,12 +380,19 @@ void Rendering::Render(Playback &playback) {
     AbortUnless(!SDL_RenderCopy(SdlRenderer.get(),
                                 SdlTextureGamestate.get(),
                                 NULL,
-                                &OverlaySliceRect));
+                                &GamestateScaledRect));
     AbortUnless(!SDL_RenderCopy(SdlRenderer.get(),
-                                SdlTextureOutput.get(),
+                                SdlTextureOverlay.get(),
                                 NULL,
-                                NULL));
-
+                                &GamestateScaledRect));
+    AbortUnless(!SDL_RenderCopy(SdlRenderer.get(),
+                                SdlTextureSidebar.get(),
+                                NULL,
+                                &SidebarRect));
+    AbortUnless(!SDL_RenderCopy(SdlRenderer.get(),
+                                SdlTextureChat.get(),
+                                NULL,
+                                &ChatRect));
     SDL_RenderPresent(SdlRenderer.get());
 
     /* FPS counter */

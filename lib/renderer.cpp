@@ -2292,6 +2292,34 @@ void DrawClientBackground(Gamestate &gamestate,
     }
 }
 
+void DrawBorder(Canvas &canvas,
+                int leftX,
+                int topY,
+                int rightX,
+                int bottomY) noexcept {
+
+    canvas.DrawRectangle(Pixel(43u, 43u, 43u),
+                         leftX,
+                         topY,
+                         rightX - leftX,
+                         1);
+    canvas.DrawRectangle(Pixel(121u, 121u, 121u),
+                         leftX,
+                         bottomY - 1,
+                         rightX - leftX,
+                         1);
+    canvas.DrawRectangle(Pixel(43u, 43u, 43u),
+                         leftX,
+                         topY,
+                         1,
+                         bottomY - topY);
+    canvas.DrawRectangle(Pixel(121u, 121u, 121u),
+                         rightX - 1,
+                         topY,
+                         1,
+                         bottomY - topY);
+}
+
 void DumpItem(Version &version, uint16_t item, Canvas &canvas) noexcept {
     Object object(item);
     const auto &type = version.GetItem(item);

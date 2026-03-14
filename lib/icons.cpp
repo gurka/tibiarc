@@ -112,6 +112,7 @@ const Sprite &Icons::GetWarIcon(WarIcon war) const {
  * the icon Canvas. */
 Icons::Icons(const Version &version)
     : Canvas(version.Pictures.Get(PictureIndex::Icons)),
+      All(Canvas, 0, 0, Canvas.Width, Canvas.Height),
       ClientBackground(Canvas, 0, 0, 96, 96),
       EmptyStatusBar(Canvas, 96, 64, 90, 11),
       HealthBar(Canvas, 96, 75, 90, 11),

@@ -51,13 +51,21 @@ struct Rendering {
     std::unique_ptr<Canvas> CanvasGamestate;
     Wrapper<SDL_Texture> SdlTextureGamestate;
 
-    /* This canvas and texture are always the same size as the window */
-    std::unique_ptr<Canvas> CanvasOutput;
-    Wrapper<SDL_Texture> SdlTextureOutput;
-
     /* This rectangle represents where the gamestate texture should be rendered
      * on the output texture, including scaling */
-    SDL_Rect OverlaySliceRect;
+    SDL_Rect GamestateScaledRect;
+
+    /* This canvas and texture are always the same size as GamestateScaledRect */
+    std::unique_ptr<Canvas> CanvasOverlay;
+    Wrapper<SDL_Texture> SdlTextureOverlay;
+
+    SDL_Rect SidebarRect;
+    std::unique_ptr<Canvas> CanvasSidebar;
+    Wrapper<SDL_Texture> SdlTextureSidebar;
+
+    SDL_Rect ChatRect;
+    std::unique_ptr<Canvas> CanvasChat;
+    Wrapper<SDL_Texture> SdlTextureChat;
 
     uint32_t StatsLastUpdate = 0;
     uint32_t StatsFramesSinceLastUpdate = 0;
