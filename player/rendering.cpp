@@ -201,11 +201,11 @@ void Rendering::Render(Playback &playback) {
                                        background.Height);
 
         // Draw gamestate background border
-        Renderer::DrawBorder(background,
-                             GamestateScaledRect.x - 1,
-                             GamestateScaledRect.y - 1,
-                             GamestateScaledRect.x + GamestateScaledRect.w + 1,
-                             GamestateScaledRect.y + GamestateScaledRect.h + 1);
+        Renderer::DrawBorderHollow(background,
+                                   GamestateScaledRect.x - 1,
+                                   GamestateScaledRect.y - 1,
+                                   GamestateScaledRect.x + GamestateScaledRect.w + 1,
+                                   GamestateScaledRect.y + GamestateScaledRect.h + 1);
 
         SDL_UnlockTexture(SdlTextureBackground.get());
         BackgroundRendered = true;
@@ -315,6 +315,8 @@ void Rendering::Render(Playback &playback) {
                                  *CanvasSidebar,
                                  offsetX,
                                  offsetY);
+
+        offsetY += 5;
 
         Renderer::DrawInventoryArea(*playback.Gamestate,
                                     *CanvasSidebar,

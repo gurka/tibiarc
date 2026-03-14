@@ -119,11 +119,25 @@ void DrawClientBackground(Gamestate &gamestate,
                           int rightX,
                           int rightY) noexcept;
 
+void DrawBorderRaised(Canvas &canvas,
+                      int leftX,
+                      int topY,
+                      int rightX,
+                      int bottomY) noexcept;
+
+void DrawBorderHollow(Canvas &canvas,
+                      int leftX,
+                      int topY,
+                      int rightX,
+                      int bottomY) noexcept;
+
 void DrawBorder(Canvas &canvas,
                 int leftX,
                 int topY,
                 int rightX,
-                int bottomY) noexcept;
+                int bottomY,
+                const Pixel &topLeftColor,
+                const Pixel &bottomRightColor) noexcept;
 
 /* ************************************************************************* */
 

@@ -48,8 +48,15 @@ public:
     Sprite RiskyIcon;
     Sprite SecondaryStatBackground;
     Sprite Button34px;
+    Sprite Button34pxPressed;
     Sprite Button43px;
+    Sprite Button43pxPressed;
     Sprite Button86px;
+    Sprite Button86pxPressed;
+    Sprite Minimize;
+    Sprite MinimizePressed;
+    Sprite Close;
+    Sprite ClosePressed;
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;

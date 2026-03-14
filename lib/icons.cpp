@@ -125,8 +125,15 @@ Icons::Icons(const Version &version)
       RiskyIcon(Canvas, 230, 218, 11, 11),
       SecondaryStatBackground(Canvas, 315, 32, 34, 21),
       Button34px(Canvas, 174, 138, 34, 20),
+      Button34pxPressed(Canvas, 174, 158, 34, 20),
       Button43px(Canvas, 2, 138, 43, 20),
-      Button86px(Canvas, 45, 138, 86, 20) {
+      Button43pxPressed(Canvas, 2, 158, 43, 20),
+      Button86px(Canvas, 45, 138, 86, 20),
+      Button86pxPressed(Canvas, 45, 158, 86, 20),
+      Minimize(Canvas, 234, 98, 12, 12),
+      MinimizePressed(Canvas, 234, 110, 12, 12),
+      Close(Canvas, 222, 98, 12, 12),
+      ClosePressed(Canvas, 222, 110, 12, 12) {
     /* This is a bit ugly, but the initializer-list version of the
      * unordered_map constructor requires values to be copyable, which Sprite
      * is not. */

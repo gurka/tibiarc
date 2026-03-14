@@ -1969,17 +1969,17 @@ void DrawStatusBars(Gamestate &gamestate,
     int baseX = offsetX, baseY = offsetY;
     int statusBarX, statusBarY;
 
-    statusBarX = baseX + 24;
+    statusBarX = baseX + 32;
     statusBarY = baseY;
 
     canvas.Draw(icons.HealthIcon,
-                baseX,
-                baseY + 2,
+                baseX + 16,
+                baseY + 3,
                 icons.HealthIcon.Width,
                 icons.HealthIcon.Height);
     canvas.Draw(icons.ManaIcon,
-                baseX,
-                baseY + 15,
+                baseX + 16,
+                baseY + 16,
                 icons.ManaIcon.Width,
                 icons.ManaIcon.Height);
 
@@ -2052,7 +2052,16 @@ void DrawInventoryArea(Gamestate &gamestate,
     const Version &version = gamestate.Version;
     const Icons &icons = version.Icons;
 
+    int leftX = offsetX;
+    int topY = offsetY;
+
     int baseX = offsetX, baseY = offsetY;
+
+    canvas.Draw(icons.Minimize,
+                baseX + 16,
+                baseY,
+                icons.Minimize.Width,
+                icons.Minimize.Height);
 
     for (auto [slot, x, y] :
          std::initializer_list<std::tuple<InventorySlot, int, int>>{
@@ -2123,9 +2132,9 @@ void DrawInventoryArea(Gamestate &gamestate,
                                      canvas);
 
     /* Update the render position */
-    offsetY = baseY + icons.SecondaryStatBackground.Height + 3;
+    offsetY = baseY + icons.SecondaryStatBackground.Height + 6;
 
-    // Testing
+    /* Skills, Battle and VIP buttons */
     const auto skillsX = baseX + 16;
     canvas.Draw(icons.Button34px,
                 skillsX,
@@ -2167,6 +2176,9 @@ void DrawInventoryArea(Gamestate &gamestate,
 
 
     offsetY += icons.Button34px.Height + 4;
+
+    /* Now that we know where we rendered, draw the border */
+    DrawBorderRaised(canvas, leftX, topY, leftX + 150, offsetY);
 }
 
 int MeasureContainerHeight(Gamestate &gamestate,
@@ -2335,28 +2347,58 @@ void DrawClientBackground(Gamestate &gamestate,
     }
 }
 
+void DrawBorderRaised(Canvas &canvas,
+                      int leftX,
+                      int topY,
+                      int rightX,
+                      int bottomY) noexcept {
+    DrawBorder(canvas,
+               leftX,
+               topY,
+               rightX,
+               bottomY,
+               Pixel(121u, 121u, 121u),
+               Pixel(43u, 43u, 43u));
+}
+
+void DrawBorderHollow(Canvas &canvas,
+                      int leftX,
+                      int topY,
+                      int rightX,
+                      int bottomY) noexcept {
+    DrawBorder(canvas,
+               leftX,
+               topY,
+               rightX,
+               bottomY,
+               Pixel(43u, 43u, 43u),
+               Pixel(121u, 121u, 121u));
+}
+
 void DrawBorder(Canvas &canvas,
                 int leftX,
                 int topY,
                 int rightX,
-                int bottomY) noexcept {
+                int bottomY,
+                const Pixel& topLeftColor,
+                const Pixel& bottomRightColor) noexcept {
 
-    canvas.DrawRectangle(Pixel(43u, 43u, 43u),
+    canvas.DrawRectangle(topLeftColor,
                          leftX,
                          topY,
                          rightX - leftX,
                          1);
-    canvas.DrawRectangle(Pixel(121u, 121u, 121u),
+    canvas.DrawRectangle(bottomRightColor,
                          leftX,
                          bottomY - 1,
                          rightX - leftX,
                          1);
-    canvas.DrawRectangle(Pixel(43u, 43u, 43u),
+    canvas.DrawRectangle(topLeftColor,
                          leftX,
                          topY,
                          1,
                          bottomY - topY);
-    canvas.DrawRectangle(Pixel(121u, 121u, 121u),
+    canvas.DrawRectangle(bottomRightColor,
                          rightX - 1,
                          topY,
                          1,
