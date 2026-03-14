@@ -207,7 +207,6 @@ void Rendering::Render(Playback &playback) {
                              GamestateScaledRect.x + GamestateScaledRect.w + 1,
                              GamestateScaledRect.y + GamestateScaledRect.h + 1);
 
-
         SDL_UnlockTexture(SdlTextureBackground.get());
         BackgroundRendered = true;
     }

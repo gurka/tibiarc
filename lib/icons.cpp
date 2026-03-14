@@ -123,7 +123,10 @@ Icons::Icons(const Version &version)
       ManaBar(Canvas, 96, 86, 90, 11),
       ManaIcon(Canvas, 220, 87, 11, 11),
       RiskyIcon(Canvas, 230, 218, 11, 11),
-      SecondaryStatBackground(Canvas, 315, 32, 34, 21) {
+      SecondaryStatBackground(Canvas, 315, 32, 34, 21),
+      Button34px(Canvas, 174, 138, 34, 20),
+      Button43px(Canvas, 2, 138, 43, 20),
+      Button86px(Canvas, 45, 138, 86, 20) {
     /* This is a bit ugly, but the initializer-list version of the
      * unordered_map constructor requires values to be copyable, which Sprite
      * is not. */

@@ -2124,6 +2124,49 @@ void DrawInventoryArea(Gamestate &gamestate,
 
     /* Update the render position */
     offsetY = baseY + icons.SecondaryStatBackground.Height + 3;
+
+    // Testing
+    const auto skillsX = baseX + 16;
+    canvas.Draw(icons.Button34px,
+                skillsX,
+                offsetY,
+                icons.Button34px.Width,
+                icons.Button34px.Height);
+    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                     Pixel(0xEF, 0xEF, 0xEF),
+                                     skillsX + (icons.Button34px.Width / 2),
+                                     offsetY + 6,
+                                     "Skills",
+                                     canvas);
+
+    const auto battleX = baseX + 53;
+    canvas.Draw(icons.Button34px,
+                battleX,
+                offsetY,
+                icons.Button34px.Width,
+                icons.Button34px.Height);
+    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                     Pixel(0xEF, 0xEF, 0xEF),
+                                     battleX + (icons.Button34px.Width / 2),
+                                     offsetY + 6,
+                                     "Battle",
+                                     canvas);
+
+    const auto vipX = baseX + 90;
+    canvas.Draw(icons.Button34px,
+                vipX,
+                offsetY,
+                icons.Button34px.Width,
+                icons.Button34px.Height);
+    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                     Pixel(0xEF, 0xEF, 0xEF),
+                                     vipX + (icons.Button34px.Width / 2),
+                                     offsetY + 6,
+                                     "VIP",
+                                     canvas);
+
+
+    offsetY += icons.Button34px.Height + 4;
 }
 
 int MeasureContainerHeight(Gamestate &gamestate,

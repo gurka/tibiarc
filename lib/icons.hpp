@@ -47,6 +47,9 @@ public:
     Sprite ManaIcon;
     Sprite RiskyIcon;
     Sprite SecondaryStatBackground;
+    Sprite Button34px;
+    Sprite Button43px;
+    Sprite Button86px;
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;
