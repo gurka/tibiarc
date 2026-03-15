@@ -57,6 +57,8 @@ public:
     Sprite MinimizePressed;
     Sprite Close;
     Sprite ClosePressed;
+    Sprite SkillsIcon;
+    Sprite BattleIcon;
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;

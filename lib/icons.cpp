@@ -133,7 +133,9 @@ Icons::Icons(const Version &version)
       Minimize(Canvas, 234, 98, 12, 12),
       MinimizePressed(Canvas, 234, 110, 12, 12),
       Close(Canvas, 222, 98, 12, 12),
-      ClosePressed(Canvas, 222, 110, 12, 12) {
+      ClosePressed(Canvas, 222, 110, 12, 12),
+      SkillsIcon(Canvas, 301, 60, 12, 12),
+      BattleIcon(Canvas, 289, 60, 12, 12) {
     /* This is a bit ugly, but the initializer-list version of the
      * unordered_map constructor requires values to be copyable, which Sprite
      * is not. */

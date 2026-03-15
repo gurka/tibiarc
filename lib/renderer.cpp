@@ -2134,7 +2134,8 @@ void DrawInventoryArea(Gamestate &gamestate,
     /* Update the render position */
     offsetY = baseY + icons.SecondaryStatBackground.Height + 6;
 
-    /* Skills, Battle and VIP buttons */
+    /* Skills, Battle and VIP buttons
+     * TODO: move this to separate function */
     const auto skillsX = baseX + 16;
     canvas.Draw(icons.Button34px,
                 skillsX,
@@ -2176,9 +2177,6 @@ void DrawInventoryArea(Gamestate &gamestate,
 
 
     offsetY += icons.Button34px.Height + 4;
-
-    /* Now that we know where we rendered, draw the border */
-    DrawBorderRaised(canvas, leftX, topY, leftX + 150, offsetY);
 }
 
 int MeasureContainerHeight(Gamestate &gamestate,
@@ -2277,6 +2275,8 @@ void DrawSkills(Gamestate &gamestate,
                 int rightX,
                 int &offsetX,
                 int &offsetY) noexcept {
+
+    /*
     const Version &version = gamestate.Version;
 
     int baseX = offsetX, baseY = offsetY;
@@ -2326,6 +2326,7 @@ void DrawSkills(Gamestate &gamestate,
     drawStat("Fishing", gamestate.Player.Skills[6].Effective);
 
     offsetY = baseY;
+    */
 }
 
 void DrawClientBackground(Gamestate &gamestate,

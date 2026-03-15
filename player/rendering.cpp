@@ -323,6 +323,13 @@ void Rendering::Render(Playback &playback) {
                                     offsetX,
                                     offsetY);
 
+        /* Border around (map), status bars and inventory area */
+        Renderer::DrawBorderRaised(*CanvasSidebar,
+                                   0,
+                                   0,
+                                   160,
+                                   offsetY);
+
         if (playback.Gamestate->Version.Features.IconBar) {
             Renderer::DrawIconBar(*playback.Gamestate,
                                   *CanvasSidebar,
