@@ -69,26 +69,14 @@ struct Options {
  * std::terminate() on data errors, which should've been caught by the
  * parser. */
 
-int MeasureInventoryAreaHeight(Gamestate &gamestate) noexcept;
-
-void DrawInventoryArea(Gamestate &gamestate,
-                       Canvas &canvas,
-                       int &offsetX,
-                       int &offsetY) noexcept;
-
-int MeasureIconBarHeight(Gamestate &gamestate) noexcept;
+void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas) noexcept;
+void DrawStatusBars(Gamestate &gamestate, Canvas &canvas) noexcept;
+void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas) noexcept;
 
 void DrawIconBar(Gamestate &gamestate,
                  Canvas &canvas,
                  int &offsetX,
                  int &offsetY) noexcept;
-
-int MeasureStatusBarsHeight(Gamestate &gamestate) noexcept;
-
-void DrawStatusBars(Gamestate &gamestate,
-                    Canvas &canvas,
-                    int &offsetX,
-                    int &offsetY) noexcept;
 
 int MeasureContainerHeight(Gamestate &gamestate,
                            Container &container,
@@ -103,8 +91,6 @@ void DrawContainer(Gamestate &gamestate,
                    int maxY,
                    int &offsetX,
                    int &offsetY) noexcept;
-
-int MeasureSkillsHeight(Gamestate &gamestate) noexcept;
 
 void DrawSkills(Gamestate &gamestate,
                 Canvas &canvas,
@@ -123,13 +109,15 @@ void DrawBorderRaised(Canvas &canvas,
                       int leftX,
                       int topY,
                       int rightX,
-                      int bottomY) noexcept;
+                      int bottomY,
+                      int thickness) noexcept;
 
 void DrawBorderHollow(Canvas &canvas,
                       int leftX,
                       int topY,
                       int rightX,
-                      int bottomY) noexcept;
+                      int bottomY,
+                      int thickness) noexcept;
 
 void DrawBorder(Canvas &canvas,
                 int leftX,
@@ -137,7 +125,8 @@ void DrawBorder(Canvas &canvas,
                 int rightX,
                 int bottomY,
                 const Pixel &topLeftColor,
-                const Pixel &bottomRightColor) noexcept;
+                const Pixel &bottomRightColor,
+                int thickness) noexcept;
 
 /* ************************************************************************* */
 

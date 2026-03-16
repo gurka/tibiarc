@@ -37,16 +37,27 @@ class Icons {
 public:
     Sprite All;
     Sprite ClientBackground;
-    Sprite EmptyStatusBar;
-    Sprite HealthBar;
-    Sprite HealthIcon;
     Sprite IconBarBackground;
     Sprite IconBarWar;
     Sprite InventoryBackground;
-    Sprite ManaBar;
-    Sprite ManaIcon;
     Sprite RiskyIcon;
     Sprite SecondaryStatBackground;
+
+    // Minimap area
+    Sprite Compass;
+    Sprite ZoomIn;
+    Sprite ZoomOut;
+    Sprite LevelUp;
+    Sprite LevelDown;
+
+    // Statusbars
+    Sprite HealthIcon;
+    Sprite ManaIcon;
+    Sprite EmptyStatusBar;
+    Sprite HealthBar;
+    Sprite ManaBar;
+
+    // Buttons
     Sprite Button34px;
     Sprite Button34pxPressed;
     Sprite Button43px;
@@ -59,6 +70,12 @@ public:
     Sprite ClosePressed;
     Sprite SkillsIcon;
     Sprite BattleIcon;
+    Sprite FightingOffensive;
+    Sprite FightingBalanced;
+    Sprite FightingDefensive;
+    Sprite AttackStanding;
+    Sprite AttackChasing;
+    Sprite AttackUnmarked;  // Note: before 7.4 this sprite and button was attack mode "keep distance"
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;

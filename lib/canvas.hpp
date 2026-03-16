@@ -77,6 +77,7 @@ public:
                        int x,
                        int y);
 
+    void Draw(const Sprite &sprite, int x, int y);
     void Draw(const Sprite &sprite, int x, int y, int width, int height);
 
     void Tint(const Sprite &sprite,

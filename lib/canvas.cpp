@@ -402,6 +402,10 @@ void Canvas::Tint(const Sprite &sprite,
 }
 
 void Canvas::Draw(const Sprite &sprite,
+                  const int x, const int y) {
+    Draw(sprite, x, y, sprite.Width, sprite.Height);
+}
+void Canvas::Draw(const Sprite &sprite,
                   const int x,
                   const int y,
                   const int width,

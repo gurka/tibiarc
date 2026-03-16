@@ -114,16 +114,24 @@ Icons::Icons(const Version &version)
     : Canvas(version.Pictures.Get(PictureIndex::Icons)),
       All(Canvas, 0, 0, Canvas.Width, Canvas.Height),
       ClientBackground(Canvas, 0, 0, 96, 96),
-      EmptyStatusBar(Canvas, 96, 64, 90, 11),
-      HealthBar(Canvas, 96, 75, 90, 11),
-      HealthIcon(Canvas, 220, 76, 11, 11),
       IconBarBackground(Canvas, 98, 240, 108, 13),
       IconBarWar(Canvas, 251, 218, 9, 9),
       InventoryBackground(Canvas, 186, 64, 34, 34),
-      ManaBar(Canvas, 96, 86, 90, 11),
-      ManaIcon(Canvas, 220, 87, 11, 11),
       RiskyIcon(Canvas, 230, 218, 11, 11),
       SecondaryStatBackground(Canvas, 315, 32, 34, 21),
+
+      Compass(Canvas, 131, 138, 43, 43),
+      ZoomIn(Canvas, 2, 98, 20, 20),
+      ZoomOut(Canvas, 22, 98, 20, 20),
+      LevelUp(Canvas, 42, 98, 20, 20),
+      LevelDown(Canvas, 62, 98, 20, 20),
+
+      HealthIcon(Canvas, 220, 76, 11, 11),
+      ManaIcon(Canvas, 220, 87, 11, 11),
+      EmptyStatusBar(Canvas, 96, 64, 90, 11),
+      HealthBar(Canvas, 96, 75, 90, 11),
+      ManaBar(Canvas, 96, 86, 90, 11),
+
       Button34px(Canvas, 174, 138, 34, 20),
       Button34pxPressed(Canvas, 174, 158, 34, 20),
       Button43px(Canvas, 2, 138, 43, 20),
@@ -135,7 +143,14 @@ Icons::Icons(const Version &version)
       Close(Canvas, 222, 98, 12, 12),
       ClosePressed(Canvas, 222, 110, 12, 12),
       SkillsIcon(Canvas, 301, 60, 12, 12),
-      BattleIcon(Canvas, 289, 60, 12, 12) {
+      BattleIcon(Canvas, 289, 60, 12, 12),
+      FightingOffensive(Canvas, 82, 98, 20, 20),
+      FightingBalanced(Canvas, 102, 98, 20, 20),
+      FightingDefensive(Canvas, 122, 98, 20, 20),
+      AttackStanding(Canvas, 142, 98, 20, 20),
+      AttackChasing(Canvas, 162, 98, 20, 20),
+      AttackUnmarked(Canvas, 182, 98, 20, 20) {
+
     /* This is a bit ugly, but the initializer-list version of the
      * unordered_map constructor requires values to be copyable, which Sprite
      * is not. */

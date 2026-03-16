@@ -102,6 +102,10 @@ void Rendering::HandleResize() {
     SDL_GetRendererOutputSize(SdlRenderer.get(), &width, &height);
 
     std::cout << "handle resize: " << width << "x" << height << std::endl;
+    if (width < 666 || height < 472) {
+        // TODO: prevent this instead of crashing
+        abort();
+    }
     if (RenderOptions.Width == width && RenderOptions.Height == height) {
         std::cerr << "bogus resize event?" << std::endl;
         return;
@@ -127,20 +131,21 @@ void Rendering::HandleResize() {
 
     /* Calculate how much to scale the gamestate.
      * We want it to be centered in an area starting at the top-left of
-     * the window, with at least 160 pixels free on the right side for the sidebar
-     * and 160 pixels free at the bottom for the chat.
-     * We also want a small margin between the gamestate and everything else */
-    int margin = 10;
-    int max_w = RenderOptions.Width - 160 - (margin * 2);
-    int max_h = RenderOptions.Height - 160 - (margin * 2);
+     * the window, with exactly 176 pixels free on the right side for the sidebar
+     * and 110 pixels free at the bottom for the chat.
+     * We also want a 1px border and 4px margin between the gamestate and everything else */
+    int margin = 4;
+    int border = 1;
+    int max_w = RenderOptions.Width - 176 - ((margin + border) * 2);
+    int max_h = RenderOptions.Height - 110 - ((margin + border) * 2);
     float scale = std::min(max_w / (float)Renderer::NativeResolutionX,
                            max_h / (float)Renderer::NativeResolutionY);
 
     /* Now calculate where to render the gamestate. */
     GamestateScaledRect.x =
-            ((max_w - (int)(Renderer::NativeResolutionX * scale)) / 2) + margin;
+            ((max_w - (int)(Renderer::NativeResolutionX * scale)) / 2) + margin + border;
     GamestateScaledRect.y =
-            ((max_h - (int)(Renderer::NativeResolutionY * scale)) / 2) + margin;
+            ((max_h - (int)(Renderer::NativeResolutionY * scale)) / 2) + margin + border;
     GamestateScaledRect.w = (int)(Renderer::NativeResolutionX * scale);
     GamestateScaledRect.h = (int)(Renderer::NativeResolutionY * scale);
 
@@ -150,9 +155,9 @@ void Rendering::HandleResize() {
     SdlTextureOverlay = CreateTexture(GamestateScaledRect.w, GamestateScaledRect.h);
 
     /* We always render the sidebar on the far right side of the screen */
-    SidebarRect.x = RenderOptions.Width - 160;
+    SidebarRect.x = RenderOptions.Width - 176;
     SidebarRect.y = 0;
-    SidebarRect.w = 160;
+    SidebarRect.w = 176;
     SidebarRect.h = RenderOptions.Height;
     CanvasSidebar = std::make_unique<Canvas>(SidebarRect.w,
                                              SidebarRect.h,
@@ -160,9 +165,9 @@ void Rendering::HandleResize() {
     SdlTextureSidebar = CreateTexture(SidebarRect.w, SidebarRect.h);
 
     ChatRect.x = 0;
-    ChatRect.y = RenderOptions.Height - 160;
-    ChatRect.w = RenderOptions.Width - 160;
-    ChatRect.h = 160;
+    ChatRect.y = RenderOptions.Height - 110;
+    ChatRect.w = RenderOptions.Width - 176;
+    ChatRect.h = 110;
     CanvasChat = std::make_unique<Canvas>(ChatRect.w,
                                           ChatRect.h,
                                           Canvas::Type::External);
@@ -205,7 +210,8 @@ void Rendering::Render(Playback &playback) {
                                    GamestateScaledRect.x - 1,
                                    GamestateScaledRect.y - 1,
                                    GamestateScaledRect.x + GamestateScaledRect.w + 1,
-                                   GamestateScaledRect.y + GamestateScaledRect.h + 1);
+                                   GamestateScaledRect.y + GamestateScaledRect.h + 1,
+                                   1);
 
         SDL_UnlockTexture(SdlTextureBackground.get());
         BackgroundRendered = true;
@@ -308,14 +314,13 @@ void Rendering::Render(Playback &playback) {
                                      &CanvasSidebar->Stride));
 
         CanvasSidebar->Wipe();
-        int offsetX = 4;
-        int offsetY = 4;
 
-        Renderer::DrawStatusBars(*playback.Gamestate,
-                                 *CanvasSidebar,
-                                 offsetX,
-                                 offsetY);
-
+        // For now, don't support changing order of these
+        Renderer::DrawBorderRaised(*CanvasSidebar, 0, 0, 176, 334, 2);
+        Renderer::DrawMinimapArea(*playback.Gamestate, *CanvasSidebar);
+        Renderer::DrawStatusBars(*playback.Gamestate, *CanvasSidebar);
+        Renderer::DrawInventoryArea(*playback.Gamestate, *CanvasSidebar);
+        /*
         offsetY += 5;
 
         Renderer::DrawInventoryArea(*playback.Gamestate,
@@ -323,7 +328,7 @@ void Rendering::Render(Playback &playback) {
                                     offsetX,
                                     offsetY);
 
-        /* Border around (map), status bars and inventory area */
+        // Border around (map), status bars and inventory area
         Renderer::DrawBorderRaised(*CanvasSidebar,
                                    0,
                                    0,
@@ -342,6 +347,7 @@ void Rendering::Render(Playback &playback) {
                              160 - 24,
                              offsetX,
                              offsetY);
+        */
 
         /*
         int max_container_y = CanvasSidebar->Height - 4 - 32;
