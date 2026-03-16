@@ -116,6 +116,9 @@ void Rendering::HandleResize() {
     RenderOptions.Height = height;
 
     /* Create canvases, which are (going to be) backed by SDL_Textures */
+    // TODO: Rework this. For each part of the window (gamestate, sidebar, chat)
+    //       we should split the rendering into static parts and dynamic parts
+    //       e.g. only re-render the inventory area if it has actually changed
     SdlTextureBackground = CreateTexture(width, height);
     BackgroundRendered = false;
 
@@ -206,12 +209,12 @@ void Rendering::Render(Playback &playback) {
                                        background.Height);
 
         // Draw gamestate background border
-        Renderer::DrawBorderHollow(background,
-                                   GamestateScaledRect.x - 1,
-                                   GamestateScaledRect.y - 1,
-                                   GamestateScaledRect.x + GamestateScaledRect.w + 1,
-                                   GamestateScaledRect.y + GamestateScaledRect.h + 1,
-                                   1);
+        Renderer::ApplyBorderHollow(background,
+                                    GamestateScaledRect.x - 1,
+                                    GamestateScaledRect.y - 1,
+                                    GamestateScaledRect.x + GamestateScaledRect.w + 1,
+                                    GamestateScaledRect.y + GamestateScaledRect.h + 1,
+                                    1);
 
         SDL_UnlockTexture(SdlTextureBackground.get());
         BackgroundRendered = true;
@@ -316,7 +319,13 @@ void Rendering::Render(Playback &playback) {
         CanvasSidebar->Wipe();
 
         // For now, don't support changing order of these
-        Renderer::DrawBorderRaised(*CanvasSidebar, 0, 0, 176, 334, 2);
+        Renderer::DrawClientBackground(*playback.Gamestate,
+                                       *CanvasSidebar,
+                                       0,
+                                       0,
+                                       CanvasSidebar->Width,
+                                       CanvasSidebar->Height);
+        Renderer::ApplyBorderRaised(*CanvasSidebar, 0, 0, 176, 334, 2);
         Renderer::DrawMinimapArea(*playback.Gamestate, *CanvasSidebar);
         Renderer::DrawStatusBars(*playback.Gamestate, *CanvasSidebar);
         Renderer::DrawInventoryArea(*playback.Gamestate, *CanvasSidebar);

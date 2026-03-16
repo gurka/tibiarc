@@ -105,28 +105,28 @@ void DrawClientBackground(Gamestate &gamestate,
                           int rightX,
                           int rightY) noexcept;
 
-void DrawBorderRaised(Canvas &canvas,
-                      int leftX,
-                      int topY,
-                      int rightX,
-                      int bottomY,
-                      int thickness) noexcept;
+void ApplyBorderRaised(Canvas &canvas,
+                       int leftX,
+                       int topY,
+                       int rightX,
+                       int bottomY,
+                       int thickness) noexcept;
 
-void DrawBorderHollow(Canvas &canvas,
-                      int leftX,
-                      int topY,
-                      int rightX,
-                      int bottomY,
-                      int thickness) noexcept;
+void ApplyBorderHollow(Canvas &canvas,
+                       int leftX,
+                       int topY,
+                       int rightX,
+                       int bottomY,
+                       int thickness) noexcept;
 
-void DrawBorder(Canvas &canvas,
-                int leftX,
-                int topY,
-                int rightX,
-                int bottomY,
-                const Pixel &topLeftColor,
-                const Pixel &bottomRightColor,
-                int thickness) noexcept;
+void ApplyBorder(Canvas &canvas,
+                 int leftX,
+                 int topY,
+                 int rightX,
+                 int bottomY,
+                 int thickness,
+                 int topLeftBrightnessChange,
+                 int bottomRightBrightnessChange) noexcept;
 
 /* ************************************************************************* */
 

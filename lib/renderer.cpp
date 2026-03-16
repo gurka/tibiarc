@@ -1952,7 +1952,7 @@ void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
 
     // Minimap, empty for now
-    DrawBorderHollow(canvas, 10, 6, 10 + 108, 6 + 108, 1);
+    ApplyBorderHollow(canvas, 10, 6, 10 + 108, 6 + 108, 1);
     canvas.DrawRectangle(Pixel(0, 0, 0), 11, 7, 106, 106);
 
     // Buttons
@@ -2308,67 +2308,71 @@ void DrawClientBackground(Gamestate &gamestate,
     }
 }
 
-void DrawBorderRaised(Canvas &canvas,
-                      int leftX,
-                      int topY,
-                      int rightX,
-                      int bottomY,
-                      int thickness) noexcept {
-    DrawBorder(canvas,
-               leftX,
-               topY,
-               rightX,
-               bottomY,
-               Pixel(121u, 121u, 121u),
-               Pixel(43u, 43u, 43u),
-               thickness);
+void ApplyBorderRaised(Canvas &canvas,
+                       int leftX,
+                       int topY,
+                       int rightX,
+                       int bottomY,
+                       int thickness) noexcept {
+    ApplyBorder(canvas, leftX, topY, rightX, bottomY, thickness, 0x2D, -0x20);
 }
 
-void DrawBorderHollow(Canvas &canvas,
-                      int leftX,
-                      int topY,
-                      int rightX,
-                      int bottomY,
-                      int thickness) noexcept {
-    DrawBorder(canvas,
-               leftX,
-               topY,
-               rightX,
-               bottomY,
-               Pixel(43u, 43u, 43u),
-               Pixel(121u, 121u, 121u),
-               thickness);
+void ApplyBorderHollow(Canvas &canvas,
+                       int leftX,
+                       int topY,
+                       int rightX,
+                       int bottomY,
+                       int thickness) noexcept {
+    ApplyBorder(canvas, leftX, topY, rightX, bottomY, thickness, -0x20, 0x2D);
 }
 
-void DrawBorder(Canvas &canvas,
-                int leftX,
-                int topY,
-                int rightX,
-                int bottomY,
-                const Pixel& topLeftColor,
-                const Pixel& bottomRightColor,
-                int thickness) noexcept {
+void ApplyBorder(Canvas &canvas,
+                 int leftX,
+                 int topY,
+                 int rightX,
+                 int bottomY,
+                 int thickness,
+                 int topLeftBrightnessChange,
+                 int bottomRightBrightnessChange) noexcept {
+    // Top line(s)
+    for (int y = topY; y < (topY + thickness); y += 1) {
+        for (int x = leftX; x < rightX; x += 1) {
+            auto &pixel = canvas.GetPixel(x, y);
+            pixel.Red += topLeftBrightnessChange;
+            pixel.Green += topLeftBrightnessChange;
+            pixel.Blue += topLeftBrightnessChange;
+        }
+    }
 
-    canvas.DrawRectangle(topLeftColor,
-                         leftX,
-                         topY,
-                         rightX - leftX,
-                         thickness);
-    canvas.DrawRectangle(bottomRightColor,
-                         leftX,
-                         bottomY - thickness,
-                         rightX - leftX,
-                         thickness);
-    canvas.DrawRectangle(topLeftColor,
-                         leftX,
-                         topY,
-                         thickness,
-                         bottomY - topY);
-    canvas.DrawRectangle(bottomRightColor,
-                         rightX - thickness,
-                         topY,
-                         thickness,
-                         bottomY - topY);
+    // Left line(s)
+    for (int y = (topY + thickness); y < bottomY; y += 1) {
+        for (int x = leftX; x < (leftX + thickness); x += 1) {
+            auto &pixel = canvas.GetPixel(x, y);
+            pixel.Red += topLeftBrightnessChange;
+            pixel.Green += topLeftBrightnessChange;
+            pixel.Blue += topLeftBrightnessChange;
+        }
+    }
+
+    // Right line(s)
+    for (int y = topY; y < bottomY; y += 1) {
+        for (int x = (rightX - thickness); x < rightX; x += 1) {
+            auto &pixel = canvas.GetPixel(x, y);
+            pixel.Red += bottomRightBrightnessChange;
+            pixel.Green += bottomRightBrightnessChange;
+            pixel.Blue += bottomRightBrightnessChange;
+        }
+    }
+
+    // Bottom line(s)
+    for (int y = (bottomY - thickness); y < bottomY; y += 1) {
+        for (int x = leftX; x < (rightX - thickness); x += 1) {
+            auto &pixel = canvas.GetPixel(x, y);
+            pixel.Red += bottomRightBrightnessChange;
+            pixel.Green += bottomRightBrightnessChange;
+            pixel.Blue += bottomRightBrightnessChange;
+        }
+    }
 }
 
 void DumpItem(Version &version, uint16_t item, Canvas &canvas) noexcept {
