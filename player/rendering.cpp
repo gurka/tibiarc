@@ -201,12 +201,12 @@ void Rendering::Render(Playback &playback) {
                                      &background.Stride));
 
         // Draw background on the whole canvas
-        Renderer::DrawClientBackground(*playback.Gamestate,
-                                       background,
-                                       0,
-                                       0,
-                                       background.Width,
-                                       background.Height);
+        Renderer::DrawBackground(playback.Gamestate->Version.Icons.ClientBackground,
+                                 background,
+                                 0,
+                                 0,
+                                 background.Width,
+                                 background.Height);
 
         // Draw gamestate background border
         Renderer::ApplyBorderHollow(background,
@@ -319,16 +319,17 @@ void Rendering::Render(Playback &playback) {
         CanvasSidebar->Wipe();
 
         // For now, don't support changing order of these
-        Renderer::DrawClientBackground(*playback.Gamestate,
-                                       *CanvasSidebar,
-                                       0,
-                                       0,
-                                       CanvasSidebar->Width,
-                                       CanvasSidebar->Height);
+        Renderer::DrawBackground(playback.Gamestate->Version.Icons.ClientBackground,
+                                 *CanvasSidebar,
+                                 0,
+                                 0,
+                                 CanvasSidebar->Width,
+                                 CanvasSidebar->Height);
         Renderer::ApplyBorderRaised(*CanvasSidebar, 0, 0, 176, 334, 2);
         Renderer::DrawMinimapArea(*playback.Gamestate, *CanvasSidebar);
         Renderer::DrawStatusBars(*playback.Gamestate, *CanvasSidebar);
         Renderer::DrawInventoryArea(*playback.Gamestate, *CanvasSidebar);
+        Renderer::DrawSkills(*playback.Gamestate, *CanvasSidebar);
         /*
         offsetY += 5;
 

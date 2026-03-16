@@ -92,18 +92,14 @@ void DrawContainer(Gamestate &gamestate,
                    int &offsetX,
                    int &offsetY) noexcept;
 
-void DrawSkills(Gamestate &gamestate,
-                Canvas &canvas,
-                int rightX,
-                int &offsetX,
-                int &offsetY) noexcept;
+void DrawSkills(Gamestate &gamestate, Canvas &canvas) noexcept;
 
-void DrawClientBackground(Gamestate &gamestate,
-                          Canvas &canvas,
-                          int topX,
-                          int topY,
-                          int rightX,
-                          int rightY) noexcept;
+void DrawBackground(const Sprite &sprite,
+                    Canvas &canvas,
+                    int topX,
+                    int topY,
+                    int rightX,
+                    int rightY) noexcept;
 
 void ApplyBorderRaised(Canvas &canvas,
                        int leftX,

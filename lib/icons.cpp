@@ -112,7 +112,6 @@ const Sprite &Icons::GetWarIcon(WarIcon war) const {
  * the icon Canvas. */
 Icons::Icons(const Version &version)
     : Canvas(version.Pictures.Get(PictureIndex::Icons)),
-      All(Canvas, 0, 0, Canvas.Width, Canvas.Height),
       ClientBackground(Canvas, 0, 0, 96, 96),
       IconBarBackground(Canvas, 98, 240, 108, 13),
       IconBarWar(Canvas, 251, 218, 9, 9),
@@ -149,7 +148,16 @@ Icons::Icons(const Version &version)
       FightingDefensive(Canvas, 122, 98, 20, 20),
       AttackStanding(Canvas, 142, 98, 20, 20),
       AttackChasing(Canvas, 162, 98, 20, 20),
-      AttackUnmarked(Canvas, 182, 98, 20, 20) {
+      AttackUnmarked(Canvas, 182, 98, 20, 20),
+
+      WindowHeaderMiddle(Canvas, 2, 178, 96, 15),
+      WindowHeaderLeft(Canvas, 98, 178, 4, 15),
+      WindowHeaderRight(Canvas, 102, 178, 4, 15),
+      WindowLeft(Canvas, 256, 0, 4, 96),
+      WindowRight(Canvas, 260, 0, 4, 96),
+      WindowBottom(Canvas, 2, 193, 96, 4),
+      WindowBottomLeft(Canvas, 98, 193, 4, 4),
+      WindowBottomRight(Canvas, 102, 193, 4, 4) {
 
     /* This is a bit ugly, but the initializer-list version of the
      * unordered_map constructor requires values to be copyable, which Sprite

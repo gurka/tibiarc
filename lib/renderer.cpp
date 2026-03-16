@@ -2230,11 +2230,32 @@ void DrawContainer(Gamestate &gamestate,
     offsetY = baseY;
 }
 
-void DrawSkills(Gamestate &gamestate,
-                Canvas &canvas,
-                int rightX,
-                int &offsetX,
-                int &offsetY) noexcept {
+void DrawSkills(Gamestate &gamestate, Canvas &canvas) noexcept {
+    const auto &icons = gamestate.Version.Icons;
+    const auto &fonts = gamestate.Version.Fonts;
+
+    // Header
+    canvas.Draw(icons.WindowHeaderLeft, 0, 334);
+    DrawBackground(icons.WindowHeaderMiddle, canvas, 4, 334, 176 - 4, 334 + 15);
+    canvas.Draw(icons.WindowHeaderRight, 176 - 4, 334);
+    canvas.Draw(icons.SkillsIcon, 4, 336);
+    TextRenderer::DrawLeftAlignedString(fonts.InterfaceLarge,
+                                        Pixel(0x8F, 0x8F, 0x8F),
+                                        20,
+                                        338,
+                                        "Skills",
+                                        canvas);
+    canvas.Draw(icons.WindowLeft, 0, 334 + 15, icons.WindowLeft.Width, 38);
+    canvas.Draw(icons.WindowRight, 176 - icons.WindowRight.Width, 334 + 15, icons.WindowRight.Width, 38);
+
+    canvas.Draw(icons.WindowBottomLeft, 0, 334 + 15 + 38);
+    DrawBackground(icons.WindowBottom,
+                   canvas,
+                   4,
+                   334 + 15 + 38,
+                   176 - 4,
+                   334 + 15 + 38 + 4);
+    canvas.Draw(icons.WindowBottomRight, 176 - 4, 334 + 15 + 38);
 
     /*
     const Version &version = gamestate.Version;
@@ -2289,14 +2310,12 @@ void DrawSkills(Gamestate &gamestate,
     */
 }
 
-void DrawClientBackground(Gamestate &gamestate,
-                          Canvas &canvas,
-                          int leftX,
-                          int topY,
-                          int rightX,
-                          int bottomY) noexcept {
-    const auto &sprite = gamestate.Version.Icons.ClientBackground;
-
+void DrawBackground(const Sprite &sprite,
+                    Canvas &canvas,
+                    int leftX,
+                    int topY,
+                    int rightX,
+                    int bottomY) noexcept {
     for (int toY = topY; toY < bottomY; toY += sprite.Height) {
         for (int toX = leftX; toX < rightX; toX += sprite.Width) {
             canvas.Draw(sprite,

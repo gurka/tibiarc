@@ -35,7 +35,6 @@ class Icons {
     const trc::Canvas &Canvas;
 
 public:
-    Sprite All;
     Sprite ClientBackground;
     Sprite IconBarBackground;
     Sprite IconBarWar;
@@ -76,6 +75,16 @@ public:
     Sprite AttackStanding;
     Sprite AttackChasing;
     Sprite AttackUnmarked;  // Note: before 7.4 this sprite and button was attack mode "keep distance"
+
+    // Window parts
+    Sprite WindowHeaderMiddle;
+    Sprite WindowHeaderLeft;
+    Sprite WindowHeaderRight;
+    Sprite WindowLeft;
+    Sprite WindowRight;
+    Sprite WindowBottom;
+    Sprite WindowBottomLeft;
+    Sprite WindowBottomRight;
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;
