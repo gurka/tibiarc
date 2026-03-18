@@ -69,9 +69,12 @@ struct Options {
  * std::terminate() on data errors, which should've been caught by the
  * parser. */
 
-void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas) noexcept;
-void DrawStatusBars(Gamestate &gamestate, Canvas &canvas) noexcept;
-void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas) noexcept;
+int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept;
+
+void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+void DrawStatusBars(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+void DrawWindowButtons(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
 
 void DrawIconBar(Gamestate &gamestate,
                  Canvas &canvas,
@@ -100,29 +103,6 @@ void DrawBackground(const Sprite &sprite,
                     int topY,
                     int rightX,
                     int rightY) noexcept;
-
-void ApplyBorderRaised(Canvas &canvas,
-                       int leftX,
-                       int topY,
-                       int rightX,
-                       int bottomY,
-                       int thickness) noexcept;
-
-void ApplyBorderHollow(Canvas &canvas,
-                       int leftX,
-                       int topY,
-                       int rightX,
-                       int bottomY,
-                       int thickness) noexcept;
-
-void ApplyBorder(Canvas &canvas,
-                 int leftX,
-                 int topY,
-                 int rightX,
-                 int bottomY,
-                 int thickness,
-                 int topLeftBrightnessChange,
-                 int bottomRightBrightnessChange) noexcept;
 
 /* ************************************************************************* */
 

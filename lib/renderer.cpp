@@ -1947,90 +1947,169 @@ static void DrawIconArea(Gamestate &gamestate,
      * icon area. */
 }
 
-void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas) noexcept {
-    const auto &fonts = gamestate.Version.Fonts;
+int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
 
-    // Minimap, empty for now
-    ApplyBorderHollow(canvas, 10, 6, 10 + 108, 6 + 108, 1);
-    canvas.DrawRectangle(Pixel(0, 0, 0), 11, 7, 106, 106);
+    // Size: 176x334 (assuming inventory area is not minimized)
 
-    // Buttons
-    canvas.Draw(icons.Compass, 126, 7);
-    canvas.Draw(icons.ZoomOut, 126, 52);
-    canvas.Draw(icons.LevelUp, 149, 52);
-    canvas.Draw(icons.ZoomIn, 126, 73);
-    canvas.Draw(icons.LevelDown, 149, 73);
-    canvas.Draw(icons.Button43px, 126, 94);
-    TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
-                                     Pixel(0xEF, 0xEF, 0xEF),
-                                     149,
-                                     100,
-                                     "Centre",
-                                     canvas);
+    // Border
+    canvas.Draw(icons.BorderTopLeft2px, 0, 0);
+    DrawBackground(icons.BorderTop2px, canvas, 2, 0, 176 - 2, 2);
+    canvas.Draw(icons.BorderTopRight2px, 176 - 2, 0);
+    DrawBackground(icons.BorderLeft2px, canvas, 0, 2, 2, 334 - 2);
+    DrawBackground(icons.BorderRight2px, canvas, 176 - 2, 2, 176, 334 - 2);
+    canvas.Draw(icons.BorderBottomLeft2px, 0, 334 - 2);
+    DrawBackground(icons.BorderBottom2px, canvas, 2, 334 - 2, 176 - 2, 334);
+    canvas.Draw(icons.BorderBottomRight2px, 176 - 2, 334 - 2);
+
+    // Draw each part
+    // For now don't support changing area order (in the player)
+    int offsetY = 2;
+    DrawMinimapArea(gamestate, canvas, offsetY);
+    DrawStatusBars(gamestate, canvas, offsetY);
+    DrawInventoryArea(gamestate, canvas, offsetY);
+    DrawWindowButtons(gamestate, canvas, offsetY);
+    offsetY += 2;
+    return offsetY;
 }
 
-void DrawStatusBars(Gamestate &gamestate, Canvas &canvas) noexcept {
+void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
+    const auto &fonts = gamestate.Version.Fonts;
+    const auto &icons = gamestate.Version.Icons;
+
+    // Size: 172x117
+    DrawBackground(gamestate.Version.Icons.ClientBackground,
+                   canvas,
+                   2,
+                   offsetY,
+                   2 + 172,
+                   offsetY + 117);
+
+    // Minimap, empty for now
+    DrawBackground(icons.BorderBottom2px,
+                   canvas,
+                   10,
+                   offsetY + 4,
+                   10 + 107,
+                   offsetY + 4 + 1);
+    DrawBackground(icons.BorderRight2px,
+                   canvas,
+                   10,
+                   offsetY + 4,
+                   10 + 1,
+                   offsetY + 4 + 107);
+    DrawBackground(icons.BorderLeft2px,
+                   canvas,
+                   117,
+                   offsetY + 4,
+                   117 + 1,
+                   offsetY + 4 + 107);
+    DrawBackground(icons.BorderTop2px,
+                   canvas,
+                   10,
+                   offsetY + 111,
+                   10 + 108,
+                   offsetY + 111 + 1);
+    canvas.DrawRectangle(Pixel(0, 0, 0), 11, offsetY + 5, 106, 106);
+
+    // Buttons
+    canvas.Draw(icons.Compass, 126, offsetY + 5);
+    canvas.Draw(icons.ZoomOut, 126, offsetY + 50);
+    canvas.Draw(icons.LevelUp, 149, offsetY + 50);
+    canvas.Draw(icons.ZoomIn, 126, offsetY + 71);
+    canvas.Draw(icons.LevelDown, 149, offsetY + 71);
+    canvas.Draw(icons.Button43px, 126, offsetY + 92);
+    TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
+                                     Pixel(0xFF, 0xFF, 0xFF),
+                                     147,
+                                     offsetY + 98,
+                                     "Centre",
+                                     canvas);
+
+    // Adjust offsetY for next area
+    offsetY += 117;
+}
+
+void DrawStatusBars(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
+    // Size: 172x32
+    DrawBackground(gamestate.Version.Icons.ClientBackground,
+                   canvas,
+                   2,
+                   offsetY,
+                   2 + 172,
+                   offsetY + 32);
+
     // Health
-    canvas.Draw(icons.HealthIcon, 11, 124);
-    canvas.Draw(icons.EmptyStatusBar, 28, 123);
+    canvas.Draw(icons.HealthIcon, 11, offsetY + 5);
+    canvas.Draw(icons.EmptyStatusBar, 28, offsetY + 4);
     if (gamestate.Player.Stats.MaxHealth > 0 &&
         gamestate.Player.Stats.Health <= gamestate.Player.Stats.MaxHealth) {
         canvas.Draw(icons.HealthBar,
                     28,
-                    123,
+                    offsetY + 4,
                     (icons.HealthBar.Width * gamestate.Player.Stats.Health) /
                             gamestate.Player.Stats.MaxHealth,
                     11);
     }
     TextRenderer::DrawLeftAlignedString(fonts.InterfaceLarge,
-                                        Pixel(0xBF, 0xBF, 0xBF),
+                                        Pixel(0xAF, 0xAF, 0xAF),
                                         129,
-                                        124,
+                                        offsetY + 5,
                                         std::to_string(gamestate.Player.Stats.Health),
                                         canvas);
 
     // Mana
-    canvas.Draw(icons.ManaIcon, 11, 137);
-    canvas.Draw(icons.EmptyStatusBar, 28, 136);
+    canvas.Draw(icons.ManaIcon, 11, offsetY + 18);
+    canvas.Draw(icons.EmptyStatusBar, 28, offsetY + 17);
     if (gamestate.Player.Stats.MaxMana > 0 &&
         gamestate.Player.Stats.Mana <= gamestate.Player.Stats.MaxMana) {
         canvas.Draw(icons.ManaBar,
                     28,
-                    136,
+                    offsetY + 17,
                     (icons.ManaBar.Width * gamestate.Player.Stats.Mana) /
                             gamestate.Player.Stats.MaxMana,
                     11);
     }
     TextRenderer::DrawLeftAlignedString(fonts.InterfaceLarge,
-                                        Pixel(0xBF, 0xBF, 0xBF),
+                                        Pixel(0xAF, 0xAF, 0xAF),
                                         129,
-                                        137,
+                                        offsetY + 17,
                                         std::to_string(gamestate.Player.Stats.Mana),
                                         canvas);
+
+    // Adjust offsetY for next area
+    offsetY += 32;
 }
 
-void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas) noexcept {
+void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
     const Version &version = gamestate.Version;
     const Icons &icons = version.Icons;
 
+    // Size: 172x155
+    DrawBackground(gamestate.Version.Icons.ClientBackground,
+                   canvas,
+                   2,
+                   offsetY,
+                   2 + 172,
+                   offsetY + 155);
+
     // Inventory
-    canvas.Draw(icons.Minimize, 10, 155);
+    canvas.Draw(icons.Minimize, 10, offsetY + 4);
     for (auto [slot, x, y] :
          std::initializer_list<std::tuple<InventorySlot, int, int>>{
-                 {InventorySlot::Head, 47, 155},
-                 {InventorySlot::Amulet, 10, 169},
-                 {InventorySlot::Backpack, 84, 169},
-                 {InventorySlot::Chest, 47, 192},
-                 {InventorySlot::RightArm, 10, 206},
-                 {InventorySlot::LeftArm, 84, 206},
-                 {InventorySlot::Legs, 47, 229},
-                 {InventorySlot::Ring, 10, 243},
-                 {InventorySlot::Quiver, 84, 243},
-                 {InventorySlot::Boots, 47, 266},
+                 {InventorySlot::Head, 47, offsetY + 4},
+                 {InventorySlot::Amulet, 10, offsetY + 18},
+                 {InventorySlot::Backpack, 84, offsetY + 18},
+                 {InventorySlot::Chest, 47, offsetY + 41},
+                 {InventorySlot::RightArm, 10, offsetY + 55},
+                 {InventorySlot::LeftArm, 84, offsetY + 55},
+                 {InventorySlot::Legs, 47, offsetY + 78},
+                 {InventorySlot::Ring, 10, offsetY + 92},
+                 {InventorySlot::Quiver, 84, offsetY + 92},
+                 {InventorySlot::Boots, 47, offsetY + 115},
          }) {
         DrawInventorySlot(gamestate, slot, x, y, canvas);
     }
@@ -2059,11 +2138,11 @@ void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas) noexcept {
     }
     */
 
-    canvas.Draw(icons.SecondaryStatBackground, 84, 279);
+    canvas.Draw(icons.SecondaryStatBackground, 84, offsetY + 128);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      101,
-                                     281,
+                                     offsetY + 130,
                                      "Cap:",
                                      canvas);
     uint32_t capacity =
@@ -2071,77 +2150,93 @@ void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas) noexcept {
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceLarge,
                                      Pixel(0xBF, 0xBF, 0xBF),
                                      101,
-                                     290,
+                                     offsetY + 139,
                                      std::to_string(capacity),
                                      canvas);
 
-    // Skills, Battle and VIP buttons
-    canvas.Draw(icons.Button34px, 10, 309);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     27,
-                                     315,
-                                     "Skills",
-                                     canvas);
-
-    canvas.Draw(icons.Button34px, 47, 309);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     64,
-                                     315,
-                                     "Battle",
-                                     canvas);
-
-    canvas.Draw(icons.Button34px, 84, 309);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     101,
-                                     315,
-                                     "VIP",
-                                     canvas);
-
     // Attack mode buttons
-    canvas.Draw(icons.FightingOffensive, 126, 170);
-    canvas.Draw(icons.FightingBalanced, 126, 190);
-    canvas.Draw(icons.FightingDefensive, 126, 210);
-    canvas.Draw(icons.AttackStanding, 149, 170);
-    canvas.Draw(icons.AttackChasing, 149, 190);
-    canvas.Draw(icons.AttackUnmarked, 149, 210);
+    canvas.Draw(icons.FightingOffensive, 126, offsetY + 19);
+    canvas.Draw(icons.FightingBalanced, 126, offsetY + 39);
+    canvas.Draw(icons.FightingDefensive, 126, offsetY + 59);
+    canvas.Draw(icons.AttackStanding, 149, offsetY + 19);
+    canvas.Draw(icons.AttackChasing, 149, offsetY + 39);
+    canvas.Draw(icons.AttackUnmarked, 149, offsetY + 59);
 
     // Buttons
-    canvas.Draw(icons.Button43px, 126, 234);
+    canvas.Draw(icons.Button43px, 126, offsetY + 83);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      147,
-                                     241,
+                                     offsetY + 90,
                                      "Stop",
                                      canvas);
 
-    canvas.Draw(icons.Button43px, 126, 258);
+    canvas.Draw(icons.Button43px, 126, offsetY + 107);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      147,
-                                     265,
+                                     offsetY + 114,
                                      "Options",
                                      canvas);
 
 
-    canvas.Draw(icons.Button43px, 126, 282);
+    canvas.Draw(icons.Button43px, 126, offsetY + 131);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      147,
-                                     289,
+                                     offsetY + 138,
                                      "Help",
                                      canvas);
 
+    // Adjust offsetY for next area
+    offsetY += 155;
+}
 
-    canvas.Draw(icons.Button43px, 126, 309);
+void DrawWindowButtons(Gamestate& gamestate, Canvas& canvas, int &offsetY) noexcept {
+    const Version &version = gamestate.Version;
+    const Icons &icons = version.Icons;
+
+    // Size: 172x26
+    DrawBackground(gamestate.Version.Icons.ClientBackground,
+                   canvas,
+                   2,
+                   offsetY,
+                   2 + 172,
+                   offsetY + 26);
+    canvas.Draw(icons.Button34px, 10, offsetY + 3);
+    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                     Pixel(0xFF, 0xFF, 0xFF),
+                                     27,
+                                     offsetY + 9,
+                                     "Skills",
+                                     canvas);
+
+    canvas.Draw(icons.Button34px, 47, offsetY + 3);
+    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                     Pixel(0xFF, 0xFF, 0xFF),
+                                     64,
+                                     offsetY + 9,
+                                     "Battle",
+                                     canvas);
+
+    canvas.Draw(icons.Button34px, 84, offsetY + 3);
+    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                     Pixel(0xFF, 0xFF, 0xFF),
+                                     101,
+                                     offsetY + 9,
+                                     "VIP",
+                                     canvas);
+
+    canvas.Draw(icons.Button43px, 126, offsetY + 3);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      147,
-                                     315,
+                                     offsetY + 9,
                                      "Logout",
                                      canvas);
+
+    // Adjust offsetY for next area
+    offsetY += 26;
 }
 
 int MeasureContainerHeight(Gamestate &gamestate,
@@ -2234,28 +2329,59 @@ void DrawSkills(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
+    int offsetY = 334;
+    int height = 57; // note: full height of window
+    height = 100;
+
     // Header
-    canvas.Draw(icons.WindowHeaderLeft, 0, 334);
-    DrawBackground(icons.WindowHeaderMiddle, canvas, 4, 334, 176 - 4, 334 + 15);
-    canvas.Draw(icons.WindowHeaderRight, 176 - 4, 334);
-    canvas.Draw(icons.SkillsIcon, 4, 336);
+    canvas.Draw(icons.WindowHeaderLeft, 0, offsetY);
+    DrawBackground(icons.WindowHeaderMiddle, canvas, 4, offsetY, 176 - 4, 334 + 15);
+    canvas.Draw(icons.WindowHeaderRight, 176 - 4, offsetY);
+    canvas.Draw(icons.SkillsIcon, 4, offsetY + 2);
     TextRenderer::DrawLeftAlignedString(fonts.InterfaceLarge,
                                         Pixel(0x8F, 0x8F, 0x8F),
                                         20,
-                                        338,
+                                        offsetY + 4,
                                         "Skills",
                                         canvas);
-    canvas.Draw(icons.WindowLeft, 0, 334 + 15, icons.WindowLeft.Width, 38);
-    canvas.Draw(icons.WindowRight, 176 - icons.WindowRight.Width, 334 + 15, icons.WindowRight.Width, 38);
+    canvas.Draw(icons.Minimize, 148, offsetY + 2);
+    canvas.Draw(icons.Close, 161, offsetY + 2);
 
-    canvas.Draw(icons.WindowBottomLeft, 0, 334 + 15 + 38);
+    // Middle
+    DrawBackground(icons.WindowLeft,
+                   canvas,
+                   0,
+                   offsetY + 15,
+                   icons.WindowLeft.Width,
+                   offsetY + 15 + height - 19);
+    DrawBackground(icons.WindowRight,
+                   canvas,
+                   176 - icons.WindowRight.Width,
+                   offsetY + 15,
+                   176,
+                   offsetY + 15 + height - 19);
+
+    // Scrollbar
+    canvas.Draw(icons.ScrollbarUp, 160, offsetY + 15);
+    DrawBackground(icons.ScrollbarBackground,
+                   canvas,
+                   160,
+                   offsetY + 27,
+                   160 + 12,
+                   offsetY + 27 + height - 43);
+    canvas.Draw(icons.ScrollbarButton, 160, offsetY + 27);
+    canvas.Draw(icons.ScrollbarDown, 160, offsetY + height - 16);
+
+    // Bottom
+    canvas.Draw(icons.WindowBottomLeft, 0, offsetY + 15 + height - 19);
     DrawBackground(icons.WindowBottom,
                    canvas,
                    4,
-                   334 + 15 + 38,
+                   offsetY + 15 + height - 19,
                    176 - 4,
-                   334 + 15 + 38 + 4);
-    canvas.Draw(icons.WindowBottomRight, 176 - 4, 334 + 15 + 38);
+                   offsetY + 15 + height - 19 + 4);
+    canvas.Draw(icons.WindowBottomRight, 176 - 4, offsetY + 15 + height - 19);
+    canvas.Draw(icons.WindowResize, 3, offsetY + 15 + height - 19 - 12);
 
     /*
     const Version &version = gamestate.Version;
@@ -2323,73 +2449,6 @@ void DrawBackground(const Sprite &sprite,
                         toY,
                         std::min(sprite.Width, rightX - toX),
                         std::min(sprite.Height, bottomY - toY));
-        }
-    }
-}
-
-void ApplyBorderRaised(Canvas &canvas,
-                       int leftX,
-                       int topY,
-                       int rightX,
-                       int bottomY,
-                       int thickness) noexcept {
-    ApplyBorder(canvas, leftX, topY, rightX, bottomY, thickness, 0x2D, -0x20);
-}
-
-void ApplyBorderHollow(Canvas &canvas,
-                       int leftX,
-                       int topY,
-                       int rightX,
-                       int bottomY,
-                       int thickness) noexcept {
-    ApplyBorder(canvas, leftX, topY, rightX, bottomY, thickness, -0x20, 0x2D);
-}
-
-void ApplyBorder(Canvas &canvas,
-                 int leftX,
-                 int topY,
-                 int rightX,
-                 int bottomY,
-                 int thickness,
-                 int topLeftBrightnessChange,
-                 int bottomRightBrightnessChange) noexcept {
-    // Top line(s)
-    for (int y = topY; y < (topY + thickness); y += 1) {
-        for (int x = leftX; x < rightX; x += 1) {
-            auto &pixel = canvas.GetPixel(x, y);
-            pixel.Red += topLeftBrightnessChange;
-            pixel.Green += topLeftBrightnessChange;
-            pixel.Blue += topLeftBrightnessChange;
-        }
-    }
-
-    // Left line(s)
-    for (int y = (topY + thickness); y < bottomY; y += 1) {
-        for (int x = leftX; x < (leftX + thickness); x += 1) {
-            auto &pixel = canvas.GetPixel(x, y);
-            pixel.Red += topLeftBrightnessChange;
-            pixel.Green += topLeftBrightnessChange;
-            pixel.Blue += topLeftBrightnessChange;
-        }
-    }
-
-    // Right line(s)
-    for (int y = topY; y < bottomY; y += 1) {
-        for (int x = (rightX - thickness); x < rightX; x += 1) {
-            auto &pixel = canvas.GetPixel(x, y);
-            pixel.Red += bottomRightBrightnessChange;
-            pixel.Green += bottomRightBrightnessChange;
-            pixel.Blue += bottomRightBrightnessChange;
-        }
-    }
-
-    // Bottom line(s)
-    for (int y = (bottomY - thickness); y < bottomY; y += 1) {
-        for (int x = leftX; x < (rightX - thickness); x += 1) {
-            auto &pixel = canvas.GetPixel(x, y);
-            pixel.Red += bottomRightBrightnessChange;
-            pixel.Green += bottomRightBrightnessChange;
-            pixel.Blue += bottomRightBrightnessChange;
         }
     }
 }

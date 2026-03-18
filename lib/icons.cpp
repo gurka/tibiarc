@@ -125,8 +125,8 @@ Icons::Icons(const Version &version)
       LevelUp(Canvas, 42, 98, 20, 20),
       LevelDown(Canvas, 62, 98, 20, 20),
 
-      HealthIcon(Canvas, 220, 76, 11, 11),
-      ManaIcon(Canvas, 220, 87, 11, 11),
+      HealthIcon(Canvas, 220, 76, 12, 11),
+      ManaIcon(Canvas, 220, 87, 12, 11),
       EmptyStatusBar(Canvas, 96, 64, 90, 11),
       HealthBar(Canvas, 96, 75, 90, 11),
       ManaBar(Canvas, 96, 86, 90, 11),
@@ -157,7 +157,24 @@ Icons::Icons(const Version &version)
       WindowRight(Canvas, 260, 0, 4, 96),
       WindowBottom(Canvas, 2, 193, 96, 4),
       WindowBottomLeft(Canvas, 98, 193, 4, 4),
-      WindowBottomRight(Canvas, 102, 193, 4, 4) {
+      WindowBottomRight(Canvas, 102, 193, 4, 4),
+      WindowResize(Canvas, 258, 101, 13, 13),
+
+      ScrollbarUp(Canvas, 232, 64, 12, 12),
+      ScrollbarDown(Canvas, 244, 64, 12, 12),
+      ScrollbarButton(Canvas, 220, 64, 12, 12),
+      ScrollbarBackground(Canvas, 264, 0, 12, 96),
+
+      BorderTopLeft2px(Canvas, 98, 197, 2, 2),
+      BorderTop2px(Canvas, 2, 197, 96, 2),
+      BorderTopRight2px(Canvas, 100, 197, 2, 2),
+      BorderLeft2px(Canvas, 276, 0, 2, 96),
+      BorderRight2px(Canvas, 0, 98, 2, 96),
+      BorderBottomLeft2px(Canvas, 100, 197, 2, 2),
+      BorderBottom2px(Canvas, 0, 96, 96, 2),
+      BorderBottomRight2px(Canvas, 100, 199, 2, 2),
+
+      Tmp(Canvas, 0, 0, 1, 1) {
 
     /* This is a bit ugly, but the initializer-list version of the
      * unordered_map constructor requires values to be copyable, which Sprite

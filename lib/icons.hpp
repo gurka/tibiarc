@@ -85,6 +85,27 @@ public:
     Sprite WindowBottom;
     Sprite WindowBottomLeft;
     Sprite WindowBottomRight;
+    Sprite WindowResize;
+
+    // Scrollbar
+    Sprite ScrollbarUp;
+    Sprite ScrollbarDown;
+    Sprite ScrollbarButton;
+    Sprite ScrollbarBackground;
+
+    // Border (raised = left and top light, right and bottom dark)
+    // TODO: Might be better to name these according to color (dark/light)
+    // Also, the same sprites are used for 1px borders, but obviously then only parts of them
+    Sprite BorderTopLeft2px;
+    Sprite BorderTop2px;
+    Sprite BorderTopRight2px;
+    Sprite BorderLeft2px;
+    Sprite BorderRight2px;
+    Sprite BorderBottomLeft2px;  // note: same as TopRight, i.e. light/dark
+    Sprite BorderBottom2px;
+    Sprite BorderBottomRight2px;
+
+    Sprite Tmp;
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;

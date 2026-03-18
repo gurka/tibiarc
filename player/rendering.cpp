@@ -209,12 +209,7 @@ void Rendering::Render(Playback &playback) {
                                  background.Height);
 
         // Draw gamestate background border
-        Renderer::ApplyBorderHollow(background,
-                                    GamestateScaledRect.x - 1,
-                                    GamestateScaledRect.y - 1,
-                                    GamestateScaledRect.x + GamestateScaledRect.w + 1,
-                                    GamestateScaledRect.y + GamestateScaledRect.h + 1,
-                                    1);
+        // TODO
 
         SDL_UnlockTexture(SdlTextureBackground.get());
         BackgroundRendered = true;
@@ -316,48 +311,10 @@ void Rendering::Render(Playback &playback) {
                                      (void **)&CanvasSidebar->Buffer,
                                      &CanvasSidebar->Stride));
 
-        CanvasSidebar->Wipe();
+        CanvasSidebar->DrawRectangle(Pixel(0, 0, 0), 0, 0, CanvasSidebar->Width, CanvasSidebar->Height);
 
-        // For now, don't support changing order of these
-        Renderer::DrawBackground(playback.Gamestate->Version.Icons.ClientBackground,
-                                 *CanvasSidebar,
-                                 0,
-                                 0,
-                                 CanvasSidebar->Width,
-                                 CanvasSidebar->Height);
-        Renderer::ApplyBorderRaised(*CanvasSidebar, 0, 0, 176, 334, 2);
-        Renderer::DrawMinimapArea(*playback.Gamestate, *CanvasSidebar);
-        Renderer::DrawStatusBars(*playback.Gamestate, *CanvasSidebar);
-        Renderer::DrawInventoryArea(*playback.Gamestate, *CanvasSidebar);
-        Renderer::DrawSkills(*playback.Gamestate, *CanvasSidebar);
-        /*
-        offsetY += 5;
+        int offsetY = Renderer::DrawSidebarTop(*playback.Gamestate, *CanvasSidebar);
 
-        Renderer::DrawInventoryArea(*playback.Gamestate,
-                                    *CanvasSidebar,
-                                    offsetX,
-                                    offsetY);
-
-        // Border around (map), status bars and inventory area
-        Renderer::DrawBorderRaised(*CanvasSidebar,
-                                   0,
-                                   0,
-                                   160,
-                                   offsetY);
-
-        if (playback.Gamestate->Version.Features.IconBar) {
-            Renderer::DrawIconBar(*playback.Gamestate,
-                                  *CanvasSidebar,
-                                  offsetX,
-                                  offsetY);
-        }
-
-        Renderer::DrawSkills(*playback.Gamestate,
-                             *CanvasSidebar,
-                             160 - 24,
-                             offsetX,
-                             offsetY);
-        */
 
         /*
         int max_container_y = CanvasSidebar->Height - 4 - 32;
