@@ -67,23 +67,6 @@ static inline void DrawRightAlignedString(const Font &font,
            canvas);
 }
 
-static inline void DrawLeftAlignedString(const Font &font,
-                                         const Pixel &color,
-                                         int X,
-                                         int Y,
-                                         const std::string &text,
-                                         Canvas &canvas) {
-    Render(font,
-           TextAlignment::Left,
-           TextTransform::None,
-           color,
-           X,
-           Y,
-           ~(size_t)0,
-           text,
-           canvas);
-}
-
 static inline void DrawCenteredString(const Font &font,
                                       const Pixel &color,
                                       int X,

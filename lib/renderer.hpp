@@ -22,6 +22,7 @@
 #define __TRC_RENDERER_HPP__
 
 #include <cstdint>
+#include <string>
 
 #include "canvas.hpp"
 #include "gamestate.hpp"
@@ -76,6 +77,25 @@ void DrawStatusBars(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept
 void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
 void DrawWindowButtons(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
 
+void DrawSidebarMiddle(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+
+void DrawSidebarWindowBackground(Gamestate &gamestate,
+                                 Canvas &canvas,
+                                 int offsetY,
+                                 int height) noexcept;
+void DrawSidebarWindow(Gamestate &gamestate,
+                       Canvas &canvas,
+                       int offsetY,
+                       const Sprite &icon,
+                       const std::string &title,
+                       int height) noexcept;
+void DrawSkillsWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+void DrawBattleWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+
+void DrawSidebarBottom(Gamestate &gamestate,
+                       Canvas &canvas,
+                       int offsetY) noexcept;
+
 void DrawIconBar(Gamestate &gamestate,
                  Canvas &canvas,
                  int &offsetX,
@@ -95,8 +115,8 @@ void DrawContainer(Gamestate &gamestate,
                    int &offsetX,
                    int &offsetY) noexcept;
 
-void DrawSkills(Gamestate &gamestate, Canvas &canvas) noexcept;
 
+// TODO: Rename, as we draw more than backgrounds with it
 void DrawBackground(const Sprite &sprite,
                     Canvas &canvas,
                     int topX,

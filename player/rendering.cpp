@@ -312,24 +312,13 @@ void Rendering::Render(Playback &playback) {
                                      &CanvasSidebar->Stride));
 
         CanvasSidebar->DrawRectangle(Pixel(0, 0, 0), 0, 0, CanvasSidebar->Width, CanvasSidebar->Height);
-
         int offsetY = Renderer::DrawSidebarTop(*playback.Gamestate, *CanvasSidebar);
-
-
-        /*
-        int max_container_y = CanvasSidebar->Height - 4 - 32;
-
-        for (auto &[_, container] : playback.Gamestate->Containers) {
-            Renderer::DrawContainer(*playback.Gamestate,
+        Renderer::DrawSidebarMiddle(*playback.Gamestate,
                                     *CanvasSidebar,
-                                    container,
-                                    false,
-                                    CanvasSidebar->Width,
-                                    max_container_y,
-                                    offsetX,
                                     offsetY);
-        }
-        */
+        Renderer::DrawSidebarBottom(*playback.Gamestate,
+                                    *CanvasSidebar,
+                                    offsetY);
 
         SDL_UnlockTexture(SdlTextureSidebar.get());
     }
