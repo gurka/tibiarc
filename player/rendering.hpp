@@ -37,35 +37,49 @@ struct Rendering {
     template <typename T>
     using Wrapper = std::unique_ptr<T, std::function<void(T *)>>;
 
-    Wrapper<SDL_Window> SdlWindow;
-    Wrapper<SDL_Renderer> SdlRenderer;
+    Wrapper<SDL_Window> Window;
+    Wrapper<SDL_Renderer> Renderer;
 
     Renderer::Options RenderOptions;
 
-    /* This texture is the same size as the window. It is static, so we render
-     * it only once (during startup or window resize) */
-    Wrapper<SDL_Texture> SdlTextureBackground;
-    bool BackgroundRendered = false;
+    // The window consists of three areas:
+    // - Game
+    // - Sidebar
+    // - Chat
+    // 
+    // Sidebar's size is always 176 x <window height>
+    // Chat's height is adjustable, but its width is always <window width> - 176
+    // Game's height depends on the chat's height, but its width is always <window width> - 176
+    // 
+    // Each area has two Canvases and SDL_Textures each, one for things that
+    // only needs to be rendered once and one for things that needs to be
+    // rendered each frame
+    // They also have a SDL_Rect that describes where the area is rendered
+    struct Area {
+        SDL_Rect Rect;
 
-    /* This canvas and texture are always NATIVE_RESOLUTION */
+        std::unique_ptr<Canvas> CanvasStatic;
+        Wrapper<SDL_Texture> TextureStatic;
+
+        std::unique_ptr<Canvas> CanvasDynamic;
+        Wrapper<SDL_Texture> TextureDynamic;
+
+        bool StaticRendered;
+    };
+
+    Area Game;
+    Area Sidebar;
+    Area Chat;
+
+    // The gamestate is always rendered in NATIVE_RESOLUTION
+    // and then copied to the game texture (scaled but with the same ratio)
+    // Also, Renderer::DrawOverlay wants a canvas with the same size
+    // as Gamestate after scaling, so give it that
     std::unique_ptr<Canvas> CanvasGamestate;
-    Wrapper<SDL_Texture> SdlTextureGamestate;
-
-    /* This rectangle represents where the gamestate texture should be rendered
-     * on the output texture, including scaling */
-    SDL_Rect GamestateScaledRect;
-
-    /* This canvas and texture are always the same size as GamestateScaledRect */
+    Wrapper<SDL_Texture> TextureGamestate;
     std::unique_ptr<Canvas> CanvasOverlay;
-    Wrapper<SDL_Texture> SdlTextureOverlay;
-
-    SDL_Rect SidebarRect;
-    std::unique_ptr<Canvas> CanvasSidebar;
-    Wrapper<SDL_Texture> SdlTextureSidebar;
-
-    SDL_Rect ChatRect;
-    std::unique_ptr<Canvas> CanvasChat;
-    Wrapper<SDL_Texture> SdlTextureChat;
+    Wrapper<SDL_Texture> TextureOverlay;
+    SDL_Rect RectGamestate;
 
     uint32_t StatsLastUpdate = 0;
     uint32_t StatsFramesSinceLastUpdate = 0;
@@ -77,7 +91,8 @@ struct Rendering {
     void Render(Playback &playback);
 
 private:
-    Wrapper<SDL_Texture> CreateTexture(int width, int height);
+    Wrapper<SDL_Texture> CreateTexture(int width, int height) const;
+    void ResetArea(Area &area, int x, int y, int w, int h) const;
 };
 } // namespace trc
 

@@ -127,7 +127,7 @@ void main_loop() {
             }
         }
 
-        SDL_RenderPresent(rendering.SdlRenderer.get());
+        SDL_RenderPresent(rendering.Renderer.get());
     }
 }
 
