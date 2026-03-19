@@ -115,10 +115,10 @@ void Rendering::HandleResize() {
     SDL_GetRendererOutputSize(Renderer.get(), &width, &height);
 
     std::cout << "handle resize: " << width << "x" << height << std::endl;
-    if (width < 666 || height < 472) {
-        // TODO: prevent this instead of crashing
-        abort();
-    }
+    
+    // TODO: prevent this instead of crashing
+    AbortUnless(width >= 550 && height >= 450);
+
     if (RenderOptions.Width == width && RenderOptions.Height == height) {
         std::cerr << "bogus resize event?" << std::endl;
         return;
@@ -129,10 +129,10 @@ void Rendering::HandleResize() {
     RenderOptions.Height = height;
 
     // Setup all areas
-    // For now the chat is not resizable and always have a height of 110
-    ResetArea(Game, 0, 0, width - 176, height - 110);
+    // For now the chat is not resizable and always have a height of 174
+    ResetArea(Game, 0, 0, width - 176, height - 174);
     ResetArea(Sidebar, width - 176, 0, 176, height);
-    ResetArea(Chat, 0, height - 110, width - 176, 110);
+    ResetArea(Chat, 0, height - 174, width - 176, 174);
 
     /* Gamestate canvas and texture are always the same size, so only need
      * to create them if they aren't already created */
@@ -149,8 +149,8 @@ void Rendering::HandleResize() {
     int border = 1;
     int max_w = Game.Rect.w - ((margin + border) * 2);
     int max_h = Game.Rect.h - ((margin + border) * 2);
-    float scale = std::min(max_w / (float)Renderer::NativeResolutionX,
-                           max_h / (float)Renderer::NativeResolutionY);
+    double scale = std::min(max_w / (double)Renderer::NativeResolutionX,
+                            max_h / (double)Renderer::NativeResolutionY);
 
     /* Now calculate where to render the gamestate. */
     RectGamestate.x =
@@ -209,7 +209,12 @@ void Rendering::Render(Playback &playback) {
                     Game.CanvasStatic->Height);
 
             // Draw border around the gamestate
-            // TODO
+            Renderer::DrawBorder1px(playback.Gamestate->Version.Icons,
+                                    *Game.CanvasStatic,
+                                    RectGamestate.x - 1,
+                                    RectGamestate.y - 1,
+                                    RectGamestate.x + RectGamestate.w + 1,
+                                    RectGamestate.y + RectGamestate.h + 1);
 
             SDL_UnlockTexture(Game.TextureStatic.get());
 
@@ -283,7 +288,16 @@ void Rendering::Render(Playback &playback) {
     // Render sidebar
     {
         if (!Sidebar.StaticRendered) {
-            // TODO: We can render SidebarTop's background and border here
+            AbortUnless(!SDL_LockTexture(Sidebar.TextureStatic.get(),
+                                         NULL,
+                                         (void **)&Sidebar.CanvasStatic->Buffer,
+                                         &Sidebar.CanvasStatic->Stride));
+
+            Renderer::DrawSidebarTopStatic(*playback.Gamestate,
+                                           *Sidebar.CanvasStatic);
+
+            SDL_UnlockTexture(Sidebar.TextureStatic.get());
+
             Sidebar.StaticRendered = true;
         }
 
@@ -292,11 +306,7 @@ void Rendering::Render(Playback &playback) {
                                      (void **)&Sidebar.CanvasDynamic->Buffer,
                                      &Sidebar.CanvasDynamic->Stride));
 
-        Sidebar.CanvasDynamic->DrawRectangle(Pixel(0, 0, 0),
-                                             0,
-                                             0,
-                                             Sidebar.CanvasDynamic->Width,
-                                             Sidebar.CanvasDynamic->Height);
+        Sidebar.CanvasDynamic->Wipe();
         int offsetY = Renderer::DrawSidebarTop(*playback.Gamestate,
                                                *Sidebar.CanvasDynamic);
         Renderer::DrawSidebarMiddle(*playback.Gamestate,
@@ -317,11 +327,8 @@ void Rendering::Render(Playback &playback) {
                                          (void **)&Chat.CanvasStatic->Buffer,
                                          &Chat.CanvasStatic->Stride));
 
-            Chat.CanvasStatic->DrawRectangle(Pixel(0, 0, 64),
-                                             0,
-                                             0,
-                                             Chat.CanvasStatic->Width,
-                                             Chat.CanvasStatic->Height);
+            Chat.CanvasStatic->Wipe();
+            Renderer::DrawChatStatic(*playback.Gamestate, *Chat.CanvasStatic);
 
             SDL_UnlockTexture(Chat.TextureStatic.get());
 

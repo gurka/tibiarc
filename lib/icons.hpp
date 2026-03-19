@@ -96,14 +96,28 @@ public:
     // Border (raised = left and top light, right and bottom dark)
     // TODO: Might be better to name these according to color (dark/light)
     // Also, the same sprites are used for 1px borders, but obviously then only parts of them
-    Sprite BorderTopLeft2px;
-    Sprite BorderTop2px;
-    Sprite BorderTopRight2px;
-    Sprite BorderLeft2px;
-    Sprite BorderRight2px;
-    Sprite BorderBottomLeft2px;  // note: same as TopRight, i.e. light/dark
-    Sprite BorderBottom2px;
-    Sprite BorderBottomRight2px;
+    Sprite BorderCornerLight;
+    Sprite BorderHorizontalLight;
+    Sprite BorderCornerLightDark;
+    Sprite BorderVerticalLight;
+    Sprite BorderVerticalDark;
+    Sprite BorderHorizontalDark;
+    Sprite BorderCornerDark;
+
+    // Chat
+    Sprite ChatBackgroundDarkLeft;
+    Sprite ChatBackgroundDark;
+    Sprite ChatBackgroundDarkRight;
+    Sprite ChatChannelButton;
+    Sprite ChatIgnoreButton;
+    Sprite ChatChannelBoxActive;
+    Sprite ChatMessageBorderVertical;
+    Sprite ChatMessageBorderHorizontal;
+    Sprite ChatMessageBorderTopLeft;
+    Sprite ChatMessageBorderTopRight;
+    Sprite ChatMessageBorderBottomLeft;
+    Sprite ChatMessageBorderBottomRight;
+    Sprite ChatTalkButton;
 
     Sprite Tmp;
 

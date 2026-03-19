@@ -31,7 +31,7 @@
 using namespace trc;
 
 static std::unique_ptr<Playback> playback;
-static Rendering rendering(666, 472);
+static Rendering rendering(550, 450);
 
 void handle_input() {
     /* Coalesce skips for better rewind performance on long recordings. */

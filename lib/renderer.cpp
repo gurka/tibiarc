@@ -1947,20 +1947,104 @@ static void DrawIconArea(Gamestate &gamestate,
      * icon area. */
 }
 
+void DrawBorder1px(const Icons &icons,
+                   Canvas &canvas,
+                   int leftX,
+                   int topY,
+                   int rightX,
+                   int bottomY) noexcept {
+    DrawBackground(icons.BorderHorizontalDark,
+                   canvas,
+                   leftX,
+                   topY,
+                   rightX,
+                   topY + 1);
+    DrawBackground(icons.BorderVerticalDark,
+                   canvas,
+                   leftX,
+                   topY + 1,
+                   leftX + 1,
+                   bottomY - 1);
+    DrawBackground(icons.BorderVerticalLight,
+                   canvas,
+                   rightX - 1,
+                   topY + 1,
+                   rightX,
+                   bottomY - 1);
+    DrawBackground(icons.BorderHorizontalLight,
+                   canvas,
+                   leftX,
+                   bottomY - 1,
+                   rightX,
+                   bottomY);
+}
+
+void DrawBorder2px(const Icons &icons,
+                   Canvas &canvas,
+                   int leftX,
+                   int topY,
+                   int rightX,
+                   int bottomY) noexcept {
+    DrawBackground(icons.BorderCornerLight,
+                   canvas,
+                   leftX,
+                   topY,
+                   leftX + 2,
+                   topY + 2);
+    DrawBackground(icons.BorderHorizontalLight,
+                   canvas,
+                   leftX + 2,
+                   topY,
+                   rightX - 2,
+                   topY + 2);
+    DrawBackground(icons.BorderCornerLightDark,
+                   canvas,
+                   rightX - 2,
+                   topY,
+                   rightX,
+                   topY + 2);
+    DrawBackground(icons.BorderVerticalLight,
+                   canvas,
+                   leftX,
+                   topY + 2,
+                   leftX + 2,
+                   bottomY - 2);
+    DrawBackground(icons.BorderVerticalDark,
+                   canvas,
+                   rightX - 2,
+                   topY + 2,
+                   rightX,
+                   bottomY - 2);
+    DrawBackground(icons.BorderCornerLightDark,
+                   canvas,
+                   leftX,
+                   bottomY - 2,
+                   leftX + 2,
+                   bottomY);
+    DrawBackground(icons.BorderHorizontalDark,
+                   canvas,
+                   leftX + 2,
+                   bottomY - 2,
+                   rightX - 2,
+                   bottomY);
+    DrawBackground(icons.BorderCornerDark,
+                   canvas,
+                   rightX - 2,
+                   bottomY - 2,
+                   rightX,
+                   bottomY);
+}
+
+void DrawSidebarTopStatic(Gamestate &gamestate, Canvas &canvas) noexcept {
+    const auto &icons = gamestate.Version.Icons;
+
+    DrawBorder2px(icons, canvas, 0, 0, 176, 334);
+}
+
 int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
 
     // Size: 176x334 (assuming inventory area is not minimized)
-
-    // Border
-    canvas.Draw(icons.BorderTopLeft2px, 0, 0);
-    DrawBackground(icons.BorderTop2px, canvas, 2, 0, 176 - 2, 2);
-    canvas.Draw(icons.BorderTopRight2px, 176 - 2, 0);
-    DrawBackground(icons.BorderLeft2px, canvas, 0, 2, 2, 334 - 2);
-    DrawBackground(icons.BorderRight2px, canvas, 176 - 2, 2, 176, 334 - 2);
-    canvas.Draw(icons.BorderBottomLeft2px, 0, 334 - 2);
-    DrawBackground(icons.BorderBottom2px, canvas, 2, 334 - 2, 176 - 2, 334);
-    canvas.Draw(icons.BorderBottomRight2px, 176 - 2, 334 - 2);
 
     // Draw each part
     // For now don't support changing area order (in the player)
@@ -1986,30 +2070,7 @@ void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcep
                    offsetY + 117);
 
     // Minimap, empty for now
-    DrawBackground(icons.BorderBottom2px,
-                   canvas,
-                   10,
-                   offsetY + 4,
-                   10 + 107,
-                   offsetY + 4 + 1);
-    DrawBackground(icons.BorderRight2px,
-                   canvas,
-                   10,
-                   offsetY + 4,
-                   10 + 1,
-                   offsetY + 4 + 107);
-    DrawBackground(icons.BorderLeft2px,
-                   canvas,
-                   117,
-                   offsetY + 4,
-                   117 + 1,
-                   offsetY + 4 + 107);
-    DrawBackground(icons.BorderTop2px,
-                   canvas,
-                   10,
-                   offsetY + 111,
-                   10 + 108,
-                   offsetY + 111 + 1);
+    DrawBorder1px(icons, canvas, 10, offsetY + 4, 10 + 108, offsetY + 4 + 108);
     canvas.DrawRectangle(Pixel(0, 0, 0), 11, offsetY + 5, 106, 106);
 
     // Buttons
@@ -2250,9 +2311,7 @@ void DrawSidebarWindowBackground(Gamestate &gamestate,
                                  Canvas &canvas,
                                  int offsetY,
                                  int height) noexcept {
-    if (height < 57) {
-        abort();
-    }
+    AbortUnless(height >= 57);
 
     const auto &icons = gamestate.Version.Icons;
 
@@ -2270,9 +2329,7 @@ void DrawSidebarWindow(Gamestate &gamestate,
                        const Sprite &icon,
                        const std::string &title,
                        int height) noexcept {
-    if (height < 57) {
-        abort();
-    }
+    AbortUnless(height >= 57);
 
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
@@ -2395,38 +2452,105 @@ void DrawSidebarBottom(Gamestate &gamestate, Canvas &canvas, int offsetY) noexce
 
     // TODO: handle too low height, i.e. < 5 (2px border + 1px bg + 2px border)
     
-    // TODO: Move to DrawSidebarBorder, as we have duplicate code in DrawSidebarTop
-    canvas.Draw(icons.BorderTopLeft2px, 0, offsetY);
-    DrawBackground(icons.BorderTop2px,
-                   canvas,
-                   2,
-                   offsetY,
-                   176 - 2,
-                   offsetY + 2);
-    canvas.Draw(icons.BorderTopRight2px, 176 - 2, offsetY);
-    DrawBackground(icons.BorderLeft2px,
-                   canvas,
-                   0,
-                   offsetY + 2,
-                   2,
-                   offsetY + height - 2);
-    DrawBackground(icons.BorderRight2px,
-                   canvas,
-                   176 - 2,
-                   offsetY + 2,
-                   176,
-                   offsetY + height - 2);
-    canvas.Draw(icons.BorderBottomLeft2px, 0, offsetY + height - 2);
-    DrawBackground(icons.BorderBottom2px,
-                   canvas,
-                   2,
-                   offsetY + height - 2,
-                   176 - 2,
-                   offsetY + height);
-    canvas.Draw(icons.BorderBottomRight2px, 176 - 2, offsetY + height - 2);
+    DrawBorder2px(icons, canvas, 0, offsetY, 176, offsetY + height);
 
     // TODO: we need a function to draw this sprite as a background but backwards (from bottom and up)
     DrawBackground(icons.ClientBackground, canvas, 2, offsetY + 2, 176 - 2, offsetY + height - 2);
+}
+
+void DrawChatStatic(Gamestate &gamestate, Canvas &canvas) noexcept {
+    const auto &icons = gamestate.Version.Icons;
+
+    // TODO: A few things rendered here needs to be moved to the dynamic DrawChat (once it's implemented)
+
+    // Top border
+    DrawBackground(icons.BorderHorizontalLight, canvas, 0, 0, canvas.Width, 1);
+    DrawBackground(icons.ClientBackground, canvas, 0, 1, canvas.Width, 4);
+    DrawBackground(icons.BorderHorizontalDark, canvas, 0, 4, canvas.Width, 5);
+
+    // Window names background
+    canvas.Draw(icons.ChatBackgroundDarkLeft, 0, 5);
+    DrawBackground(icons.ChatBackgroundDark, canvas, 2, 5, canvas.Width, 21);
+
+    // Buttons
+    canvas.Draw(icons.ChatChannelButton, canvas.Width - 32, 5);
+    canvas.Draw(icons.ChatIgnoreButton, canvas.Width - 16, 5);
+
+    // Message window border
+    DrawBorder2px(icons, canvas, 0, 21, canvas.Width, canvas.Height);
+
+    canvas.Draw(icons.ChatChannelBoxActive, 18, 5);
+
+    // TODO: spacing is 0 but it still too much, maybe we need a Chat font with -1 spacing?
+    //       verify if this is for all text in chat or only chat window title
+    TextRenderer::DrawCenteredString(gamestate.Version.Fonts.Game,
+                                     Pixel(0xDF, 0xDF, 0xDF),
+                                     66,
+                                     10,
+                                     "Default",
+                                     canvas);
+
+    // Message window background
+    DrawBackground(icons.ClientBackground,
+                   canvas,
+                   2,
+                   23,
+                   canvas.Width - 2,
+                   canvas.Height - 2);
+
+    // Message border
+    canvas.Draw(icons.ChatMessageBorderTopLeft, 4, 26);
+    DrawBackground(icons.ChatMessageBorderHorizontal,
+                   canvas,
+                   7,
+                   26,
+                   canvas.Width - 7,
+                   29);
+    canvas.Draw(icons.ChatMessageBorderTopRight, canvas.Width - 7, 26);
+    DrawBackground(icons.ChatMessageBorderVertical,
+                   canvas,
+                   4,
+                   29,
+                   7,
+                   canvas.Height - 25);
+    DrawBackground(icons.ChatMessageBorderVertical,
+                   canvas,
+                   canvas.Width - 7,
+                   29,
+                   canvas.Width - 4,
+                   canvas.Height - 25);
+    canvas.Draw(icons.ChatMessageBorderBottomLeft, 4, canvas.Height - 25);
+    DrawBackground(icons.ChatMessageBorderHorizontal,
+                   canvas,
+                   7,
+                   canvas.Height - 25,
+                   canvas.Width - 7,
+                   canvas.Height - 22);
+    canvas.Draw(icons.ChatMessageBorderBottomRight, canvas.Width - 7, canvas.Height - 25);
+
+    // Scrollbar
+    canvas.Draw(icons.ScrollbarUp, canvas.Width - 19, 29);
+    DrawBackground(icons.ScrollbarBackground,
+                   canvas,
+                   canvas.Width - 19,
+                   29 + 12,
+                   canvas.Width - 19 + 12,
+                   canvas.Height - 37);
+    canvas.Draw(icons.ScrollbarDown, canvas.Width - 19, canvas.Height - 37);
+
+    // Message input box
+    canvas.Draw(icons.ChatTalkButton, 5, canvas.Height - 20);
+    DrawBorder1px(icons,
+                  canvas,
+                  23,
+                  canvas.Height - 20,
+                  canvas.Width - 4,
+                  canvas.Height - 4);
+    canvas.DrawRectangle(Pixel(0x36, 0x36, 0x36),
+                         24,
+                         canvas.Height - 19,
+                         canvas.Width - 29,
+                         14);
 }
 
 int MeasureContainerHeight(Gamestate &gamestate,

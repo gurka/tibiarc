@@ -55,6 +55,9 @@ struct Rendering {
     // only needs to be rendered once and one for things that needs to be
     // rendered each frame
     // They also have a SDL_Rect that describes where the area is rendered
+    //
+    // TODO: If we split Sidebar into areas (top, middle, bottom) we can
+    //       have even more things only rendered once
     struct Area {
         SDL_Rect Rect;
 

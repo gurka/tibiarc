@@ -70,6 +70,26 @@ struct Options {
  * std::terminate() on data errors, which should've been caught by the
  * parser. */
 
+// Note: this draws a "sunken" border, i.e. top and left lines are dark while
+//       bottom and right lines are light
+void DrawBorder1px(const Icons &icons,
+                   Canvas &canvas,
+                   int leftX,
+                   int topY,
+                   int rightX,
+                   int bottomY) noexcept;
+
+// Note: this draws a "raised" border, i.e. top and left lines are light while
+//       bottom and right lines are dark
+void DrawBorder2px(const Icons &icons,
+                   Canvas &canvas,
+                   int leftX,
+                   int topY,
+                   int rightX,
+                   int bottomY) noexcept;
+
+// Sidebar
+void DrawSidebarTopStatic(Gamestate &gamestate, Canvas &canvas) noexcept;
 int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept;
 
 void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
@@ -96,6 +116,10 @@ void DrawSidebarBottom(Gamestate &gamestate,
                        Canvas &canvas,
                        int offsetY) noexcept;
 
+// Chat
+void DrawChatStatic(Gamestate &gamestate, Canvas &canvas) noexcept;
+
+// Other
 void DrawIconBar(Gamestate &gamestate,
                  Canvas &canvas,
                  int &offsetX,
