@@ -1,6 +1,5 @@
 /*
- * Copyright 2011-2016 "Silver Squirrel Software Handelsbolag"
- * Copyright 2023-2024 "John HÃ¶gberg"
+ * Copyright 2026 "Simon Sandström"
  *
  * This file is part of tibiarc.
  *
@@ -18,39 +17,18 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_UI_RENDERER_HPP__
-#define __TRC_UI_RENDERER_HPP__
+#ifndef PLAYER_UI_SIDEBAR_HPP_
+#define PLAYER_UI_SIDEBAR_HPP_
 
 #include <string>
 
-#include "icons.hpp"
-#include "canvas.hpp"
 #include "gamestate.hpp"
-#include "container.hpp"
+#include "canvas.hpp"
 #include "sprites.hpp"
 
 namespace trc {
-namespace UiRenderer {
+namespace UiSidebar {
 
-// Note: this draws a "sunken" border, i.e. top and left lines are dark while
-//       bottom and right lines are light
-void DrawBorder1px(const Icons &icons,
-                   Canvas &canvas,
-                   int leftX,
-                   int topY,
-                   int rightX,
-                   int bottomY) noexcept;
-
-// Note: this draws a "raised" border, i.e. top and left lines are light while
-//       bottom and right lines are dark
-void DrawBorder2px(const Icons &icons,
-                   Canvas &canvas,
-                   int leftX,
-                   int topY,
-                   int rightX,
-                   int bottomY) noexcept;
-
-// Sidebar
 int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept;
 
 void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
@@ -77,10 +55,7 @@ void DrawSidebarBottom(Gamestate &gamestate,
                        Canvas &canvas,
                        int offsetY) noexcept;
 
-// Chat
-void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept;
-
-} // namespace UiRenderer
+} // namespace UiSidebar
 } // namespace trc
 
-#endif /* __TRC_UI_RENDERER_HPP__ */
+#endif /* PLAYER_UI_SIDEBAR_HPP */

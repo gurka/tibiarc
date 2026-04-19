@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 "Simon Sandström"
+ * Copyright 2024-2026 "Simon Sandström"
  * Copyright 2024 "John Högberg"
  *
  * This file is part of tibiarc.
@@ -25,7 +25,9 @@
 #include "canvas.hpp"
 #include "versions.hpp"
 #include "textrenderer.hpp"
-#include "ui_renderer.hpp"
+#include "ui_common.hpp"
+#include "ui_sidebar.hpp"
+#include "ui_chat.hpp"
 
 namespace trc {
 
@@ -238,12 +240,12 @@ void Rendering::Render(Playback &playback) {
                 Game.Canvas->Height);
 
         // Draw border around the gamestate
-        UiRenderer::DrawBorder1px(playback.Gamestate->Version.Icons,
-                                  *Game.Canvas,
-                                  RectGamestate.x - 1,
-                                  RectGamestate.y - 1,
-                                  RectGamestate.x + RectGamestate.w + 1,
-                                  RectGamestate.y + RectGamestate.h + 1);
+        UiCommon::DrawBorder1px(playback.Gamestate->Version.Icons,
+                                *Game.Canvas,
+                                RectGamestate.x - 1,
+                                RectGamestate.y - 1,
+                                RectGamestate.x + RectGamestate.w + 1,
+                                RectGamestate.y + RectGamestate.h + 1);
 
         // Render playback info
         char text[64];
@@ -310,17 +312,16 @@ void Rendering::Render(Playback &playback) {
 
         Sidebar.Canvas->Wipe();
 
-        UiRenderer::DrawSidebarTop(*playback.Gamestate,
-                                 *Sidebar.Canvas);
+        UiSidebar::DrawSidebarTop(*playback.Gamestate, *Sidebar.Canvas);
 
-        int offsetY = UiRenderer::DrawSidebarTop(*playback.Gamestate,
-                                               *Sidebar.Canvas);
-        UiRenderer::DrawSidebarMiddle(*playback.Gamestate,
-                                    *Sidebar.Canvas,
-                                    offsetY);
-        UiRenderer::DrawSidebarBottom(*playback.Gamestate,
-                                    *Sidebar.Canvas,
-                                    offsetY);
+        int offsetY =
+                UiSidebar::DrawSidebarTop(*playback.Gamestate, *Sidebar.Canvas);
+        UiSidebar::DrawSidebarMiddle(*playback.Gamestate,
+                                     *Sidebar.Canvas,
+                                     offsetY);
+        UiSidebar::DrawSidebarBottom(*playback.Gamestate,
+                                     *Sidebar.Canvas,
+                                     offsetY);
 
         SDL_UnlockTexture(Sidebar.Texture.get());
     }
@@ -333,7 +334,7 @@ void Rendering::Render(Playback &playback) {
                                      &Chat.Canvas->Stride));
 
         Chat.Canvas->Wipe();
-        UiRenderer::DrawChat(*playback.Gamestate, *Chat.Canvas);
+        UiChat::DrawChat(*playback.Gamestate, *Chat.Canvas);
 
         SDL_UnlockTexture(Chat.Texture.get());
     }

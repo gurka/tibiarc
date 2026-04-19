@@ -1,6 +1,5 @@
 /*
- * Copyright 2011-2016 "Silver Squirrel Software Handelsbolag"
- * Copyright 2023-2024 "John HÃ¶gberg"
+ * Copyright 2026 "Simon Sandström"
  *
  * This file is part of tibiarc.
  *
@@ -18,105 +17,26 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui_renderer.hpp"
+#include "ui_sidebar.hpp"
 
-#include <cmath>
-#include <cstdlib>
-#include <initializer_list>
-#include <tuple>
-
+#include "ui_common.hpp"
 #include "versions.hpp"
-#include "fonts.hpp"
 #include "textrenderer.hpp"
 #include "renderer.hpp"
-#include "utils.hpp"
+#include "canvas.hpp"
+#include "icons.hpp"
+#include "fonts.hpp"
+#include "pixel.hpp"
 
 namespace trc {
-
-namespace UiRenderer {
-
-void DrawBorder1px(const Icons &icons,
-                   Canvas &canvas,
-                   int leftX,
-                   int topY,
-                   int rightX,
-                   int bottomY) noexcept {
-    canvas.DrawBackground(icons.BorderHorizontalDark,
-                          leftX,
-                          topY,
-                          rightX,
-                          topY + 1);
-    canvas.DrawBackground(icons.BorderVerticalDark,
-                          leftX,
-                          topY + 1,
-                          leftX + 1,
-                          bottomY - 1);
-    canvas.DrawBackground(icons.BorderVerticalLight,
-                          rightX - 1,
-                          topY + 1,
-                          rightX,
-                          bottomY - 1);
-    canvas.DrawBackground(icons.BorderHorizontalLight,
-                          leftX,
-                          bottomY - 1,
-                          rightX,
-                          bottomY);
-}
-
-void DrawBorder2px(const Icons &icons,
-                   Canvas &canvas,
-                   int leftX,
-                   int topY,
-                   int rightX,
-                   int bottomY) noexcept {
-    canvas.DrawBackground(icons.BorderCornerLight,
-                          leftX,
-                          topY,
-                          leftX + 2,
-                          topY + 2);
-    canvas.DrawBackground(icons.BorderHorizontalLight,
-                          leftX + 2,
-                          topY,
-                          rightX - 2,
-                          topY + 2);
-    canvas.DrawBackground(icons.BorderCornerLightDark,
-                          rightX - 2,
-                          topY,
-                          rightX,
-                          topY + 2);
-    canvas.DrawBackground(icons.BorderVerticalLight,
-                          leftX,
-                          topY + 2,
-                          leftX + 2,
-                          bottomY - 2);
-    canvas.DrawBackground(icons.BorderVerticalDark,
-                          rightX - 2,
-                          topY + 2,
-                          rightX,
-                          bottomY - 2);
-    canvas.DrawBackground(icons.BorderCornerLightDark,
-                          leftX,
-                          bottomY - 2,
-                          leftX + 2,
-                          bottomY);
-    canvas.DrawBackground(icons.BorderHorizontalDark,
-                          leftX + 2,
-                          bottomY - 2,
-                          rightX - 2,
-                          bottomY);
-    canvas.DrawBackground(icons.BorderCornerDark,
-                          rightX - 2,
-                          bottomY - 2,
-                          rightX,
-                          bottomY);
-}
+namespace UiSidebar {
 
 int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
 
     // Size: 176x334 (assuming inventory area is not minimized)
 
-    DrawBorder2px(icons, canvas, 0, 0, 176, 334);
+    UiCommon::DrawBorder2px(icons, canvas, 0, 0, 176, 334);
 
     // Draw each part
     // For now don't support changing area order (in the player)
@@ -141,7 +61,12 @@ void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcep
                           offsetY + 117);
 
     // Minimap, empty for now
-    DrawBorder1px(icons, canvas, 10, offsetY + 4, 10 + 108, offsetY + 4 + 108);
+    UiCommon::DrawBorder1px(icons,
+                            canvas,
+                            10,
+                            offsetY + 4,
+                            10 + 108,
+                            offsetY + 4 + 108);
     canvas.DrawRectangle(Pixel(0, 0, 0), 11, offsetY + 5, 106, 106);
 
     // Buttons
@@ -519,7 +444,7 @@ void DrawSidebarBottom(Gamestate &gamestate, Canvas &canvas, int offsetY) noexce
 
     // TODO: handle too low height, i.e. < 5 (2px border + 1px bg + 2px border)
     
-    DrawBorder2px(icons, canvas, 0, offsetY, 176, offsetY + height);
+    UiCommon::DrawBorder2px(icons, canvas, 0, offsetY, 176, offsetY + height);
 
     // TODO: we need a function to draw this sprite as a background but backwards (from bottom and up)
     canvas.DrawBackground(icons.ClientBackground,
@@ -529,92 +454,5 @@ void DrawSidebarBottom(Gamestate &gamestate, Canvas &canvas, int offsetY) noexce
                           offsetY + height - 2);
 }
 
-void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept {
-    const auto &icons = gamestate.Version.Icons;
-
-    // Top border
-    canvas.DrawBackground(icons.BorderHorizontalLight, 0, 0, canvas.Width, 1);
-    canvas.DrawBackground(icons.ClientBackground, 0, 1, canvas.Width, 4);
-    canvas.DrawBackground(icons.BorderHorizontalDark, 0, 4, canvas.Width, 5);
-
-    // Window names background
-    canvas.Draw(icons.ChatBackgroundDarkLeft, 0, 5);
-    canvas.DrawBackground(icons.ChatBackgroundDark, 2, 5, canvas.Width, 21);
-
-    // Buttons
-    canvas.Draw(icons.ChatChannelButton, canvas.Width - 32, 5);
-    canvas.Draw(icons.ChatIgnoreButton, canvas.Width - 16, 5);
-
-    // Message window border
-    DrawBorder2px(icons, canvas, 0, 21, canvas.Width, canvas.Height);
-
-    canvas.Draw(icons.ChatChannelBoxActive, 18, 5);
-
-    // TODO: spacing is 0 but it still too much, maybe we need a Chat font with -1 spacing?
-    //       verify if this is for all text in chat or only chat window title
-    TextRenderer::DrawCenteredString(gamestate.Version.Fonts.Game,
-                                     Pixel(0xDF, 0xDF, 0xDF),
-                                     66,
-                                     10,
-                                     "Default",
-                                     canvas);
-
-    // Message window background
-    canvas.DrawBackground(icons.ClientBackground,
-                          2,
-                          23,
-                          canvas.Width - 2,
-                          canvas.Height - 2);
-
-    // Message border
-    canvas.Draw(icons.ChatMessageBorderTopLeft, 4, 26);
-    canvas.DrawBackground(icons.ChatMessageBorderHorizontal,
-                          7,
-                          26,
-                          canvas.Width - 7,
-                          29);
-    canvas.Draw(icons.ChatMessageBorderTopRight, canvas.Width - 7, 26);
-    canvas.DrawBackground(icons.ChatMessageBorderVertical,
-                          4,
-                          29,
-                          7,
-                          canvas.Height - 25);
-    canvas.DrawBackground(icons.ChatMessageBorderVertical,
-                          canvas.Width - 7,
-                          29,
-                          canvas.Width - 4,
-                          canvas.Height - 25);
-    canvas.Draw(icons.ChatMessageBorderBottomLeft, 4, canvas.Height - 25);
-    canvas.DrawBackground(icons.ChatMessageBorderHorizontal,
-                          7,
-                          canvas.Height - 25,
-                          canvas.Width - 7,
-                          canvas.Height - 22);
-    canvas.Draw(icons.ChatMessageBorderBottomRight, canvas.Width - 7, canvas.Height - 25);
-
-    // Scrollbar
-    canvas.Draw(icons.ScrollbarUp, canvas.Width - 19, 29);
-    canvas.DrawBackground(icons.ScrollbarBackground,
-                          canvas.Width - 19,
-                          29 + 12,
-                          canvas.Width - 19 + 12,
-                          canvas.Height - 37);
-    canvas.Draw(icons.ScrollbarDown, canvas.Width - 19, canvas.Height - 37);
-
-    // Message input box
-    canvas.Draw(icons.ChatTalkButton, 5, canvas.Height - 20);
-    DrawBorder1px(icons,
-                  canvas,
-                  23,
-                  canvas.Height - 20,
-                  canvas.Width - 4,
-                  canvas.Height - 4);
-    canvas.DrawRectangle(Pixel(0x36, 0x36, 0x36),
-                         24,
-                         canvas.Height - 19,
-                         canvas.Width - 29,
-                         14);
-}
-
-} // namespace UiRenderer
+} // namespace UiSidebar
 } // namespace trc
