@@ -50,24 +50,10 @@ struct Rendering {
     // Sidebar's size is always 176 x <window height>
     // Chat's height is adjustable, but its width is always <window width> - 176
     // Game's height depends on the chat's height, but its width is always <window width> - 176
-    // 
-    // Each area has two Canvases and SDL_Textures each, one for things that
-    // only needs to be rendered once and one for things that needs to be
-    // rendered each frame
-    // They also have a SDL_Rect that describes where the area is rendered
-    //
-    // TODO: If we split Sidebar into areas (top, middle, bottom) we can
-    //       have even more things only rendered once
     struct Area {
         SDL_Rect Rect;
-
-        std::unique_ptr<Canvas> CanvasStatic;
-        Wrapper<SDL_Texture> TextureStatic;
-
-        std::unique_ptr<Canvas> CanvasDynamic;
-        Wrapper<SDL_Texture> TextureDynamic;
-
-        bool StaticRendered;
+        std::unique_ptr<Canvas> Canvas;
+        Wrapper<SDL_Texture> Texture;
     };
 
     Area Game;

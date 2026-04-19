@@ -46,11 +46,8 @@ void Rendering::ResetArea(Area &area, int x, int y, int w, int h) const {
     area.Rect.y = y;
     area.Rect.w = w;
     area.Rect.h = h;
-    area.CanvasStatic = std::make_unique<Canvas>(w, h, trc::Canvas::Type::External);
-    area.TextureStatic = CreateTexture(w, h);
-    area.CanvasDynamic = std::make_unique<Canvas>(w, h, trc::Canvas::Type::External);
-    area.TextureDynamic = CreateTexture(w, h);
-    area.StaticRendered = false;
+    area.Canvas = std::make_unique<Canvas>(w, h, trc::Canvas::Type::External);
+    area.Texture = CreateTexture(w, h);
 }
 
 static int formatTime(char *buffer, size_t bufferSize, uint64_t milliseconds) {
@@ -191,159 +188,8 @@ void Rendering::HandleResize() {
 }
 
 void Rendering::Render(Playback &playback) {
-    // Render game
-    {
-        if (!Game.StaticRendered) {
-            AbortUnless(!SDL_LockTexture(Game.TextureStatic.get(),
-                                         NULL,
-                                         (void **)&Game.CanvasStatic->Buffer,
-                                         &Game.CanvasStatic->Stride));
-
-            // Draw background
-            Renderer::DrawBackground(
-                    playback.Gamestate->Version.Icons.ClientBackground,
-                    *Game.CanvasStatic,
-                    0,
-                    0,
-                    Game.CanvasStatic->Width,
-                    Game.CanvasStatic->Height);
-
-            // Draw border around the gamestate
-            Renderer::DrawBorder1px(playback.Gamestate->Version.Icons,
-                                    *Game.CanvasStatic,
-                                    RectGamestate.x - 1,
-                                    RectGamestate.y - 1,
-                                    RectGamestate.x + RectGamestate.w + 1,
-                                    RectGamestate.y + RectGamestate.h + 1);
-
-            SDL_UnlockTexture(Game.TextureStatic.get());
-
-            Game.StaticRendered = true;
-        }
-
-        AbortUnless(!SDL_LockTexture(Game.TextureDynamic.get(),
-                                     NULL,
-                                     (void **)&Game.CanvasDynamic->Buffer,
-                                     &Game.CanvasDynamic->Stride));
-
-        Game.CanvasDynamic->Wipe();
-
-
-        // Render playback info
-        char text[64];
-        int textLength = snprintf(text,
-                                  sizeof(text) / sizeof(text[0]),
-                                  "FPS: %.2f",
-                                  StatsFPS);
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             14,
-                             64,
-                             std::string(text, textLength),
-                             *Game.CanvasDynamic);
-
-        textLength = formatTime(text,
-                                sizeof(text) / sizeof(text[0]),
-                                playback.GetPlaybackTick());
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             28,
-                             64,
-                             std::string(text, textLength),
-                             *Game.CanvasDynamic);
-
-        textLength = formatTime(text,
-                                sizeof(text) / sizeof(text[0]),
-                                playback.Recording->Runtime.count());
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             42,
-                             64,
-                             std::string(text, textLength),
-                             *Game.CanvasDynamic);
-
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             56,
-                             64,
-                             "Playback speed: " + std::to_string(playback.Scale),
-                             *Game.CanvasDynamic);
-
-        SDL_UnlockTexture(Game.TextureDynamic.get());
-    }
-
-
-    // Render sidebar
-    {
-        if (!Sidebar.StaticRendered) {
-            AbortUnless(!SDL_LockTexture(Sidebar.TextureStatic.get(),
-                                         NULL,
-                                         (void **)&Sidebar.CanvasStatic->Buffer,
-                                         &Sidebar.CanvasStatic->Stride));
-
-            Renderer::DrawSidebarTopStatic(*playback.Gamestate,
-                                           *Sidebar.CanvasStatic);
-
-            SDL_UnlockTexture(Sidebar.TextureStatic.get());
-
-            Sidebar.StaticRendered = true;
-        }
-
-        AbortUnless(!SDL_LockTexture(Sidebar.TextureDynamic.get(),
-                                     NULL,
-                                     (void **)&Sidebar.CanvasDynamic->Buffer,
-                                     &Sidebar.CanvasDynamic->Stride));
-
-        Sidebar.CanvasDynamic->Wipe();
-        int offsetY = Renderer::DrawSidebarTop(*playback.Gamestate,
-                                               *Sidebar.CanvasDynamic);
-        Renderer::DrawSidebarMiddle(*playback.Gamestate,
-                                    *Sidebar.CanvasDynamic,
-                                    offsetY);
-        Renderer::DrawSidebarBottom(*playback.Gamestate,
-                                    *Sidebar.CanvasDynamic,
-                                    offsetY);
-
-        SDL_UnlockTexture(Sidebar.TextureDynamic.get());
-    }
-
-    // Render chat
-    {
-        if (!Chat.StaticRendered) {
-            AbortUnless(!SDL_LockTexture(Chat.TextureStatic.get(),
-                                         NULL,
-                                         (void **)&Chat.CanvasStatic->Buffer,
-                                         &Chat.CanvasStatic->Stride));
-
-            Chat.CanvasStatic->Wipe();
-            Renderer::DrawChatStatic(*playback.Gamestate, *Chat.CanvasStatic);
-
-            SDL_UnlockTexture(Chat.TextureStatic.get());
-
-            Chat.StaticRendered = true;
-        }
-
-        AbortUnless(!SDL_LockTexture(Chat.TextureDynamic.get(),
-                                     NULL,
-                                     (void **)&Chat.CanvasDynamic->Buffer,
-                                     &Chat.CanvasDynamic->Stride));
-
-        Chat.CanvasDynamic->Wipe();
-
-        SDL_UnlockTexture(Chat.TextureDynamic.get());
-    }
+    /* FIXME: C++ migration. */
+    playback.Gamestate->Messages.Prune(playback.Gamestate->CurrentTick);
 
     // Render gamestate
     {
@@ -373,15 +219,132 @@ void Rendering::Render(Playback &playback) {
         SDL_UnlockTexture(TextureOverlay.get());
     }
 
-    /* FIXME: C++ migration. */
-    playback.Gamestate->Messages.Prune(playback.Gamestate->CurrentTick);
+    // Render game area
+    {
+        AbortUnless(!SDL_LockTexture(Game.Texture.get(),
+                                     NULL,
+                                     (void **)&Game.Canvas->Buffer,
+                                     &Game.Canvas->Stride));
+
+        Game.Canvas->Wipe();
+
+        // Draw background
+        Renderer::DrawBackground(
+                playback.Gamestate->Version.Icons.ClientBackground,
+                *Game.Canvas,
+                0,
+                0,
+                Game.Canvas->Width,
+                Game.Canvas->Height);
+
+        // Draw border around the gamestate
+        Renderer::DrawBorder1px(playback.Gamestate->Version.Icons,
+                                *Game.Canvas,
+                                RectGamestate.x - 1,
+                                RectGamestate.y - 1,
+                                RectGamestate.x + RectGamestate.w + 1,
+                                RectGamestate.y + RectGamestate.h + 1);
+
+        // Render playback info
+        char text[64];
+        int textLength = snprintf(text,
+                                  sizeof(text) / sizeof(text[0]),
+                                  "FPS: %.2f",
+                                  StatsFPS);
+        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
+                             TextAlignment::Left,
+                             TextTransform::None,
+                             Pixel(0xFF, 0xFF, 0xFF),
+                             12,
+                             14,
+                             64,
+                             std::string(text, textLength),
+                             *Game.Canvas);
+
+        textLength = formatTime(text,
+                                sizeof(text) / sizeof(text[0]),
+                                playback.GetPlaybackTick());
+        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
+                             TextAlignment::Left,
+                             TextTransform::None,
+                             Pixel(0xFF, 0xFF, 0xFF),
+                             12,
+                             28,
+                             64,
+                             std::string(text, textLength),
+                             *Game.Canvas);
+
+        textLength = formatTime(text,
+                                sizeof(text) / sizeof(text[0]),
+                                playback.Recording->Runtime.count());
+        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
+                             TextAlignment::Left,
+                             TextTransform::None,
+                             Pixel(0xFF, 0xFF, 0xFF),
+                             12,
+                             42,
+                             64,
+                             std::string(text, textLength),
+                             *Game.Canvas);
+
+        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
+                             TextAlignment::Left,
+                             TextTransform::None,
+                             Pixel(0xFF, 0xFF, 0xFF),
+                             12,
+                             56,
+                             64,
+                             "Playback speed: " + std::to_string(playback.Scale),
+                             *Game.Canvas);
+
+        SDL_UnlockTexture(Game.Texture.get());
+    }
+
+
+    // Render sidebar area
+    {
+        AbortUnless(!SDL_LockTexture(Sidebar.Texture.get(),
+                                     NULL,
+                                     (void **)&Sidebar.Canvas->Buffer,
+                                     &Sidebar.Canvas->Stride));
+
+        Sidebar.Canvas->Wipe();
+
+        Renderer::DrawSidebarTop(*playback.Gamestate,
+                                 *Sidebar.Canvas);
+
+        int offsetY = Renderer::DrawSidebarTop(*playback.Gamestate,
+                                               *Sidebar.Canvas);
+        Renderer::DrawSidebarMiddle(*playback.Gamestate,
+                                    *Sidebar.Canvas,
+                                    offsetY);
+        Renderer::DrawSidebarBottom(*playback.Gamestate,
+                                    *Sidebar.Canvas,
+                                    offsetY);
+
+        SDL_UnlockTexture(Sidebar.Texture.get());
+    }
+
+    // Render chat area
+    {
+        AbortUnless(!SDL_LockTexture(Chat.Texture.get(),
+                                     NULL,
+                                     (void **)&Chat.Canvas->Buffer,
+                                     &Chat.Canvas->Stride));
+
+        Chat.Canvas->Wipe();
+        Renderer::DrawChat(*playback.Gamestate, *Chat.Canvas);
+
+        SDL_UnlockTexture(Chat.Texture.get());
+    }
 
     /* Render textures to screen */
     AbortUnless(!SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255));
     AbortUnless(!SDL_RenderClear(Renderer.get()));
 
+    // Game
     AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Game.TextureStatic.get(),
+                                Game.Texture.get(),
                                 NULL,
                                 &Game.Rect));
     AbortUnless(!SDL_RenderCopy(Renderer.get(),
@@ -392,26 +355,16 @@ void Rendering::Render(Playback &playback) {
                                 TextureOverlay.get(),
                                 NULL,
                                 &RectGamestate));
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Game.TextureDynamic.get(),
-                                NULL,
-                                &Game.Rect));
 
+    // Sidebar
     AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Sidebar.TextureStatic.get(),
-                                NULL,
-                                &Sidebar.Rect));
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Sidebar.TextureDynamic.get(),
+                                Sidebar.Texture.get(),
                                 NULL,
                                 &Sidebar.Rect));
 
+    // Chat
     AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Chat.TextureStatic.get(),
-                                NULL,
-                                &Chat.Rect));
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Chat.TextureDynamic.get(),
+                                Chat.Texture.get(),
                                 NULL,
                                 &Chat.Rect));
 

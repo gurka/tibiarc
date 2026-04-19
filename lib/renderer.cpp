@@ -2035,16 +2035,12 @@ void DrawBorder2px(const Icons &icons,
                    bottomY);
 }
 
-void DrawSidebarTopStatic(Gamestate &gamestate, Canvas &canvas) noexcept {
-    const auto &icons = gamestate.Version.Icons;
-
-    DrawBorder2px(icons, canvas, 0, 0, 176, 334);
-}
-
 int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
 
     // Size: 176x334 (assuming inventory area is not minimized)
+
+    DrawBorder2px(icons, canvas, 0, 0, 176, 334);
 
     // Draw each part
     // For now don't support changing area order (in the player)
@@ -2458,10 +2454,8 @@ void DrawSidebarBottom(Gamestate &gamestate, Canvas &canvas, int offsetY) noexce
     DrawBackground(icons.ClientBackground, canvas, 2, offsetY + 2, 176 - 2, offsetY + height - 2);
 }
 
-void DrawChatStatic(Gamestate &gamestate, Canvas &canvas) noexcept {
+void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept {
     const auto &icons = gamestate.Version.Icons;
-
-    // TODO: A few things rendered here needs to be moved to the dynamic DrawChat (once it's implemented)
 
     // Top border
     DrawBackground(icons.BorderHorizontalLight, canvas, 0, 0, canvas.Width, 1);

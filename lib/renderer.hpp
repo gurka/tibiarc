@@ -89,7 +89,6 @@ void DrawBorder2px(const Icons &icons,
                    int bottomY) noexcept;
 
 // Sidebar
-void DrawSidebarTopStatic(Gamestate &gamestate, Canvas &canvas) noexcept;
 int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept;
 
 void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
@@ -117,7 +116,7 @@ void DrawSidebarBottom(Gamestate &gamestate,
                        int offsetY) noexcept;
 
 // Chat
-void DrawChatStatic(Gamestate &gamestate, Canvas &canvas) noexcept;
+void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept;
 
 // Other
 void DrawIconBar(Gamestate &gamestate,
