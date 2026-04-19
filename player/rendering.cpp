@@ -190,8 +190,7 @@ void Rendering::HandleResize() {
 }
 
 void Rendering::Render(Playback &playback) {
-    /* FIXME: C++ migration. */
-    playback.Gamestate->Messages.Prune(playback.Gamestate->CurrentTick);
+    Renderer::Update(RenderOptions, *playback.Gamestate);
 
     // Render gamestate
     {
