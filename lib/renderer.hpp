@@ -22,7 +22,6 @@
 #define __TRC_RENDERER_HPP__
 
 #include <cstdint>
-#include <string>
 
 #include "canvas.hpp"
 #include "gamestate.hpp"
@@ -70,59 +69,26 @@ struct Options {
  * std::terminate() on data errors, which should've been caught by the
  * parser. */
 
-// Note: this draws a "sunken" border, i.e. top and left lines are dark while
-//       bottom and right lines are light
-void DrawBorder1px(const Icons &icons,
-                   Canvas &canvas,
-                   int leftX,
-                   int topY,
-                   int rightX,
-                   int bottomY) noexcept;
+int MeasureInventoryAreaHeight(Gamestate &gamestate) noexcept;
 
-// Note: this draws a "raised" border, i.e. top and left lines are light while
-//       bottom and right lines are dark
-void DrawBorder2px(const Icons &icons,
-                   Canvas &canvas,
-                   int leftX,
-                   int topY,
-                   int rightX,
-                   int bottomY) noexcept;
-
-// Sidebar
-int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept;
-
-void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
-void DrawStatusBars(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
-void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
-void DrawWindowButtons(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
-
-void DrawSidebarMiddle(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
-
-void DrawSidebarWindowBackground(Gamestate &gamestate,
-                                 Canvas &canvas,
-                                 int offsetY,
-                                 int height) noexcept;
-void DrawSidebarWindow(Gamestate &gamestate,
+void DrawInventoryArea(Gamestate &gamestate,
                        Canvas &canvas,
-                       int offsetY,
-                       const Sprite &icon,
-                       const std::string &title,
-                       int height) noexcept;
-void DrawSkillsWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
-void DrawBattleWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept;
+                       int &offsetX,
+                       int &offsetY) noexcept;
 
-void DrawSidebarBottom(Gamestate &gamestate,
-                       Canvas &canvas,
-                       int offsetY) noexcept;
+int MeasureIconBarHeight(Gamestate &gamestate) noexcept;
 
-// Chat
-void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept;
-
-// Other
 void DrawIconBar(Gamestate &gamestate,
                  Canvas &canvas,
                  int &offsetX,
                  int &offsetY) noexcept;
+
+int MeasureStatusBarsHeight(Gamestate &gamestate) noexcept;
+
+void DrawStatusBars(Gamestate &gamestate,
+                    Canvas &canvas,
+                    int &offsetX,
+                    int &offsetY) noexcept;
 
 int MeasureContainerHeight(Gamestate &gamestate,
                            Container &container,
@@ -138,14 +104,26 @@ void DrawContainer(Gamestate &gamestate,
                    int &offsetX,
                    int &offsetY) noexcept;
 
+int MeasureSkillsHeight(Gamestate &gamestate) noexcept;
 
-// TODO: Rename, as we draw more than backgrounds with it
-void DrawBackground(const Sprite &sprite,
-                    Canvas &canvas,
-                    int topX,
-                    int topY,
-                    int rightX,
-                    int rightY) noexcept;
+void DrawSkills(Gamestate &gamestate,
+                Canvas &canvas,
+                int rightX,
+                int &offsetX,
+                int &offsetY) noexcept;
+
+void DrawClientBackground(Gamestate &gamestate,
+                          Canvas &canvas,
+                          int topX,
+                          int topY,
+                          int rightX,
+                          int rightY) noexcept;
+
+void DrawInventorySlot(Gamestate &gamestate,
+                       InventorySlot slot,
+                       int X,
+                       int Y,
+                       Canvas &canvas);
 
 /* ************************************************************************* */
 

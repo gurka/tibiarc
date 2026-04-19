@@ -21,18 +21,24 @@
 #ifndef PLAYER_RENDERING_H
 #define PLAYER_RENDERING_H
 
+#include <functional>
+#include <memory>
+
 extern "C" {
 #include <SDL.h>
 }
 
 #include "playback.hpp"
 #include "renderer.hpp"
-#include "canvas.hpp"
 
-#include <functional>
-#include <memory>
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 namespace trc {
+
+struct Canvas;
+
 struct Rendering {
     template <typename T>
     using Wrapper = std::unique_ptr<T, std::function<void(T *)>>;

@@ -430,6 +430,8 @@ if(EMSCRIPTEN OR SDL2_FOUND)
     "player/playback.hpp"
     "player/rendering.cpp"
     "player/rendering.hpp"
+    "player/ui_renderer.cpp"
+    "player/ui_renderer.hpp"
     "utils/memoryfile.cpp"
     "utils/memoryfile.hpp"
   )
