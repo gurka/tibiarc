@@ -2062,27 +2062,6 @@ void DrawInventoryArea(const Gamestate &gamestate,
     offsetY = baseY + icons.SecondaryStatBackground.Height + 3;
 }
 
-int MeasureContainerHeight(const Gamestate &gamestate,
-                           const Container &container,
-                           bool collapsed,
-                           int width) {
-    const Version &version = gamestate.Version;
-    int height = version.Fonts.InterfaceLarge.Height;
-
-    if (!collapsed) {
-        const int slotSize = (32 + 4);
-        const int slotsPerRow = width / slotSize;
-
-        /* Round up to avoid having the next container overdraw this one, in
-         * case the container size wasn't a clean multiple of the slot
-         * modulus. */
-        height += ((container.SlotsPerPage + (slotsPerRow - 1) / slotsPerRow)) *
-                  slotSize;
-    }
-
-    return height;
-}
-
 void DrawContainer(const Gamestate &gamestate,
                    Canvas &canvas,
                    const Container &container,

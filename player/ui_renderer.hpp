@@ -32,10 +32,6 @@
 namespace trc {
 namespace UiRenderer {
 
-/* FIXME: C++ migration, `noexcept` specifiers are there as a shorthand to
- * std::terminate() on data errors, which should've been caught by the
- * parser. */
-
 // Note: this draws a "sunken" border, i.e. top and left lines are dark while
 //       bottom and right lines are light
 void DrawBorder1px(const Icons &icons,
@@ -83,34 +79,6 @@ void DrawSidebarBottom(Gamestate &gamestate,
 
 // Chat
 void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept;
-
-// Other
-void DrawIconBar(Gamestate &gamestate,
-                 Canvas &canvas,
-                 int &offsetX,
-                 int &offsetY) noexcept;
-
-int MeasureContainerHeight(Gamestate &gamestate,
-                           Container &container,
-                           bool collapsed,
-                           int width);
-
-void DrawContainer(Gamestate &gamestate,
-                   Canvas &canvas,
-                   Container &container,
-                   bool collapsed,
-                   int maxX,
-                   int maxY,
-                   int &offsetX,
-                   int &offsetY) noexcept;
-
-// TODO: Rename, as we draw more than backgrounds with it
-void DrawBackground(const Sprite &sprite,
-                    Canvas &canvas,
-                    int topX,
-                    int topY,
-                    int rightX,
-                    int rightY) noexcept;
 
 } // namespace UiRenderer
 } // namespace trc

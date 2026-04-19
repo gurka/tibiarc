@@ -230,9 +230,8 @@ void Rendering::Render(Playback &playback) {
         Game.Canvas->Wipe();
 
         // Draw background
-        UiRenderer::DrawBackground(
+        Game.Canvas->DrawBackground(
                 playback.Gamestate->Version.Icons.ClientBackground,
-                *Game.Canvas,
                 0,
                 0,
                 Game.Canvas->Width,
