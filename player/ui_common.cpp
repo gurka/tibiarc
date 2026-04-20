@@ -25,6 +25,21 @@
 namespace trc {
 namespace UiCommon {
 
+Wrapper<SDL_Texture> CreateTexture(SDL_Renderer *renderer,
+                                   int width,
+                                   int height) {
+    SDL_Texture *texture = SDL_CreateTexture(renderer,
+                                             SDL_PIXELFORMAT_RGBA32,
+                                             SDL_TEXTUREACCESS_STREAMING,
+                                             width,
+                                             height);
+
+    AbortUnless(texture != nullptr);
+    AbortUnless(!SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND));
+
+    return Wrapper<SDL_Texture>(texture, SDL_DestroyTexture);
+}
+
 void DrawBorder1px(const Icons &icons,
                    Canvas &canvas,
                    int leftX,

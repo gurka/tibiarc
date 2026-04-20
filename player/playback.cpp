@@ -67,7 +67,7 @@ void Playback::Stabilize() {
     }
 }
 
-int64_t Playback::GetPlaybackTick() {
+int64_t Playback::GetPlaybackTick() const {
     return std::min(static_cast<int64_t>(BaseTick +
                                          (SDL_GetTicks() - ScaleTick) * Scale),
                     Recording->Runtime.count());

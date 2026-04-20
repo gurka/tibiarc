@@ -29,28 +29,42 @@
 #include "pixel.hpp"
 
 namespace trc {
-namespace UiChat {
 
-void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept {
+void UiChat::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
+    Rect = rect;
+    Canvas = std::make_unique<trc::Canvas>(Rect.w,
+                                           Rect.h,
+                                           trc::Canvas::Type::External);
+    Texture = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
+}
+
+void UiChat::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate) const {
+    AbortUnless(!SDL_LockTexture(Texture.get(),
+                                 NULL,
+                                 (void **)&Canvas->Buffer,
+                                 &Canvas->Stride));
+
+    Canvas->Wipe();
+
     const auto &icons = gamestate.Version.Icons;
 
     // Top border
-    canvas.DrawBackground(icons.BorderHorizontalLight, 0, 0, canvas.Width, 1);
-    canvas.DrawBackground(icons.ClientBackground, 0, 1, canvas.Width, 4);
-    canvas.DrawBackground(icons.BorderHorizontalDark, 0, 4, canvas.Width, 5);
+    Canvas->DrawBackground(icons.BorderHorizontalLight, 0, 0, Canvas->Width, 1);
+    Canvas->DrawBackground(icons.ClientBackground, 0, 1, Canvas->Width, 4);
+    Canvas->DrawBackground(icons.BorderHorizontalDark, 0, 4, Canvas->Width, 5);
 
     // Window names background
-    canvas.Draw(icons.ChatBackgroundDarkLeft, 0, 5);
-    canvas.DrawBackground(icons.ChatBackgroundDark, 2, 5, canvas.Width, 21);
+    Canvas->Draw(icons.ChatBackgroundDarkLeft, 0, 5);
+    Canvas->DrawBackground(icons.ChatBackgroundDark, 2, 5, Canvas->Width, 21);
 
     // Buttons
-    canvas.Draw(icons.ChatChannelButton, canvas.Width - 32, 5);
-    canvas.Draw(icons.ChatIgnoreButton, canvas.Width - 16, 5);
+    Canvas->Draw(icons.ChatChannelButton, Canvas->Width - 32, 5);
+    Canvas->Draw(icons.ChatIgnoreButton, Canvas->Width - 16, 5);
 
     // Message window border
-    UiCommon::DrawBorder2px(icons, canvas, 0, 21, canvas.Width, canvas.Height);
+    UiCommon::DrawBorder2px(icons, *Canvas, 0, 21, Canvas->Width, Canvas->Height);
 
-    canvas.Draw(icons.ChatChannelBoxActive, 18, 5);
+    Canvas->Draw(icons.ChatChannelBoxActive, 18, 5);
 
     // TODO: spacing is 0 but it still too much, maybe we need a Chat font with -1 spacing?
     //       verify if this is for all text in chat or only chat window title
@@ -59,64 +73,65 @@ void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept {
                                      66,
                                      10,
                                      "Default",
-                                     canvas);
+                                     *Canvas);
 
     // Message window background
-    canvas.DrawBackground(icons.ClientBackground,
+    Canvas->DrawBackground(icons.ClientBackground,
                           2,
                           23,
-                          canvas.Width - 2,
-                          canvas.Height - 2);
+                          Canvas->Width - 2,
+                          Canvas->Height - 2);
 
     // Message border
-    canvas.Draw(icons.ChatMessageBorderTopLeft, 4, 26);
-    canvas.DrawBackground(icons.ChatMessageBorderHorizontal,
+    Canvas->Draw(icons.ChatMessageBorderTopLeft, 4, 26);
+    Canvas->DrawBackground(icons.ChatMessageBorderHorizontal,
                           7,
                           26,
-                          canvas.Width - 7,
+                          Canvas->Width - 7,
                           29);
-    canvas.Draw(icons.ChatMessageBorderTopRight, canvas.Width - 7, 26);
-    canvas.DrawBackground(icons.ChatMessageBorderVertical,
+    Canvas->Draw(icons.ChatMessageBorderTopRight, Canvas->Width - 7, 26);
+    Canvas->DrawBackground(icons.ChatMessageBorderVertical,
                           4,
                           29,
                           7,
-                          canvas.Height - 25);
-    canvas.DrawBackground(icons.ChatMessageBorderVertical,
-                          canvas.Width - 7,
+                          Canvas->Height - 25);
+    Canvas->DrawBackground(icons.ChatMessageBorderVertical,
+                          Canvas->Width - 7,
                           29,
-                          canvas.Width - 4,
-                          canvas.Height - 25);
-    canvas.Draw(icons.ChatMessageBorderBottomLeft, 4, canvas.Height - 25);
-    canvas.DrawBackground(icons.ChatMessageBorderHorizontal,
+                          Canvas->Width - 4,
+                          Canvas->Height - 25);
+    Canvas->Draw(icons.ChatMessageBorderBottomLeft, 4, Canvas->Height - 25);
+    Canvas->DrawBackground(icons.ChatMessageBorderHorizontal,
                           7,
-                          canvas.Height - 25,
-                          canvas.Width - 7,
-                          canvas.Height - 22);
-    canvas.Draw(icons.ChatMessageBorderBottomRight, canvas.Width - 7, canvas.Height - 25);
+                          Canvas->Height - 25,
+                          Canvas->Width - 7,
+                          Canvas->Height - 22);
+    Canvas->Draw(icons.ChatMessageBorderBottomRight, Canvas->Width - 7, Canvas->Height - 25);
 
     // Scrollbar
-    canvas.Draw(icons.ScrollbarUp, canvas.Width - 19, 29);
-    canvas.DrawBackground(icons.ScrollbarBackground,
-                          canvas.Width - 19,
+    Canvas->Draw(icons.ScrollbarUp, Canvas->Width - 19, 29);
+    Canvas->DrawBackground(icons.ScrollbarBackground,
+                          Canvas->Width - 19,
                           29 + 12,
-                          canvas.Width - 19 + 12,
-                          canvas.Height - 37);
-    canvas.Draw(icons.ScrollbarDown, canvas.Width - 19, canvas.Height - 37);
+                          Canvas->Width - 19 + 12,
+                          Canvas->Height - 37);
+    Canvas->Draw(icons.ScrollbarDown, Canvas->Width - 19, Canvas->Height - 37);
 
     // Message input box
-    canvas.Draw(icons.ChatTalkButton, 5, canvas.Height - 20);
+    Canvas->Draw(icons.ChatTalkButton, 5, Canvas->Height - 20);
     UiCommon::DrawBorder1px(icons,
-                            canvas,
+                            *Canvas,
                             23,
-                            canvas.Height - 20,
-                            canvas.Width - 4,
-                            canvas.Height - 4);
-    canvas.DrawRectangle(Pixel(0x36, 0x36, 0x36),
+                            Canvas->Height - 20,
+                            Canvas->Width - 4,
+                            Canvas->Height - 4);
+    Canvas->DrawRectangle(Pixel(0x36, 0x36, 0x36),
                          24,
-                         canvas.Height - 19,
-                         canvas.Width - 29,
+                         Canvas->Height - 19,
+                         Canvas->Width - 29,
                          14);
+
+    SDL_UnlockTexture(Texture.get());
 }
 
-} // namespace UiChat
 } // namespace trc

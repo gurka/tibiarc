@@ -21,60 +21,29 @@
 #ifndef PLAYER_RENDERING_H
 #define PLAYER_RENDERING_H
 
-#include <functional>
-#include <memory>
-
 extern "C" {
 #include <SDL.h>
 }
 
 #include "playback.hpp"
-#include "renderer.hpp"
+#include "ui_sidebar.hpp"
+#include "ui_chat.hpp"
+#include "ui_game.hpp"
 
 struct SDL_Window;
 struct SDL_Renderer;
-struct SDL_Texture;
 
 namespace trc {
 
-struct Canvas;
-
 struct Rendering {
-    template <typename T>
-    using Wrapper = std::unique_ptr<T, std::function<void(T *)>>;
-
-    Wrapper<SDL_Window> Window;
-    Wrapper<SDL_Renderer> Renderer;
+    UiCommon::Wrapper<SDL_Window> Window;
+    UiCommon::Wrapper<SDL_Renderer> Renderer;
 
     Renderer::Options RenderOptions;
 
-    // The window consists of three areas:
-    // - Game
-    // - Sidebar
-    // - Chat
-    // 
-    // Sidebar's size is always 176 x <window height>
-    // Chat's height is adjustable, but its width is always <window width> - 176
-    // Game's height depends on the chat's height, but its width is always <window width> - 176
-    struct Area {
-        SDL_Rect Rect;
-        std::unique_ptr<Canvas> Canvas;
-        Wrapper<SDL_Texture> Texture;
-    };
-
-    Area Game;
-    Area Sidebar;
-    Area Chat;
-
-    // The gamestate is always rendered in NATIVE_RESOLUTION
-    // and then copied to the game texture (scaled but with the same ratio)
-    // Also, Renderer::DrawOverlay wants a canvas with the same size
-    // as Gamestate after scaling, so give it that
-    std::unique_ptr<Canvas> CanvasGamestate;
-    Wrapper<SDL_Texture> TextureGamestate;
-    std::unique_ptr<Canvas> CanvasOverlay;
-    Wrapper<SDL_Texture> TextureOverlay;
-    SDL_Rect RectGamestate;
+    UiGame Game;
+    UiSidebar Sidebar;
+    UiChat Chat;
 
     uint32_t StatsLastUpdate = 0;
     uint32_t StatsFramesSinceLastUpdate = 0;
@@ -84,10 +53,6 @@ struct Rendering {
 
     void HandleResize();
     void Render(Playback &playback);
-
-private:
-    Wrapper<SDL_Texture> CreateTexture(int width, int height) const;
-    void ResetArea(Area &area, int x, int y, int w, int h) const;
 };
 } // namespace trc
 

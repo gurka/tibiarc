@@ -20,6 +20,40 @@
 #ifndef PLAYER_UI_GAME_HPP_
 #define PLAYER_UI_GAME_HPP_
 
+#include <memory>
 
+extern "C" {
+#include <SDL.h>
+}
+
+#include "ui_common.hpp"
+#include "canvas.hpp"
+#include "renderer.hpp"
+#include "gamestate.hpp"
+#include "playback.hpp"
+
+namespace trc {
+
+struct UiGame {
+    SDL_Rect Rect;
+    std::unique_ptr<trc::Canvas> Canvas;
+    UiCommon::Wrapper<SDL_Texture> Texture;
+
+    std::unique_ptr<trc::Canvas> CanvasGamestate;
+    UiCommon::Wrapper<SDL_Texture> TextureGamestate;
+
+    SDL_Rect RectGamestate;
+
+    std::unique_ptr<trc::Canvas> CanvasOverlay;
+    UiCommon::Wrapper<SDL_Texture> TextureOverlay;
+
+    void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
+    void Render(const Renderer::Options &renderOptions,
+                const Gamestate &gamestate,
+                const Playback &playback,
+                double statsFPS) const;
+};
+
+} // namespace trc
 
 #endif /* PLAYER_UI_GAME_HPP */

@@ -29,9 +29,35 @@
 #include "pixel.hpp"
 
 namespace trc {
-namespace UiSidebar {
 
-int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept {
+void UiSidebar::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
+    Rect = rect;
+    Canvas = std::make_unique<trc::Canvas>(Rect.w,
+                                           Rect.h,
+                                           trc::Canvas::Type::External);
+    Texture = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
+}
+
+void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate) const {
+    AbortUnless(!SDL_LockTexture(Texture.get(),
+                                 NULL,
+                                 (void **)&Canvas->Buffer,
+                                 &Canvas->Stride));
+
+    Canvas->Wipe();
+
+    UiSidebar::DrawSidebarTop(gamestate, *Canvas);
+
+    int offsetY =
+            UiSidebar::DrawSidebarTop(gamestate, *Canvas);
+    UiSidebar::DrawSidebarMiddle(gamestate, *Canvas, offsetY);
+    UiSidebar::DrawSidebarBottom(gamestate, *Canvas, offsetY);
+
+    SDL_UnlockTexture(Texture.get());
+}
+
+int UiSidebar::DrawSidebarTop(const Gamestate &gamestate,
+                              trc::Canvas &canvas) const {
     const auto &icons = gamestate.Version.Icons;
 
     // Size: 176x334 (assuming inventory area is not minimized)
@@ -49,7 +75,9 @@ int DrawSidebarTop(Gamestate &gamestate, Canvas &canvas) noexcept {
     return offsetY;
 }
 
-void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
+void UiSidebar::DrawMinimapArea(const Gamestate &gamestate,
+                                trc::Canvas &canvas,
+                                int &offsetY) const {
     const auto &fonts = gamestate.Version.Fonts;
     const auto &icons = gamestate.Version.Icons;
 
@@ -87,7 +115,9 @@ void DrawMinimapArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcep
     offsetY += 117;
 }
 
-void DrawStatusBars(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
+void UiSidebar::DrawStatusBars(const Gamestate &gamestate,
+                               trc::Canvas &canvas,
+                               int &offsetY) const {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
@@ -140,7 +170,9 @@ void DrawStatusBars(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept
     offsetY += 32;
 }
 
-void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
+void UiSidebar::DrawInventoryArea(const Gamestate &gamestate,
+                                  trc::Canvas &canvas,
+                                  int &offsetY) const {
     const Version &version = gamestate.Version;
     const Icons &icons = version.Icons;
 
@@ -234,7 +266,6 @@ void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexc
                                      "Options",
                                      canvas);
 
-
     canvas.Draw(icons.Button43px, 126, offsetY + 131);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
@@ -247,7 +278,9 @@ void DrawInventoryArea(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexc
     offsetY += 155;
 }
 
-void DrawWindowButtons(Gamestate& gamestate, Canvas& canvas, int &offsetY) noexcept {
+void UiSidebar::DrawWindowButtons(const Gamestate &gamestate,
+                                  trc::Canvas &canvas,
+                                  int &offsetY) const {
     const Version &version = gamestate.Version;
     const Icons &icons = version.Icons;
 
@@ -293,17 +326,17 @@ void DrawWindowButtons(Gamestate& gamestate, Canvas& canvas, int &offsetY) noexc
     offsetY += 26;
 }
 
-void DrawSidebarMiddle(Gamestate &gamestate,
-                       Canvas &canvas,
-                       int &offsetY) noexcept {
+void UiSidebar::DrawSidebarMiddle(const Gamestate &gamestate,
+                                  trc::Canvas &canvas,
+                                  int &offsetY) const {
     DrawSkillsWindow(gamestate, canvas, offsetY);
     DrawBattleWindow(gamestate, canvas, offsetY);
 }
 
-void DrawSidebarWindowBackground(Gamestate &gamestate,
-                                 Canvas &canvas,
-                                 int offsetY,
-                                 int height) noexcept {
+void UiSidebar::DrawSidebarWindowBackground(const Gamestate &gamestate,
+                                            trc::Canvas &canvas,
+                                            int offsetY,
+                                            int height) const {
     AbortUnless(height >= 57);
 
     const auto &icons = gamestate.Version.Icons;
@@ -315,12 +348,12 @@ void DrawSidebarWindowBackground(Gamestate &gamestate,
                           offsetY + 15 + height - 19);
 }
 
-void DrawSidebarWindow(Gamestate &gamestate,
-                       Canvas &canvas,
-                       int offsetY,
-                       const Sprite &icon,
-                       const std::string &title,
-                       int height) noexcept {
+void UiSidebar::DrawSidebarWindow(const Gamestate &gamestate,
+                                  trc::Canvas &canvas,
+                                  int offsetY,
+                                  const Sprite &icon,
+                                  const std::string &title,
+                                  int height) const {
     AbortUnless(height >= 57);
 
     const auto &icons = gamestate.Version.Icons;
@@ -377,7 +410,9 @@ void DrawSidebarWindow(Gamestate &gamestate,
     canvas.Draw(icons.WindowResize, 3, offsetY + 15 + height - 19 - 12);
 }
 
-void DrawSkillsWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
+void UiSidebar::DrawSkillsWindow(const Gamestate &gamestate,
+                                 trc::Canvas &canvas,
+                                 int &offsetY) const {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
@@ -389,12 +424,13 @@ void DrawSkillsWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexce
                              offsetY + 25,
                              "Experience",
                              canvas);
-    TextRenderer::DrawRightAlignedString(fonts.InterfaceLarge,
-                                         Pixel(0xAF, 0xAF, 0xAF),
-                                         149,
-                                         offsetY + 25,
-                                         ThousandSeparators(gamestate.Player.Stats.Experience),
-                                         canvas);
+    TextRenderer::DrawRightAlignedString(
+            fonts.InterfaceLarge,
+            Pixel(0xAF, 0xAF, 0xAF),
+            149,
+            offsetY + 25,
+            ThousandSeparators(gamestate.Player.Stats.Experience),
+            canvas);
 
     TextRenderer::DrawString(fonts.InterfaceLarge,
                              Pixel(0xAF, 0xAF, 0xAF),
@@ -402,12 +438,13 @@ void DrawSkillsWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexce
                              offsetY + 39,
                              "Level",
                              canvas);
-    TextRenderer::DrawRightAlignedString(fonts.InterfaceLarge,
-                                         Pixel(0xAF, 0xAF, 0xAF),
-                                         149,
-                                         offsetY + 39,
-                                         ThousandSeparators(gamestate.Player.Stats.Level),
-                                         canvas);
+    TextRenderer::DrawRightAlignedString(
+            fonts.InterfaceLarge,
+            Pixel(0xAF, 0xAF, 0xAF),
+            149,
+            offsetY + 39,
+            ThousandSeparators(gamestate.Player.Stats.Level),
+            canvas);
 
     DrawSidebarWindow(gamestate,
                       canvas,
@@ -420,7 +457,9 @@ void DrawSkillsWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexce
     offsetY += 57;
 }
 
-void DrawBattleWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexcept {
+void UiSidebar::DrawBattleWindow(const Gamestate &gamestate,
+                                 trc::Canvas &canvas,
+                                 int &offsetY) const {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
@@ -437,16 +476,19 @@ void DrawBattleWindow(Gamestate &gamestate, Canvas &canvas, int &offsetY) noexce
     offsetY += 57;
 }
 
-void DrawSidebarBottom(Gamestate &gamestate, Canvas &canvas, int offsetY) noexcept {
+void UiSidebar::DrawSidebarBottom(const Gamestate &gamestate,
+                                  trc::Canvas &canvas,
+                                  int offsetY) const {
     const auto &icons = gamestate.Version.Icons;
 
     int height = canvas.Height - offsetY;
 
     // TODO: handle too low height, i.e. < 5 (2px border + 1px bg + 2px border)
-    
+
     UiCommon::DrawBorder2px(icons, canvas, 0, offsetY, 176, offsetY + height);
 
-    // TODO: we need a function to draw this sprite as a background but backwards (from bottom and up)
+    // TODO: we need a function to draw this sprite as a background but
+    // backwards (from bottom and up)
     canvas.DrawBackground(icons.ClientBackground,
                           2,
                           offsetY + 2,
@@ -454,5 +496,4 @@ void DrawSidebarBottom(Gamestate &gamestate, Canvas &canvas, int offsetY) noexce
                           offsetY + height - 2);
 }
 
-} // namespace UiSidebar
 } // namespace trc

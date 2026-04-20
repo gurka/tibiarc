@@ -20,15 +20,28 @@
 #ifndef PLAYER_UI_CHAT_HPP_
 #define PLAYER_UI_CHAT_HPP_
 
-#include "gamestate.hpp"
+#include <memory>
+
+extern "C" {
+#include <SDL.h>
+}
+
+#include "ui_common.hpp"
 #include "canvas.hpp"
+#include "renderer.hpp"
+#include "gamestate.hpp"
 
 namespace trc {
-namespace UiChat {
 
-void DrawChat(Gamestate &gamestate, Canvas &canvas) noexcept;
+struct UiChat {
+    SDL_Rect Rect;
+    std::unique_ptr<Canvas> Canvas;
+    UiCommon::Wrapper<SDL_Texture> Texture;
 
-} // namespace UiChat
+    void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
+    void Render(const Renderer::Options &renderOptions, const Gamestate &gamestate) const;
+};
+
 } // namespace trc
 
 #endif /* PLAYER_UI_CHAT_HPP */

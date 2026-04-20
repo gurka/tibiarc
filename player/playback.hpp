@@ -51,7 +51,7 @@ public:
              const DataReader &dat,
              const VersionTriplet& version);
 
-    int64_t GetPlaybackTick();
+    int64_t GetPlaybackTick() const;
     void ProcessPackets();
     void Toggle();
     void SetSpeed(float speed);

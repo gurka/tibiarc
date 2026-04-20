@@ -31,47 +31,6 @@
 
 namespace trc {
 
-Rendering::Wrapper<SDL_Texture> Rendering::CreateTexture(int width,
-                                                         int height) const {
-    SDL_Texture *texture = SDL_CreateTexture(Renderer.get(),
-                                             SDL_PIXELFORMAT_RGBA32,
-                                             SDL_TEXTUREACCESS_STREAMING,
-                                             width,
-                                             height);
-
-    AbortUnless(texture != nullptr);
-    AbortUnless(!SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND));
-
-    return Rendering::Wrapper<SDL_Texture>(texture, SDL_DestroyTexture);
-}
-
-void Rendering::ResetArea(Area &area, int x, int y, int w, int h) const {
-    area.Rect.x = x;
-    area.Rect.y = y;
-    area.Rect.w = w;
-    area.Rect.h = h;
-    area.Canvas = std::make_unique<Canvas>(w, h, trc::Canvas::Type::External);
-    area.Texture = CreateTexture(w, h);
-}
-
-static int formatTime(char *buffer, size_t bufferSize, uint64_t milliseconds) {
-    /* TODO: move to utils.hpp or similar? */
-    uint64_t seconds = milliseconds / 1000;
-    milliseconds %= 1000;
-    uint64_t minutes = seconds / 60;
-    seconds %= 60;
-    uint64_t hours = minutes / 60;
-    minutes %= 60;
-
-    return snprintf(buffer,
-                    bufferSize,
-                    "%02llu:%02llu:%02llu.%03llu",
-                    hours,
-                    minutes,
-                    seconds,
-                    milliseconds);
-}
-
 Rendering::Rendering(int width, int height) {
     int ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 
@@ -79,7 +38,7 @@ Rendering::Rendering(int width, int height) {
         throw NotSupportedError();
     }
 
-    Window = Wrapper<SDL_Window>(
+    Window = UiCommon::Wrapper<SDL_Window>(
             SDL_CreateWindow("player",
                              SDL_WINDOWPOS_UNDEFINED,
                              SDL_WINDOWPOS_UNDEFINED,
@@ -89,7 +48,7 @@ Rendering::Rendering(int width, int height) {
             SDL_DestroyWindow);
     AbortUnless(Window != nullptr);
 
-    Renderer = Wrapper<SDL_Renderer>(
+    Renderer = UiCommon::Wrapper<SDL_Renderer>(
             SDL_CreateRenderer(Window.get(),
                                -1,
                                SDL_RENDERER_ACCELERATED |
@@ -125,62 +84,31 @@ void Rendering::HandleResize() {
         return;
     }
 
-    /* Setup rendering */
     RenderOptions.Width = width;
     RenderOptions.Height = height;
 
-    // Setup all areas
-    // For now the chat is not resizable and always have a height of 174
-    ResetArea(Game, 0, 0, width - 176, height - 174);
-    ResetArea(Sidebar, width - 176, 0, 176, height);
-    ResetArea(Chat, 0, height - 174, width - 176, 174);
+    // Sidebar's size is always 176 x <window height>
+    // Chat's height is adjustable, but its width is always <window width> - 176
+    // Game's height depends on the chat's height, but its width is always <window width> - 176
+    Game.UpdateSize({.x = 0, .y = 0, .w = width - 176, .h = height - 174},
+                    Renderer.get());
+    Sidebar.UpdateSize({.x = width - 176, .y = 0, .w = 176, .h = height},
+                       Renderer.get());
+    Chat.UpdateSize({.x = 0, .y = height - 174, .w = width - 176, .h = 174},
+                    Renderer.get());
 
-    /* Gamestate canvas and texture are always the same size, so only need
-     * to create them if they aren't already created */
-    if (!TextureGamestate) {
-        CanvasGamestate = std::make_unique<Canvas>(Renderer::NativeResolutionX,
-                                                   Renderer::NativeResolutionY,
-                                                   Canvas::Type::External);
-        TextureGamestate = CreateTexture(Renderer::NativeResolutionX,
-                                         Renderer::NativeResolutionY);
-    }
-
-    // Calculate how much to scale the gamestate
-    int margin = 4;
-    int border = 1;
-    int max_w = Game.Rect.w - ((margin + border) * 2);
-    int max_h = Game.Rect.h - ((margin + border) * 2);
-    double scale = std::min(max_w / (double)Renderer::NativeResolutionX,
-                            max_h / (double)Renderer::NativeResolutionY);
-
-    /* Now calculate where to render the gamestate. */
-    RectGamestate.x =
-            ((max_w - (int)(Renderer::NativeResolutionX * scale)) / 2) +
-            margin + border;
-    RectGamestate.y =
-            ((max_h - (int)(Renderer::NativeResolutionY * scale)) / 2) +
-            margin + border;
-    RectGamestate.w = (int)(Renderer::NativeResolutionX * scale);
-    RectGamestate.h = (int)(Renderer::NativeResolutionY * scale);
-
-    // Overlay canvas and texture
-    CanvasOverlay = std::make_unique<Canvas>(RectGamestate.w,
-                                             RectGamestate.h,
-                                             Canvas::Type::External);
-    TextureOverlay = CreateTexture(RectGamestate.w, RectGamestate.h);
-
-    /* Debug. */
+    // Debug
     std::cout << "Window size: " << RenderOptions.Width << "x"
               << RenderOptions.Height << std::endl;
     std::cout << "Game position: " << Game.Rect.x << ", " << Game.Rect.y
               << std::endl;
     std::cout << "Game size: " << Game.Rect.w << "x" << Game.Rect.h
               << std::endl;
-    std::cout << "Gamestate position: " << RectGamestate.x << ", "
-              << RectGamestate.y << std::endl;
-    std::cout << "Gamestate size: " << RectGamestate.w << "x" << RectGamestate.h
-              << std::endl;
-    std::cout << "Gamestate scale: " << scale << std::endl;
+    std::cout << "Gamestate position: " << Game.RectGamestate.x << ", "
+              << Game.RectGamestate.y << std::endl;
+    std::cout << "Gamestate size: " << Game.RectGamestate.w << "x"
+              << Game.RectGamestate.h << std::endl;
+    //std::cout << "Gamestate scale: " << scale << std::endl;
     std::cout << "Sidebar rect position: " << Sidebar.Rect.x << ", "
               << Sidebar.Rect.y << std::endl;
     std::cout << "Sidebar rect size: " << Sidebar.Rect.w << "x"
@@ -194,150 +122,9 @@ void Rendering::HandleResize() {
 void Rendering::Render(Playback &playback) {
     Renderer::Update(RenderOptions, *playback.Gamestate);
 
-    // Render gamestate
-    {
-        AbortUnless(!SDL_LockTexture(TextureGamestate.get(),
-                                     NULL,
-                                     (void **)&CanvasGamestate->Buffer,
-                                     &CanvasGamestate->Stride));
-
-        CanvasGamestate->Wipe();
-        Renderer::DrawGamestate(RenderOptions,
-                                *playback.Gamestate,
-                                *CanvasGamestate);
-
-        SDL_UnlockTexture(TextureGamestate.get());
-    }
-
-    // Render overlay
-    {
-        AbortUnless(!SDL_LockTexture(TextureOverlay.get(),
-                                     NULL,
-                                     (void **)&CanvasOverlay->Buffer,
-                                     &CanvasOverlay->Stride));
-
-        CanvasOverlay->Wipe();
-        Renderer::DrawOverlay(RenderOptions, *playback.Gamestate, *CanvasOverlay);
-
-        SDL_UnlockTexture(TextureOverlay.get());
-    }
-
-    // Render game area
-    {
-        AbortUnless(!SDL_LockTexture(Game.Texture.get(),
-                                     NULL,
-                                     (void **)&Game.Canvas->Buffer,
-                                     &Game.Canvas->Stride));
-
-        Game.Canvas->Wipe();
-
-        // Draw background
-        Game.Canvas->DrawBackground(
-                playback.Gamestate->Version.Icons.ClientBackground,
-                0,
-                0,
-                Game.Canvas->Width,
-                Game.Canvas->Height);
-
-        // Draw border around the gamestate
-        UiCommon::DrawBorder1px(playback.Gamestate->Version.Icons,
-                                *Game.Canvas,
-                                RectGamestate.x - 1,
-                                RectGamestate.y - 1,
-                                RectGamestate.x + RectGamestate.w + 1,
-                                RectGamestate.y + RectGamestate.h + 1);
-
-        // Render playback info
-        char text[64];
-        int textLength = snprintf(text,
-                                  sizeof(text) / sizeof(text[0]),
-                                  "FPS: %.2f",
-                                  StatsFPS);
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             14,
-                             64,
-                             std::string(text, textLength),
-                             *Game.Canvas);
-
-        textLength = formatTime(text,
-                                sizeof(text) / sizeof(text[0]),
-                                playback.GetPlaybackTick());
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             28,
-                             64,
-                             std::string(text, textLength),
-                             *Game.Canvas);
-
-        textLength = formatTime(text,
-                                sizeof(text) / sizeof(text[0]),
-                                playback.Recording->Runtime.count());
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             42,
-                             64,
-                             std::string(text, textLength),
-                             *Game.Canvas);
-
-        TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
-                             TextAlignment::Left,
-                             TextTransform::None,
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             12,
-                             56,
-                             64,
-                             "Playback speed: " + std::to_string(playback.Scale),
-                             *Game.Canvas);
-
-        SDL_UnlockTexture(Game.Texture.get());
-    }
-
-
-    // Render sidebar area
-    {
-        AbortUnless(!SDL_LockTexture(Sidebar.Texture.get(),
-                                     NULL,
-                                     (void **)&Sidebar.Canvas->Buffer,
-                                     &Sidebar.Canvas->Stride));
-
-        Sidebar.Canvas->Wipe();
-
-        UiSidebar::DrawSidebarTop(*playback.Gamestate, *Sidebar.Canvas);
-
-        int offsetY =
-                UiSidebar::DrawSidebarTop(*playback.Gamestate, *Sidebar.Canvas);
-        UiSidebar::DrawSidebarMiddle(*playback.Gamestate,
-                                     *Sidebar.Canvas,
-                                     offsetY);
-        UiSidebar::DrawSidebarBottom(*playback.Gamestate,
-                                     *Sidebar.Canvas,
-                                     offsetY);
-
-        SDL_UnlockTexture(Sidebar.Texture.get());
-    }
-
-    // Render chat area
-    {
-        AbortUnless(!SDL_LockTexture(Chat.Texture.get(),
-                                     NULL,
-                                     (void **)&Chat.Canvas->Buffer,
-                                     &Chat.Canvas->Stride));
-
-        Chat.Canvas->Wipe();
-        UiChat::DrawChat(*playback.Gamestate, *Chat.Canvas);
-
-        SDL_UnlockTexture(Chat.Texture.get());
-    }
+    Game.Render(RenderOptions, *playback.Gamestate, playback, StatsFPS);
+    Sidebar.Render(RenderOptions, *playback.Gamestate);
+    Chat.Render(RenderOptions, *playback.Gamestate);
 
     /* Render textures to screen */
     AbortUnless(!SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255));
@@ -349,13 +136,13 @@ void Rendering::Render(Playback &playback) {
                                 NULL,
                                 &Game.Rect));
     AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                TextureGamestate.get(),
+                                Game.TextureGamestate.get(),
                                 NULL,
-                                &RectGamestate));
+                                &Game.RectGamestate));
     AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                TextureOverlay.get(),
+                                Game.TextureOverlay.get(),
                                 NULL,
-                                &RectGamestate));
+                                &Game.RectGamestate));
 
     // Sidebar
     AbortUnless(!SDL_RenderCopy(Renderer.get(),

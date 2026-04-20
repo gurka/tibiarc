@@ -20,11 +20,23 @@
 #ifndef PLAYER_UI_COMMON_HPP_
 #define PLAYER_UI_COMMON_HPP_
 
+#include <functional>
+#include <memory>
+
+extern "C" {
+#include <SDL.h>
+}
+
 #include "icons.hpp"
 #include "canvas.hpp"
 
 namespace trc {
 namespace UiCommon {
+
+template <typename T>
+using Wrapper = std::unique_ptr<T, std::function<void(T *)>>;
+
+Wrapper<SDL_Texture> CreateTexture(SDL_Renderer *renderer, int width, int height);
 
 // Note: this draws a "sunken" border, i.e. top and left lines are dark while
 //       bottom and right lines are light
