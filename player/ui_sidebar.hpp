@@ -35,8 +35,6 @@ namespace trc {
 
 struct UiSidebar {
     SDL_Rect Rect;
-    std::unique_ptr<Canvas> Canvas;
-    UiCommon::Wrapper<SDL_Texture> Texture;
 
     void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
     void Render(const Renderer::Options &renderOptions,
@@ -45,6 +43,9 @@ struct UiSidebar {
     void MouseClick(int x, int y);
 
 private:
+    std::unique_ptr<Canvas> Canvas;
+    UiCommon::Wrapper<SDL_Texture> Texture;
+
     int DrawSidebarTop(const Gamestate &gamestate, trc::Canvas &canvas) const;
 
     void DrawMinimapArea(const Gamestate &gamestate,

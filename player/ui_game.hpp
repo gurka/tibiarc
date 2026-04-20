@@ -36,16 +36,7 @@ namespace trc {
 
 struct UiGame {
     SDL_Rect Rect;
-    std::unique_ptr<trc::Canvas> Canvas;
-    UiCommon::Wrapper<SDL_Texture> Texture;
-
-    std::unique_ptr<trc::Canvas> CanvasGamestate;
-    UiCommon::Wrapper<SDL_Texture> TextureGamestate;
-
     SDL_Rect RectGamestate;
-
-    std::unique_ptr<trc::Canvas> CanvasOverlay;
-    UiCommon::Wrapper<SDL_Texture> TextureOverlay;
 
     void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
     void Render(const Renderer::Options &renderOptions,
@@ -54,6 +45,17 @@ struct UiGame {
                 const Playback &playback,
                 double statsFPS) const;
     void MouseClick(int x, int y);
+
+private:
+    std::unique_ptr<trc::Canvas> Canvas;
+    UiCommon::Wrapper<SDL_Texture> Texture;
+
+    std::unique_ptr<trc::Canvas> CanvasGamestate;
+    UiCommon::Wrapper<SDL_Texture> TextureGamestate;
+
+    std::unique_ptr<trc::Canvas> CanvasOverlay;
+    UiCommon::Wrapper<SDL_Texture> TextureOverlay;
+
 };
 
 } // namespace trc
