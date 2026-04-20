@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <iostream>
 
 #include "versions.hpp"
 #include "textrenderer.hpp"
@@ -93,6 +94,7 @@ void UiGame::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
 
 void UiGame::Render(const Renderer::Options &renderOptions,
                     const Gamestate &gamestate,
+                    SDL_Renderer *renderer,
                     const Playback &playback,
                     double statsFPS) const {
     // Render base
@@ -110,6 +112,13 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                                0,
                                Canvas->Width,
                                Canvas->Height);
+
+        // Clear the area where the gamestate will be rendered
+        Canvas->DrawRectangle(Pixel(0, 0, 0, 0),
+                              RectGamestate.x,
+                              RectGamestate.y,
+                              RectGamestate.w,
+                              RectGamestate.h);
 
         // Draw border around the gamestate
         UiCommon::DrawBorder1px(gamestate.Version.Icons,
@@ -200,6 +209,24 @@ void UiGame::Render(const Renderer::Options &renderOptions,
 
         SDL_UnlockTexture(TextureOverlay.get());
     }
+
+    // Render textures to window
+    AbortUnless(!SDL_RenderCopy(renderer,
+                                TextureGamestate.get(),
+                                NULL,
+                                &RectGamestate));
+    AbortUnless(!SDL_RenderCopy(renderer,
+                                TextureOverlay.get(),
+                                NULL,
+                                &RectGamestate));
+    AbortUnless(!SDL_RenderCopy(renderer,
+                                Texture.get(),
+                                NULL,
+                                &Rect));
+}
+
+void UiGame::MouseClick(int x, int y) {
+    std::cout << "UiGame mouse click: " << x << ", " << y << "\n";
 }
 
 } // namespace trc

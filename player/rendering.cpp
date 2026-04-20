@@ -122,39 +122,12 @@ void Rendering::HandleResize() {
 void Rendering::Render(Playback &playback) {
     Renderer::Update(RenderOptions, *playback.Gamestate);
 
-    Game.Render(RenderOptions, *playback.Gamestate, playback, StatsFPS);
-    Sidebar.Render(RenderOptions, *playback.Gamestate);
-    Chat.Render(RenderOptions, *playback.Gamestate);
-
-    /* Render textures to screen */
     AbortUnless(!SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255));
     AbortUnless(!SDL_RenderClear(Renderer.get()));
 
-    // Game
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Game.Texture.get(),
-                                NULL,
-                                &Game.Rect));
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Game.TextureGamestate.get(),
-                                NULL,
-                                &Game.RectGamestate));
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Game.TextureOverlay.get(),
-                                NULL,
-                                &Game.RectGamestate));
-
-    // Sidebar
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Sidebar.Texture.get(),
-                                NULL,
-                                &Sidebar.Rect));
-
-    // Chat
-    AbortUnless(!SDL_RenderCopy(Renderer.get(),
-                                Chat.Texture.get(),
-                                NULL,
-                                &Chat.Rect));
+    Game.Render(RenderOptions, *playback.Gamestate, Renderer.get(), playback, StatsFPS);
+    Sidebar.Render(RenderOptions, *playback.Gamestate, Renderer.get());
+    Chat.Render(RenderOptions, *playback.Gamestate, Renderer.get());
 
     SDL_RenderPresent(Renderer.get());
 
@@ -166,6 +139,18 @@ void Rendering::Render(Playback &playback) {
         StatsFPS /= 2;
         StatsFramesSinceLastUpdate = 0;
         StatsLastUpdate = currentTick;
+    }
+}
+
+void Rendering::MouseClick(int x, int y) {
+    if (UiCommon::PointIsInside(x, y, Game.Rect)) {
+        Game.MouseClick(x - Game.Rect.x, y - Game.Rect.y);
+    } else if (UiCommon::PointIsInside(x, y, Sidebar.Rect)) {
+        Sidebar.MouseClick(x - Sidebar.Rect.x, y - Sidebar.Rect.y);
+    } else if (UiCommon::PointIsInside(x, y, Chat.Rect)) {
+        Chat.MouseClick(x - Chat.Rect.x, y - Chat.Rect.y);
+    } else {
+        AbortUnless(false);
     }
 }
 

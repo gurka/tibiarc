@@ -38,6 +38,8 @@ using Wrapper = std::unique_ptr<T, std::function<void(T *)>>;
 
 Wrapper<SDL_Texture> CreateTexture(SDL_Renderer *renderer, int width, int height);
 
+bool PointIsInside(int x, int y, const SDL_Rect &rect);
+
 // Note: this draws a "sunken" border, i.e. top and left lines are dark while
 //       bottom and right lines are light
 void DrawBorder1px(const Icons &icons,

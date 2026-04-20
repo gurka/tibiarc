@@ -19,6 +19,8 @@
 
 #include "ui_chat.hpp"
 
+#include <iostream>
+
 #include "ui_common.hpp"
 #include "versions.hpp"
 #include "textrenderer.hpp"
@@ -38,7 +40,10 @@ void UiChat::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
     Texture = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
 }
 
-void UiChat::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate) const {
+void UiChat::Render(const Renderer::Options &renderOptions,
+                    const Gamestate &gamestate,
+                    SDL_Renderer *renderer) const {
+    // Render on canvas to texture
     AbortUnless(!SDL_LockTexture(Texture.get(),
                                  NULL,
                                  (void **)&Canvas->Buffer,
@@ -62,11 +67,17 @@ void UiChat::Render(const Renderer::Options &renderOptions, const Gamestate &gam
     Canvas->Draw(icons.ChatIgnoreButton, Canvas->Width - 16, 5);
 
     // Message window border
-    UiCommon::DrawBorder2px(icons, *Canvas, 0, 21, Canvas->Width, Canvas->Height);
+    UiCommon::DrawBorder2px(icons,
+                            *Canvas,
+                            0,
+                            21,
+                            Canvas->Width,
+                            Canvas->Height);
 
     Canvas->Draw(icons.ChatChannelBoxActive, 18, 5);
 
-    // TODO: spacing is 0 but it still too much, maybe we need a Chat font with -1 spacing?
+    // TODO: spacing is 0 but it still too much, maybe we need a Chat font with
+    // -1 spacing?
     //       verify if this is for all text in chat or only chat window title
     TextRenderer::DrawCenteredString(gamestate.Version.Fonts.Game,
                                      Pixel(0xDF, 0xDF, 0xDF),
@@ -77,44 +88,46 @@ void UiChat::Render(const Renderer::Options &renderOptions, const Gamestate &gam
 
     // Message window background
     Canvas->DrawBackground(icons.ClientBackground,
-                          2,
-                          23,
-                          Canvas->Width - 2,
-                          Canvas->Height - 2);
+                           2,
+                           23,
+                           Canvas->Width - 2,
+                           Canvas->Height - 2);
 
     // Message border
     Canvas->Draw(icons.ChatMessageBorderTopLeft, 4, 26);
     Canvas->DrawBackground(icons.ChatMessageBorderHorizontal,
-                          7,
-                          26,
-                          Canvas->Width - 7,
-                          29);
+                           7,
+                           26,
+                           Canvas->Width - 7,
+                           29);
     Canvas->Draw(icons.ChatMessageBorderTopRight, Canvas->Width - 7, 26);
     Canvas->DrawBackground(icons.ChatMessageBorderVertical,
-                          4,
-                          29,
-                          7,
-                          Canvas->Height - 25);
+                           4,
+                           29,
+                           7,
+                           Canvas->Height - 25);
     Canvas->DrawBackground(icons.ChatMessageBorderVertical,
-                          Canvas->Width - 7,
-                          29,
-                          Canvas->Width - 4,
-                          Canvas->Height - 25);
+                           Canvas->Width - 7,
+                           29,
+                           Canvas->Width - 4,
+                           Canvas->Height - 25);
     Canvas->Draw(icons.ChatMessageBorderBottomLeft, 4, Canvas->Height - 25);
     Canvas->DrawBackground(icons.ChatMessageBorderHorizontal,
-                          7,
-                          Canvas->Height - 25,
-                          Canvas->Width - 7,
-                          Canvas->Height - 22);
-    Canvas->Draw(icons.ChatMessageBorderBottomRight, Canvas->Width - 7, Canvas->Height - 25);
+                           7,
+                           Canvas->Height - 25,
+                           Canvas->Width - 7,
+                           Canvas->Height - 22);
+    Canvas->Draw(icons.ChatMessageBorderBottomRight,
+                 Canvas->Width - 7,
+                 Canvas->Height - 25);
 
     // Scrollbar
     Canvas->Draw(icons.ScrollbarUp, Canvas->Width - 19, 29);
     Canvas->DrawBackground(icons.ScrollbarBackground,
-                          Canvas->Width - 19,
-                          29 + 12,
-                          Canvas->Width - 19 + 12,
-                          Canvas->Height - 37);
+                           Canvas->Width - 19,
+                           29 + 12,
+                           Canvas->Width - 19 + 12,
+                           Canvas->Height - 37);
     Canvas->Draw(icons.ScrollbarDown, Canvas->Width - 19, Canvas->Height - 37);
 
     // Message input box
@@ -126,12 +139,22 @@ void UiChat::Render(const Renderer::Options &renderOptions, const Gamestate &gam
                             Canvas->Width - 4,
                             Canvas->Height - 4);
     Canvas->DrawRectangle(Pixel(0x36, 0x36, 0x36),
-                         24,
-                         Canvas->Height - 19,
-                         Canvas->Width - 29,
-                         14);
+                          24,
+                          Canvas->Height - 19,
+                          Canvas->Width - 29,
+                          14);
 
     SDL_UnlockTexture(Texture.get());
+
+    // Render texture to window
+    AbortUnless(!SDL_RenderCopy(renderer,
+                                Texture.get(),
+                                NULL,
+                                &Rect));
+}
+
+void UiChat::MouseClick(int x, int y) {
+    std::cout << "UiChat mouse click: " << x << ", " << y << "\n";
 }
 
 } // namespace trc

@@ -19,6 +19,8 @@
 
 #include "ui_sidebar.hpp"
 
+#include <iostream>
+
 #include "ui_common.hpp"
 #include "versions.hpp"
 #include "textrenderer.hpp"
@@ -38,7 +40,8 @@ void UiSidebar::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
     Texture = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
 }
 
-void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate) const {
+void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate, SDL_Renderer *renderer) const {
+    // Render on canvas to texture
     AbortUnless(!SDL_LockTexture(Texture.get(),
                                  NULL,
                                  (void **)&Canvas->Buffer,
@@ -54,6 +57,16 @@ void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &
     UiSidebar::DrawSidebarBottom(gamestate, *Canvas, offsetY);
 
     SDL_UnlockTexture(Texture.get());
+
+    // Render texture to window
+    AbortUnless(!SDL_RenderCopy(renderer,
+                                Texture.get(),
+                                NULL,
+                                &Rect));
+}
+
+void UiSidebar::MouseClick(int x, int y) {
+    std::cout << "UiSidebar mouse click: " << x << ", " << y << "\n";
 }
 
 int UiSidebar::DrawSidebarTop(const Gamestate &gamestate,

@@ -76,7 +76,7 @@ void handle_input() {
             }
             break;
         case SDL_MOUSEBUTTONUP:
-            playback->Toggle();
+            rendering.MouseClick(event.button.x, event.button.y);
             break;
         case SDL_QUIT:
             exit(0);

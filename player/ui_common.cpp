@@ -40,6 +40,11 @@ Wrapper<SDL_Texture> CreateTexture(SDL_Renderer *renderer,
     return Wrapper<SDL_Texture>(texture, SDL_DestroyTexture);
 }
 
+bool PointIsInside(int x, int y, const SDL_Rect &rect) {
+    return x >= rect.x && x < (rect.x + rect.w) && y >= rect.y &&
+           y < (rect.y + rect.h);
+}
+
 void DrawBorder1px(const Icons &icons,
                    Canvas &canvas,
                    int leftX,

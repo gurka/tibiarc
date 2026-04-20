@@ -40,7 +40,9 @@ struct UiSidebar {
 
     void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
     void Render(const Renderer::Options &renderOptions,
-                const Gamestate &gamestate) const;
+                const Gamestate &gamestate,
+                SDL_Renderer *renderer) const;
+    void MouseClick(int x, int y);
 
 private:
     int DrawSidebarTop(const Gamestate &gamestate, trc::Canvas &canvas) const;

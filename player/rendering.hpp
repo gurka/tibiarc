@@ -53,6 +53,7 @@ struct Rendering {
 
     void HandleResize();
     void Render(Playback &playback);
+    void MouseClick(int x, int y);
 };
 } // namespace trc
 

@@ -39,7 +39,10 @@ struct UiChat {
     UiCommon::Wrapper<SDL_Texture> Texture;
 
     void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
-    void Render(const Renderer::Options &renderOptions, const Gamestate &gamestate) const;
+    void Render(const Renderer::Options &renderOptions,
+                const Gamestate &gamestate,
+                SDL_Renderer *renderer) const;
+    void MouseClick(int x, int y);
 };
 
 } // namespace trc
