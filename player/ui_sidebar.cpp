@@ -40,7 +40,7 @@ void UiSidebar::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
     Texture = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
 }
 
-void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate, SDL_Renderer *renderer) const {
+void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &gamestate, SDL_Renderer *renderer) {
     // Render on canvas to texture
     AbortUnless(!SDL_LockTexture(Texture.get(),
                                  NULL,
@@ -66,11 +66,19 @@ void UiSidebar::Render(const Renderer::Options &renderOptions, const Gamestate &
 }
 
 void UiSidebar::MouseClick(int x, int y) {
-    std::cout << "UiSidebar mouse click: " << x << ", " << y << "\n";
+    if (UiCommon::PointIsInside(x, y, ButtonSkills)) {
+        SkillsShown = !SkillsShown;
+    } else if (UiCommon::PointIsInside(x, y, ButtonBattle)) {
+        BattleShown = !BattleShown;
+    } else if (UiCommon::PointIsInside(x, y, ButtonVip)) {
+        VipShown = !VipShown;
+    } else if (UiCommon::PointIsInside(x, y, ButtonResizeInventory)) {
+        InventoryMinimized = !InventoryMinimized;
+    }
 }
 
 int UiSidebar::DrawSidebarTop(const Gamestate &gamestate,
-                              trc::Canvas &canvas) const {
+                              trc::Canvas &canvas) {
     const auto &icons = gamestate.Version.Icons;
 
     // Size: 176x334 (assuming inventory area is not minimized)
@@ -90,7 +98,7 @@ int UiSidebar::DrawSidebarTop(const Gamestate &gamestate,
 
 void UiSidebar::DrawMinimapArea(const Gamestate &gamestate,
                                 trc::Canvas &canvas,
-                                int &offsetY) const {
+                                int &offsetY) {
     const auto &fonts = gamestate.Version.Fonts;
     const auto &icons = gamestate.Version.Icons;
 
@@ -130,7 +138,7 @@ void UiSidebar::DrawMinimapArea(const Gamestate &gamestate,
 
 void UiSidebar::DrawStatusBars(const Gamestate &gamestate,
                                trc::Canvas &canvas,
-                               int &offsetY) const {
+                               int &offsetY) {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
@@ -185,115 +193,166 @@ void UiSidebar::DrawStatusBars(const Gamestate &gamestate,
 
 void UiSidebar::DrawInventoryArea(const Gamestate &gamestate,
                                   trc::Canvas &canvas,
-                                  int &offsetY) const {
+                                  int &offsetY) {
     const Version &version = gamestate.Version;
     const Icons &icons = version.Icons;
 
-    // Size: 172x155
-    canvas.DrawBackground(gamestate.Version.Icons.ClientBackground,
-                          2,
-                          offsetY,
-                          2 + 172,
-                          offsetY + 155);
+    if (!InventoryMinimized) {
+        // Size: 172x155
+        canvas.DrawBackground(gamestate.Version.Icons.ClientBackground,
+                              2,
+                              offsetY,
+                              2 + 172,
+                              offsetY + 155);
 
-    // Inventory
-    canvas.Draw(icons.Minimize, 10, offsetY + 4);
-    for (auto [slot, x, y] :
-         std::initializer_list<std::tuple<InventorySlot, int, int>>{
-                 {InventorySlot::Head, 47, offsetY + 4},
-                 {InventorySlot::Amulet, 10, offsetY + 18},
-                 {InventorySlot::Backpack, 84, offsetY + 18},
-                 {InventorySlot::Chest, 47, offsetY + 41},
-                 {InventorySlot::RightArm, 10, offsetY + 55},
-                 {InventorySlot::LeftArm, 84, offsetY + 55},
-                 {InventorySlot::Legs, 47, offsetY + 78},
-                 {InventorySlot::Ring, 10, offsetY + 92},
-                 {InventorySlot::Quiver, 84, offsetY + 92},
-                 {InventorySlot::Boots, 47, offsetY + 115},
-         }) {
-        Renderer::DrawInventorySlot(gamestate, slot, x, y, canvas);
-    }
+        // Inventory
+        canvas.Draw(icons.Minimize, 10, offsetY + 4);
+        ButtonResizeInventory = {.x = 10,
+                                 .y = offsetY + 4,
+                                 .w = icons.Minimize.Width,
+                                 .h = icons.Minimize.Height};
 
-    // TODO
-    /*
-    if (!version.Features.IconBar) {
-        DrawIconArea(gamestate, canvas, 10, 279);
-    }
-    if (version.Features.IconBar) {
-        canvas.Draw(icons.SecondaryStatBackground, 10, 279);
+        for (auto [slot, x, y] :
+             std::initializer_list<std::tuple<InventorySlot, int, int>>{
+                     {InventorySlot::Head, 47, offsetY + 4},
+                     {InventorySlot::Amulet, 10, offsetY + 18},
+                     {InventorySlot::Backpack, 84, offsetY + 18},
+                     {InventorySlot::Chest, 47, offsetY + 41},
+                     {InventorySlot::RightArm, 10, offsetY + 55},
+                     {InventorySlot::LeftArm, 84, offsetY + 55},
+                     {InventorySlot::Legs, 47, offsetY + 78},
+                     {InventorySlot::Ring, 10, offsetY + 92},
+                     {InventorySlot::Quiver, 84, offsetY + 92},
+                     {InventorySlot::Boots, 47, offsetY + 115},
+             }) {
+            Renderer::DrawInventorySlot(gamestate, slot, x, y, canvas);
+        }
+
+        // TODO
+        /*
+        if (!version.Features.IconBar) {
+            DrawIconArea(gamestate, canvas, 10, 279);
+        }
+        if (version.Features.IconBar) {
+            canvas.Draw(icons.SecondaryStatBackground, 10, 279);
+            TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                             Pixel(0xFF, 0xFF, 0xFF),
+                                             16 + baseX + 17,
+                                             baseY + 2,
+                                             "Soul:",
+                                             canvas);
+
+            TextRenderer::DrawCenteredString(
+                    version.Fonts.InterfaceLarge,
+                    Pixel(0xAF, 0xAF, 0xAF),
+                    16 + baseX + 17,
+                    baseY + 10,
+                    Format("{}", gamestate.Player.Stats.SoulPoints),
+                    canvas);
+        }
+        */
+
+        canvas.Draw(icons.SecondaryStatBackground, 84, offsetY + 128);
         TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                          Pixel(0xFF, 0xFF, 0xFF),
-                                         16 + baseX + 17,
-                                         baseY + 2,
-                                         "Soul:",
+                                         101,
+                                         offsetY + 130,
+                                         "Cap:",
+                                         canvas);
+        uint32_t capacity = gamestate.Player.Stats.Capacity /
+                            version.Features.CapacityDivisor;
+        TextRenderer::DrawCenteredString(version.Fonts.InterfaceLarge,
+                                         Pixel(0xBF, 0xBF, 0xBF),
+                                         101,
+                                         offsetY + 139,
+                                         std::to_string(capacity),
                                          canvas);
 
-        TextRenderer::DrawCenteredString(
-                version.Fonts.InterfaceLarge,
-                Pixel(0xAF, 0xAF, 0xAF),
-                16 + baseX + 17,
-                baseY + 10,
-                Format("{}", gamestate.Player.Stats.SoulPoints),
-                canvas);
+        // Attack mode buttons
+        canvas.Draw(icons.FightingOffensive, 126, offsetY + 19);
+        canvas.Draw(icons.FightingBalanced, 126, offsetY + 39);
+        canvas.Draw(icons.FightingDefensive, 126, offsetY + 59);
+        canvas.Draw(icons.AttackStanding, 149, offsetY + 19);
+        canvas.Draw(icons.AttackChasing, 149, offsetY + 39);
+        canvas.Draw(icons.AttackUnmarked, 149, offsetY + 59);
+
+        // Buttons
+        canvas.Draw(icons.Button43px, 126, offsetY + 83);
+        TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                         Pixel(0xFF, 0xFF, 0xFF),
+                                         147,
+                                         offsetY + 90,
+                                         "Stop",
+                                         canvas);
+
+        canvas.Draw(icons.Button43px, 126, offsetY + 107);
+        TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                         Pixel(0xFF, 0xFF, 0xFF),
+                                         147,
+                                         offsetY + 114,
+                                         "Options",
+                                         canvas);
+
+        canvas.Draw(icons.Button43px, 126, offsetY + 131);
+        TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                         Pixel(0xFF, 0xFF, 0xFF),
+                                         147,
+                                         offsetY + 138,
+                                         "Help",
+                                         canvas);
+
+        // Adjust offsetY for next area
+        offsetY += 155;
+    } else {
+        // Size: 172x48
+        canvas.DrawBackground(gamestate.Version.Icons.ClientBackground,
+                              2,
+                              offsetY,
+                              2 + 172,
+                              offsetY + 48);
+
+        // Inventory
+        canvas.Draw(icons.Maximize, 10, offsetY + 4);
+        ButtonResizeInventory = {.x = 10,
+                                 .y = offsetY + 4,
+                                 .w = icons.Maximize.Width,
+                                 .h = icons.Maximize.Height};
+
+        // Status background
+        canvas.Draw(icons.MinimizedInventoryStatusBackground, 24, offsetY + 4);
+        TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
+                                         Pixel(0xFF, 0xFF, 0xFF),
+                                         41,
+                                         offsetY + 6,
+                                         "Cap:",
+                                         canvas);
+        uint32_t capacity = gamestate.Player.Stats.Capacity /
+                            version.Features.CapacityDivisor;
+        TextRenderer::DrawCenteredString(version.Fonts.InterfaceLarge,
+                                         Pixel(0xBF, 0xBF, 0xBF),
+                                         41,
+                                         offsetY + 15,
+                                         std::to_string(capacity),
+                                         canvas);
+
+        // TODO: Draw status icons
+
+        // Buttons
+        canvas.Draw(icons.FightingOffensive, 58, offsetY + 4);
+        canvas.Draw(icons.FightingBalanced, 78, offsetY + 4);
+        canvas.Draw(icons.FightingDefensive, 98, offsetY + 4);
+        canvas.Draw(icons.AttackStanding, 58, offsetY + 26);
+        canvas.Draw(icons.AttackChasing, 78, offsetY + 26);
+        canvas.Draw(icons.AttackUnmarked, 98, offsetY + 26);
+
+        // Adjust offsetY for next area
+        offsetY += 48;
     }
-    */
-
-    canvas.Draw(icons.SecondaryStatBackground, 84, offsetY + 128);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     101,
-                                     offsetY + 130,
-                                     "Cap:",
-                                     canvas);
-    uint32_t capacity =
-            gamestate.Player.Stats.Capacity / version.Features.CapacityDivisor;
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceLarge,
-                                     Pixel(0xBF, 0xBF, 0xBF),
-                                     101,
-                                     offsetY + 139,
-                                     std::to_string(capacity),
-                                     canvas);
-
-    // Attack mode buttons
-    canvas.Draw(icons.FightingOffensive, 126, offsetY + 19);
-    canvas.Draw(icons.FightingBalanced, 126, offsetY + 39);
-    canvas.Draw(icons.FightingDefensive, 126, offsetY + 59);
-    canvas.Draw(icons.AttackStanding, 149, offsetY + 19);
-    canvas.Draw(icons.AttackChasing, 149, offsetY + 39);
-    canvas.Draw(icons.AttackUnmarked, 149, offsetY + 59);
-
-    // Buttons
-    canvas.Draw(icons.Button43px, 126, offsetY + 83);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     147,
-                                     offsetY + 90,
-                                     "Stop",
-                                     canvas);
-
-    canvas.Draw(icons.Button43px, 126, offsetY + 107);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     147,
-                                     offsetY + 114,
-                                     "Options",
-                                     canvas);
-
-    canvas.Draw(icons.Button43px, 126, offsetY + 131);
-    TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
-                                     Pixel(0xFF, 0xFF, 0xFF),
-                                     147,
-                                     offsetY + 138,
-                                     "Help",
-                                     canvas);
-
-    // Adjust offsetY for next area
-    offsetY += 155;
 }
 
 void UiSidebar::DrawWindowButtons(const Gamestate &gamestate,
                                   trc::Canvas &canvas,
-                                  int &offsetY) const {
+                                  int &offsetY) {
     const Version &version = gamestate.Version;
     const Icons &icons = version.Icons;
 
@@ -303,29 +362,43 @@ void UiSidebar::DrawWindowButtons(const Gamestate &gamestate,
                           offsetY,
                           2 + 172,
                           offsetY + 26);
-    canvas.Draw(icons.Button34px, 10, offsetY + 3);
+
+    // TODO: Different buttons depending on whether or not window is shown
+    canvas.Draw(SkillsShown ? icons.Button34pxPressed : icons.Button34px, 10, offsetY + 3);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      27,
                                      offsetY + 9,
                                      "Skills",
                                      canvas);
+    ButtonSkills = {.x = 10,
+                    .y = offsetY + 3,
+                    .w = icons.Button34px.Width,
+                    .h = icons.Button34px.Height};
 
-    canvas.Draw(icons.Button34px, 47, offsetY + 3);
+    canvas.Draw(BattleShown ? icons.Button34pxPressed : icons.Button34px, 47, offsetY + 3);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      64,
                                      offsetY + 9,
                                      "Battle",
                                      canvas);
+    ButtonBattle = {.x = 47,
+                    .y = offsetY + 3,
+                    .w = icons.Button34px.Width,
+                    .h = icons.Button34px.Height};
 
-    canvas.Draw(icons.Button34px, 84, offsetY + 3);
+    canvas.Draw(VipShown ? icons.Button34pxPressed : icons.Button34px, 84, offsetY + 3);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
                                      Pixel(0xFF, 0xFF, 0xFF),
                                      101,
                                      offsetY + 9,
                                      "VIP",
                                      canvas);
+    ButtonVip = {.x = 84,
+                 .y = offsetY + 3,
+                 .w = icons.Button34px.Width,
+                 .h = icons.Button34px.Height};
 
     canvas.Draw(icons.Button43px, 126, offsetY + 3);
     TextRenderer::DrawCenteredString(version.Fonts.InterfaceSmall,
@@ -341,15 +414,22 @@ void UiSidebar::DrawWindowButtons(const Gamestate &gamestate,
 
 void UiSidebar::DrawSidebarMiddle(const Gamestate &gamestate,
                                   trc::Canvas &canvas,
-                                  int &offsetY) const {
-    DrawSkillsWindow(gamestate, canvas, offsetY);
-    DrawBattleWindow(gamestate, canvas, offsetY);
+                                  int &offsetY) {
+    if (SkillsShown) {
+        DrawSkillsWindow(gamestate, canvas, offsetY);
+    }
+    if (BattleShown) {
+        DrawBattleWindow(gamestate, canvas, offsetY);
+    }
+    if (VipShown) {
+        // TODO: DrawVipWindow
+    }
 }
 
 void UiSidebar::DrawSidebarWindowBackground(const Gamestate &gamestate,
                                             trc::Canvas &canvas,
                                             int offsetY,
-                                            int height) const {
+                                            int height) {
     AbortUnless(height >= 57);
 
     const auto &icons = gamestate.Version.Icons;
@@ -366,7 +446,7 @@ void UiSidebar::DrawSidebarWindow(const Gamestate &gamestate,
                                   int offsetY,
                                   const Sprite &icon,
                                   const std::string &title,
-                                  int height) const {
+                                  int height) {
     AbortUnless(height >= 57);
 
     const auto &icons = gamestate.Version.Icons;
@@ -425,7 +505,7 @@ void UiSidebar::DrawSidebarWindow(const Gamestate &gamestate,
 
 void UiSidebar::DrawSkillsWindow(const Gamestate &gamestate,
                                  trc::Canvas &canvas,
-                                 int &offsetY) const {
+                                 int &offsetY) {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
@@ -472,7 +552,7 @@ void UiSidebar::DrawSkillsWindow(const Gamestate &gamestate,
 
 void UiSidebar::DrawBattleWindow(const Gamestate &gamestate,
                                  trc::Canvas &canvas,
-                                 int &offsetY) const {
+                                 int &offsetY) {
     const auto &icons = gamestate.Version.Icons;
     const auto &fonts = gamestate.Version.Fonts;
 
@@ -491,7 +571,7 @@ void UiSidebar::DrawBattleWindow(const Gamestate &gamestate,
 
 void UiSidebar::DrawSidebarBottom(const Gamestate &gamestate,
                                   trc::Canvas &canvas,
-                                  int offsetY) const {
+                                  int offsetY) {
     const auto &icons = gamestate.Version.Icons;
 
     int height = canvas.Height - offsetY;

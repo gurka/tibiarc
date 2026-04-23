@@ -39,52 +39,61 @@ struct UiSidebar {
     void UpdateSize(SDL_Rect rect, SDL_Renderer *renderer);
     void Render(const Renderer::Options &renderOptions,
                 const Gamestate &gamestate,
-                SDL_Renderer *renderer) const;
+                SDL_Renderer *renderer);
     void MouseClick(int x, int y);
 
 private:
     std::unique_ptr<Canvas> Canvas;
     UiCommon::Wrapper<SDL_Texture> Texture;
 
-    int DrawSidebarTop(const Gamestate &gamestate, trc::Canvas &canvas) const;
+    SDL_Rect ButtonResizeInventory;
+    SDL_Rect ButtonSkills;
+    SDL_Rect ButtonBattle;
+    SDL_Rect ButtonVip;
+    bool InventoryMinimized;
+    bool SkillsShown;
+    bool BattleShown;
+    bool VipShown;
+
+    int DrawSidebarTop(const Gamestate &gamestate, trc::Canvas &canvas);
 
     void DrawMinimapArea(const Gamestate &gamestate,
                          trc::Canvas &canvas,
-                         int &offsetY) const;
+                         int &offsetY);
     void DrawStatusBars(const Gamestate &gamestate,
                         trc::Canvas &canvas,
-                        int &offsetY) const;
+                        int &offsetY);
     void DrawInventoryArea(const Gamestate &gamestate,
                            trc::Canvas &canvas,
-                           int &offsetY) const;
+                           int &offsetY);
     void DrawWindowButtons(const Gamestate &gamestate,
                            trc::Canvas &canvas,
-                           int &offsetY) const;
+                           int &offsetY);
 
     void DrawSidebarMiddle(const Gamestate &gamestate,
                            trc::Canvas &canvas,
-                           int &offsetY) const;
+                           int &offsetY);
 
     void DrawSidebarWindowBackground(const Gamestate &gamestate,
                                      trc::Canvas &canvas,
                                      int offsetY,
-                                     int height) const;
+                                     int height);
     void DrawSidebarWindow(const Gamestate &gamestate,
                            trc::Canvas &canvas,
                            int offsetY,
                            const Sprite &icon,
                            const std::string &title,
-                           int height) const;
+                           int height);
     void DrawSkillsWindow(const Gamestate &gamestate,
                           trc::Canvas &canvas,
-                          int &offsetY) const;
+                          int &offsetY);
     void DrawBattleWindow(const Gamestate &gamestate,
                           trc::Canvas &canvas,
-                          int &offsetY) const;
+                          int &offsetY);
 
     void DrawSidebarBottom(const Gamestate &gamestate,
                            trc::Canvas &canvas,
-                           int offsetY) const;
+                           int offsetY);
 };
 
 } // namespace trc

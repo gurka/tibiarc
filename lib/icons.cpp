@@ -118,6 +118,7 @@ Icons::Icons(const Version &version)
       InventoryBackground(Canvas, 186, 64, 34, 34),
       RiskyIcon(Canvas, 230, 218, 11, 11),
       SecondaryStatBackground(Canvas, 315, 32, 34, 21),
+      MinimizedInventoryStatusBackground(Canvas, 320, 158, 32, 42),
 
       Compass(Canvas, 131, 138, 43, 43),
       ZoomIn(Canvas, 2, 98, 20, 20),
@@ -139,6 +140,8 @@ Icons::Icons(const Version &version)
       Button86pxPressed(Canvas, 45, 158, 86, 20),
       Minimize(Canvas, 234, 98, 12, 12),
       MinimizePressed(Canvas, 234, 110, 12, 12),
+      Maximize(Canvas, 308, 158, 12, 12),
+      MaximizePressed(Canvas, 308, 170, 12, 12),
       Close(Canvas, 222, 98, 12, 12),
       ClosePressed(Canvas, 222, 110, 12, 12),
       SkillsIcon(Canvas, 301, 60, 12, 12),

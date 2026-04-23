@@ -41,6 +41,7 @@ public:
     Sprite InventoryBackground;
     Sprite RiskyIcon;
     Sprite SecondaryStatBackground;
+    Sprite MinimizedInventoryStatusBackground;
 
     // Minimap area
     Sprite Compass;
@@ -65,6 +66,8 @@ public:
     Sprite Button86pxPressed;
     Sprite Minimize;
     Sprite MinimizePressed;
+    Sprite Maximize;
+    Sprite MaximizePressed;
     Sprite Close;
     Sprite ClosePressed;
     Sprite SkillsIcon;

@@ -47,8 +47,8 @@ struct UiGame {
     void MouseClick(int x, int y);
 
 private:
-    std::unique_ptr<trc::Canvas> Canvas;
-    UiCommon::Wrapper<SDL_Texture> Texture;
+    std::unique_ptr<trc::Canvas> CanvasBackground;
+    UiCommon::Wrapper<SDL_Texture> TextureBackground;
 
     std::unique_ptr<trc::Canvas> CanvasGamestate;
     UiCommon::Wrapper<SDL_Texture> TextureGamestate;

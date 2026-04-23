@@ -50,10 +50,11 @@ namespace trc {
 
 void UiGame::UpdateSize(SDL_Rect rect, SDL_Renderer *renderer) {
     Rect = rect;
-    Canvas = std::make_unique<trc::Canvas>(Rect.w,
-                                           Rect.h,
-                                           trc::Canvas::Type::External);
-    Texture = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
+    CanvasBackground =
+            std::make_unique<trc::Canvas>(Rect.w,
+                                          Rect.h,
+                                          trc::Canvas::Type::External);
+    TextureBackground = UiCommon::CreateTexture(renderer, Rect.w, Rect.h);
 
     // Gamestate canvas and texture are always the same size, so only need
     // to create them if they aren't already created
@@ -99,30 +100,34 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                     double statsFPS) const {
     // Render base
     {
-        AbortUnless(!SDL_LockTexture(Texture.get(),
+        AbortUnless(!SDL_LockTexture(TextureBackground.get(),
                                      NULL,
-                                     (void **)&Canvas->Buffer,
-                                     &Canvas->Stride));
+                                     (void **)&CanvasBackground->Buffer,
+                                     &CanvasBackground->Stride));
 
-        Canvas->Wipe();
+        CanvasBackground->Wipe();
 
         // Draw background
-        Canvas->DrawBackground(gamestate.Version.Icons.ClientBackground,
-                               0,
-                               0,
-                               Canvas->Width,
-                               Canvas->Height);
+        CanvasBackground->DrawBackground(
+                gamestate.Version.Icons.ClientBackground,
+                0,
+                0,
+                CanvasBackground->Width,
+                CanvasBackground->Height);
 
         // Clear the area where the gamestate will be rendered
-        Canvas->DrawRectangle(Pixel(0, 0, 0, 0),
-                              RectGamestate.x,
-                              RectGamestate.y,
-                              RectGamestate.w,
-                              RectGamestate.h);
+        // This is needed because we render the background on top of
+        // the gamestate and overlay (to make the playback info visible)
+        // A better solution is to render the playback info on the overlay canvas
+        CanvasBackground->DrawRectangle(Pixel(0, 0, 0, 0),
+                                        RectGamestate.x,
+                                        RectGamestate.y,
+                                        RectGamestate.w,
+                                        RectGamestate.h);
 
         // Draw border around the gamestate
         UiCommon::DrawBorder1px(gamestate.Version.Icons,
-                                *Canvas,
+                                *CanvasBackground,
                                 RectGamestate.x - 1,
                                 RectGamestate.y - 1,
                                 RectGamestate.x + RectGamestate.w + 1,
@@ -142,7 +147,7 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                              14,
                              64,
                              std::string(text, textLength),
-                             *Canvas);
+                             *CanvasBackground);
 
         textLength = formatTime(text,
                                 sizeof(text) / sizeof(text[0]),
@@ -155,7 +160,7 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                              28,
                              64,
                              std::string(text, textLength),
-                             *Canvas);
+                             *CanvasBackground);
 
         textLength = formatTime(text,
                                 sizeof(text) / sizeof(text[0]),
@@ -168,7 +173,7 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                              42,
                              64,
                              std::string(text, textLength),
-                             *Canvas);
+                             *CanvasBackground);
 
         TextRenderer::Render(playback.Gamestate->Version.Fonts.Game,
                              TextAlignment::Left,
@@ -179,9 +184,9 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                              64,
                              "Playback speed: " +
                                      std::to_string(playback.Scale),
-                             *Canvas);
+                             *CanvasBackground);
 
-        SDL_UnlockTexture(Texture.get());
+        SDL_UnlockTexture(TextureBackground.get());
     }
 
     // Render gamestate
@@ -220,7 +225,7 @@ void UiGame::Render(const Renderer::Options &renderOptions,
                                 NULL,
                                 &RectGamestate));
     AbortUnless(!SDL_RenderCopy(renderer,
-                                Texture.get(),
+                                TextureBackground.get(),
                                 NULL,
                                 &Rect));
 }
