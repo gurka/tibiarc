@@ -173,6 +173,8 @@ add_library(tibiarc
   "lib/formats/yatc.cpp"
   "lib/gamestate.cpp"
   "lib/gamestate.hpp"
+  "lib/gui/gui.cpp"
+  "lib/gui/gui.hpp"
   "lib/icons.cpp"
   "lib/icons.hpp"
   "lib/map.hpp"
@@ -374,6 +376,10 @@ if(TIBIARC_HAVE_CRYPTO AND (NOT EMSCRIPTEN))
   endif()
 endif()
 
+# ########################################################################### #
+## GUI
+# ########################################################################### #
+
 if(Qt6Widgets_FOUND AND (EMSCRIPTEN OR Qt6Concurrent_FOUND))
   qt_standard_project_setup()
 
@@ -418,6 +424,48 @@ if(Qt6Widgets_FOUND AND (EMSCRIPTEN OR Qt6Concurrent_FOUND))
                           --pre-js ${CMAKE_SOURCE_DIR}/gui/presettings.js)
     target_link_options(gui PRIVATE "SHELL:-s FORCE_FILESYSTEM=1 ")
     target_link_libraries(gui PRIVATE idbfs.js)
+  endif()
+endif()
+
+# ########################################################################### #
+## GUI test
+# ########################################################################### #
+
+
+if(EMSCRIPTEN OR SDL2_FOUND)
+  add_executable(gui_test
+    "gui_test/gui_test.cpp"
+    "utils/memoryfile.cpp"
+    "utils/memoryfile.hpp"
+  )
+  target_include_directories(gui_test PRIVATE "gui_test" "utils")
+  target_link_libraries(gui_test PRIVATE tibiarc)
+
+  if(NOT EMSCRIPTEN)
+    target_include_directories(gui_test PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_link_libraries(gui_test PRIVATE ${SDL2_LIBRARIES})
+
+    # Ensure that SDL2 does not swallow console output on Windows. This is only
+    # useful for debugging and may cause crashes on its own as SDL2 assumes
+    # -mwindows
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_options(gui_test PRIVATE -mconsole)
+      endif()
+    endif()
+  else()
+    target_compile_options(gui_test PRIVATE -sUSE_SDL=2)
+    target_link_options(gui_test PRIVATE
+                          -sUSE_SDL=2
+                          -sALLOW_MEMORY_GROWTH=1)
+
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      target_link_options(gui_test PRIVATE
+                            -sEXCEPTION_DEBUG=1
+                            -sASSERTIONS=1
+                            -sSAFE_HEAP=1
+                            -sNO_DISABLE_EXCEPTION_CATCHING)
+    endif()
   endif()
 endif()
 
