@@ -972,8 +972,8 @@ static void DrawInventoryItem(const Gamestate &gamestate,
         DrawItem(gamestate.Version,
                  item,
                  type,
-                 X + 32,
-                 Y + 32,
+                 X + 33,
+                 Y + 33,
                  gamestate.CurrentTick,
                  Position(),
                  0,
@@ -993,11 +993,11 @@ static void DrawInventoryItem(const Gamestate &gamestate,
     }
 }
 
-static void DrawInventorySlot(const Gamestate &gamestate,
-                              InventorySlot slot,
-                              int X,
-                              int Y,
-                              Canvas &canvas) {
+void DrawInventorySlot(const Gamestate &gamestate,
+                       InventorySlot slot,
+                       int X,
+                       int Y,
+                       Canvas &canvas) {
     const Version &version = gamestate.Version;
 
     const Object &object = gamestate.Player.Inventory(slot);
@@ -1006,7 +1006,7 @@ static void DrawInventorySlot(const Gamestate &gamestate,
 
     if (object.Id == 0) {
         const auto &sprite = version.Icons.GetInventorySlot(slot);
-        canvas.Draw(sprite, X, Y, sprite.Width, sprite.Height);
+        canvas.Draw(sprite, X + 1, Y + 1, sprite.Width, sprite.Height);
     }
 }
 

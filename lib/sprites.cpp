@@ -36,8 +36,8 @@ static std::tuple<size_t, size_t, size_t, size_t> MeasureSpriteBounds(
         ptrdiff_t width,
         ptrdiff_t height,
         Sprite::Trim trim) {
-    if (!(CheckRange((x + width), 0, canvas.Width - 1) &&
-          CheckRange((y + height), 0, canvas.Height - 1))) {
+    if (!(CheckRange((x + width), 0, canvas.Width) &&
+          CheckRange((y + height), 0, canvas.Height))) {
         return std::make_tuple(0, 0, 0, 0);
     } else if (trim != Sprite::Trim::None) {
         ptrdiff_t leftX, rightX, bottomY, topY;
