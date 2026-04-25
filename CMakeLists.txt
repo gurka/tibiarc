@@ -422,6 +422,67 @@ if(Qt6Widgets_FOUND AND (EMSCRIPTEN OR Qt6Concurrent_FOUND))
 endif()
 
 # ########################################################################### #
+## player
+# ########################################################################### #
+
+if(EMSCRIPTEN OR SDL2_FOUND)
+  add_executable(player
+    "player/player.cpp"
+    "player/playback.cpp"
+    "player/playback.hpp"
+    "player/rendering.cpp"
+    "player/rendering.hpp"
+    "player/ui_chat.cpp"
+    "player/ui_chat.hpp"
+    "player/ui_common.cpp"
+    "player/ui_common.hpp"
+    "player/ui_game.cpp"
+    "player/ui_game.hpp"
+    "player/ui_sidebar.cpp"
+    "player/ui_sidebar.hpp"
+    "utils/memoryfile.cpp"
+    "utils/memoryfile.hpp"
+  )
+  target_include_directories(player PRIVATE "player" "utils")
+  target_link_libraries(player PRIVATE tibiarc)
+
+  if(NOT EMSCRIPTEN)
+    target_include_directories(player PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_link_libraries(player PRIVATE ${SDL2_LIBRARIES})
+
+    # Ensure that SDL2 does not swallow console output on Windows. This is only
+    # useful for debugging and may cause crashes on its own as SDL2 assumes
+    # -mwindows
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_options(player PRIVATE -mconsole)
+      endif()
+    endif()
+  else()
+    set_target_properties(player PROPERTIES SUFFIX ".html")
+
+    target_compile_options(player PRIVATE -sUSE_SDL=2)
+    target_link_options(player PRIVATE
+                          -sUSE_SDL=2
+                          -sALLOW_MEMORY_GROWTH=1
+                          -sEXPORTED_FUNCTIONS=_main,_load_files,_malloc
+                          -sEXPORTED_RUNTIME_METHODS=HEAPU8,ccall)
+
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      target_link_options(player PRIVATE
+                            -sEXCEPTION_DEBUG=1
+                            -sASSERTIONS=1
+                            -sSAFE_HEAP=1
+                            -sNO_DISABLE_EXCEPTION_CATCHING)
+    endif()
+
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/player/index.html"
+                     "${CMAKE_BINARY_DIR}/index.html" COPYONLY)
+    add_custom_target(run emrun 'index.html?pic=Tibia.pic&dat=Tibia.dat&spr=Tibia.spr&recording=test.trp&version=8.52' DEPENDS player)
+  endif()
+endif()
+
+# ########################################################################### #
 ## Misc flags that must be set at the very end
 # ########################################################################### #
 

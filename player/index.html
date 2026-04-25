@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>emscripten player</title>
+</head>
+<body>
+
+<div id="status" style="margin: 20px; font-family: monospace;">
+    <p id="loading-message">Initializing...</p>
+    <p id="files-loaded"></p>
+</div>
+<canvas id="canvas" oncontextmenu="event.preventDefault()" style="margin: auto;"></canvas>
+
+<script>
+    let moduleReady = false;
+    var Module = {
+        canvas: (function() { return document.getElementById('canvas'); })(),
+        onRuntimeInitialized: function() {
+            moduleReady = true;
+            processFiles();
+        }
+    };
+    let fileRecording = null;
+    let filePic = null;
+    let fileSpr = null;
+    let fileDat = null;
+    let versionMajor = null;
+    let versionMinor = null;
+    let versionPreview = null;
+
+    function updateFilesLoaded() {
+        const element = document.getElementById("files-loaded");
+        element.innerHTML = `Recording: ${fileRecording === null ? 'not loaded' : fileRecording.name}<br>`;
+        element.innerHTML += `.pic: ${filePic === null ? 'not loaded' : filePic.name}<br>`;
+        element.innerHTML += `.spr: ${fileSpr === null ? 'not loaded' : fileSpr.name}<br>`;
+        element.innerHTML += `.dat: ${fileDat === null ? 'not loaded' : fileDat.name}<br>`;
+    }
+
+    function updateLoadingMessage(message) {
+        const element = document.getElementById("loading-message");
+        element.innerHTML = message;
+    }
+
+    function allFilesLoaded() {
+        return fileRecording !== null && filePic !== null && fileSpr !== null && fileDat !== null;
+    }
+
+    function processFiles() {
+        if (!allFilesLoaded() || !moduleReady) {
+            return;
+        }
+
+        updateLoadingMessage("All files loaded. Starting playback...");
+
+        // Copy file data to where the player can read it
+        const bufferRecording = new Uint8Array(fileRecording.data);
+        const heapBufferRecording = Module._malloc(bufferRecording.length);
+        Module.HEAPU8.set(bufferRecording, heapBufferRecording);
+
+        const bufferPic = new Uint8Array(filePic.data);
+        const heapBufferPic = Module._malloc(bufferPic.length);
+        Module.HEAPU8.set(bufferPic, heapBufferPic);
+
+        const bufferSpr = new Uint8Array(fileSpr.data);
+        const heapBufferSpr = Module._malloc(bufferSpr.length);
+        Module.HEAPU8.set(bufferSpr, heapBufferSpr);
+
+        const bufferDat = new Uint8Array(fileDat.data);
+        const heapBufferDat = Module._malloc(bufferDat.length);
+        Module.HEAPU8.set(bufferDat, heapBufferDat);
+
+        // Start playback
+        Module.ccall('load_files',
+            null,
+            ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'],
+            [heapBufferRecording, bufferRecording.length, heapBufferPic, bufferPic.length, heapBufferSpr, bufferSpr.length, heapBufferDat, bufferDat.length, versionMajor, versionMinor, versionPreview]
+        );
+
+        updateLoadingMessage("Playback started!");
+    }
+
+    async function downloadFile(url, fileType) {
+        const filename = url.split('/').pop().split('?')[0] || fileType;
+        updateLoadingMessage(`Downloading ${fileType}: ${filename}...`);
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+
+            const fileInfo = { name: filename, data: arrayBuffer };
+
+            if (fileType === 'pic') {
+                filePic = fileInfo;
+            } else if (fileType === 'spr') {
+                fileSpr = fileInfo;
+            } else if (fileType === 'dat') {
+                fileDat = fileInfo;
+            } else if (fileType === 'recording') {
+                fileRecording = fileInfo;
+            }
+
+            updateFilesLoaded();
+            processFiles();
+
+        } catch (error) {
+            updateLoadingMessage(`Error downloading ${fileType}: ${error.message}`);
+            console.error(`Error downloading ${fileType} from ${url}:`, error);
+        }
+    }
+
+    function parseQueryParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            pic: params.get('pic'),
+            spr: params.get('spr'),
+            dat: params.get('dat'),
+            recording: params.get('recording'),
+            version: params.get('version'),
+        };
+    }
+
+    async function loadFromUrls() {
+        const params = parseQueryParams();
+
+        if (!params.pic || !params.spr || !params.dat || !params.recording || !params.version) {
+            updateLoadingMessage("Error: Missing required URL parameters. Please provide: pic, spr, dat, recording and version");
+            return;
+        }
+
+        const versionParts = params.version.split('.');
+        if (versionParts.length !== 2) {
+            updateLoadingMessage("Error: Invalid version format. Expected format: major.minor (e.g., 7.30)");
+            return;
+        }
+        versionMajor = versionParts[0];
+        versionMinor = versionParts[1];
+        versionPreview = 0;
+
+        updateLoadingMessage("Starting downloads...");
+
+        // Download all files in parallel
+        await Promise.all([
+            downloadFile(params.pic, 'pic'),
+            downloadFile(params.spr, 'spr'),
+            downloadFile(params.dat, 'dat'),
+            downloadFile(params.recording, 'recording')
+        ]);
+    }
+
+    // Start loading files when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+        updateFilesLoaded();
+        loadFromUrls();
+    });
+</script>
+<script src="player.js"></script>
+
+</body>
+</html>

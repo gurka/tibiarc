@@ -119,6 +119,12 @@ void DrawClientBackground(const Gamestate &gamestate,
                           int rightX,
                           int rightY) noexcept;
 
+void DrawInventorySlot(const Gamestate &gamestate,
+                       InventorySlot slot,
+                       int X,
+                       int Y,
+                       Canvas &canvas);
+
 /* ************************************************************************* */
 
 void DrawGamestate(const Options &options,

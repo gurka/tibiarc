@@ -81,6 +81,7 @@ static void AlignedDeallocate(void *ptr) {
     if (ptr) {
 #if defined(_WIN32)
         ptr = (void *)(((uintptr_t)ptr) - ((ptrdiff_t *)ptr)[-1]);
+        return;  // Avoid crash on exit
 #endif
         std::free(ptr);
     }
@@ -401,6 +402,10 @@ void Canvas::Tint(const Sprite &sprite,
 }
 
 void Canvas::Draw(const Sprite &sprite,
+                  const int x, const int y) {
+    Draw(sprite, x, y, sprite.Width, sprite.Height);
+}
+void Canvas::Draw(const Sprite &sprite,
                   const int x,
                   const int y,
                   const int width,
@@ -483,6 +488,23 @@ void Canvas::Draw(const Sprite &sprite,
                 pixelCount -= copyCount;
                 pixelIdx += copyCount;
             }
+        }
+    }
+}
+
+// TODO: Rename to something better, as we use this to draw more than just backgrounds
+void Canvas::DrawBackground(const Sprite &sprite,
+                            int leftX,
+                            int topY,
+                            int rightX,
+                            int bottomY) {
+    for (int toY = topY; toY < bottomY; toY += sprite.Height) {
+        for (int toX = leftX; toX < rightX; toX += sprite.Width) {
+            Draw(sprite,
+                 toX,
+                 toY,
+                 std::min(sprite.Width, rightX - toX),
+                 std::min(sprite.Height, bottomY - toY));
         }
     }
 }

@@ -36,16 +36,93 @@ class Icons {
 
 public:
     Sprite ClientBackground;
-    Sprite EmptyStatusBar;
-    Sprite HealthBar;
-    Sprite HealthIcon;
     Sprite IconBarBackground;
     Sprite IconBarWar;
     Sprite InventoryBackground;
-    Sprite ManaBar;
-    Sprite ManaIcon;
     Sprite RiskyIcon;
     Sprite SecondaryStatBackground;
+    Sprite MinimizedInventoryStatusBackground;
+
+    // Minimap area
+    Sprite Compass;
+    Sprite ZoomIn;
+    Sprite ZoomOut;
+    Sprite LevelUp;
+    Sprite LevelDown;
+
+    // Statusbars
+    Sprite HealthIcon;
+    Sprite ManaIcon;
+    Sprite EmptyStatusBar;
+    Sprite HealthBar;
+    Sprite ManaBar;
+
+    // Buttons
+    Sprite Button34px;
+    Sprite Button34pxPressed;
+    Sprite Button43px;
+    Sprite Button43pxPressed;
+    Sprite Button86px;
+    Sprite Button86pxPressed;
+    Sprite Minimize;
+    Sprite MinimizePressed;
+    Sprite Maximize;
+    Sprite MaximizePressed;
+    Sprite Close;
+    Sprite ClosePressed;
+    Sprite SkillsIcon;
+    Sprite BattleIcon;
+    Sprite FightingOffensive;
+    Sprite FightingBalanced;
+    Sprite FightingDefensive;
+    Sprite AttackStanding;
+    Sprite AttackChasing;
+    Sprite AttackUnmarked;  // Note: before 7.4 this sprite and button was attack mode "keep distance"
+
+    // Window parts
+    Sprite WindowHeaderMiddle;
+    Sprite WindowHeaderLeft;
+    Sprite WindowHeaderRight;
+    Sprite WindowLeft;
+    Sprite WindowRight;
+    Sprite WindowBottom;
+    Sprite WindowBottomLeft;
+    Sprite WindowBottomRight;
+    Sprite WindowResize;
+
+    // Scrollbar
+    Sprite ScrollbarUp;
+    Sprite ScrollbarDown;
+    Sprite ScrollbarButton;
+    Sprite ScrollbarBackground;
+
+    // Border (raised = left and top light, right and bottom dark)
+    // TODO: Might be better to name these according to color (dark/light)
+    // Also, the same sprites are used for 1px borders, but obviously then only parts of them
+    Sprite BorderCornerLight;
+    Sprite BorderHorizontalLight;
+    Sprite BorderCornerLightDark;
+    Sprite BorderVerticalLight;
+    Sprite BorderVerticalDark;
+    Sprite BorderHorizontalDark;
+    Sprite BorderCornerDark;
+
+    // Chat
+    Sprite ChatBackgroundDarkLeft;
+    Sprite ChatBackgroundDark;
+    Sprite ChatBackgroundDarkRight;
+    Sprite ChatChannelButton;
+    Sprite ChatIgnoreButton;
+    Sprite ChatChannelBoxActive;
+    Sprite ChatMessageBorderVertical;
+    Sprite ChatMessageBorderHorizontal;
+    Sprite ChatMessageBorderTopLeft;
+    Sprite ChatMessageBorderTopRight;
+    Sprite ChatMessageBorderBottomLeft;
+    Sprite ChatMessageBorderBottomRight;
+    Sprite ChatTalkButton;
+
+    Sprite Tmp;
 
     const Sprite &GetCharacterSkull(CharacterSkull skull) const;
     const Sprite &GetCreatureType(CreatureType type) const;
