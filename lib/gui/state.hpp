@@ -17,32 +17,25 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_GUI_HPP__
-#define __TRC_GUI_GUI_HPP__
-
-#include <memory>
-#include <list>
-
-#include "canvas.hpp"
-#include "state.hpp"
-#include "widget.hpp"
+#ifndef __TRC_GUI_STATE_HPP__
+#define __TRC_GUI_STATE_HPP__
 
 namespace trc {
 namespace gui {
 
-struct Gui {
-    std::unique_ptr<Canvas> GuiCanvas;
-    std::list<std::unique_ptr<Widget>> Widgets;
+// This interface should be implemented and passed to Gui::Render to allow
+// widgets to query the current input state
+struct State {
+    // Where the mouse is currently located
+    virtual int MouseX() const = 0;
+    virtual int MouseY() const = 0;
 
-    void Resize(int width, int height);
-    void Render(const State &state);
-
-    void MouseLeftDown(int x, int y);
-    void MouseLeftUp(int x, int y);
+    // Whether the left mouse button is currently down
+    virtual bool MouseLeftDown() const = 0;
 };
 
 } // namespace gui
 } // namespace trc
 
-#endif // __TRC_GUI_GUI_HPP__
+#endif // __TRC_GUI_STATE_HPP__
 

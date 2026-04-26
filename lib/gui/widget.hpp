@@ -17,32 +17,34 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_GUI_HPP__
-#define __TRC_GUI_GUI_HPP__
-
-#include <memory>
-#include <list>
+#ifndef __TRC_GUI_WIDGET_HPP__
+#define __TRC_GUI_WIDGET_HPP__
 
 #include "canvas.hpp"
 #include "state.hpp"
-#include "widget.hpp"
 
 namespace trc {
 namespace gui {
 
-struct Gui {
-    std::unique_ptr<Canvas> GuiCanvas;
-    std::list<std::unique_ptr<Widget>> Widgets;
+struct Widget {
+    int X;
+    int Y;
+    int Width;
+    int Height;
 
-    void Resize(int width, int height);
-    void Render(const State &state);
+    Widget(int x, int y, int width, int height)
+        : X(x), Y(y), Width(width), Height(height) {
+    }
 
-    void MouseLeftDown(int x, int y);
-    void MouseLeftUp(int x, int y);
+    virtual void Render(Canvas &canvas, const State &state) = 0;
+
+    virtual void MouseLeftDown(int x, int y) {
+    }
+    virtual void MouseLeftUp(int x, int y) {
+    }
 };
 
 } // namespace gui
 } // namespace trc
 
-#endif // __TRC_GUI_GUI_HPP__
-
+#endif // __TRC_GUI_WIDGET_HPP__

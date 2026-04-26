@@ -19,20 +19,40 @@
 
 #include "gui.hpp"
 
+#include <memory>
+
+#include "canvas.hpp"
+#include "common.hpp"
+#include "state.hpp"
+
 namespace trc {
 namespace gui {
 
 void Gui::Resize(int width, int height) {
-    Canvas = std::make_unique<trc::Canvas>(width, height, Canvas::Type::External);
+    GuiCanvas = std::make_unique<Canvas>(width, height, Canvas::Type::External);
 }
 
-void Gui::Render(const Version& version) {
-    Canvas->Wipe();
-    Canvas->DrawBackground(version.Icons.ClientBackground,
-                           0,
-                           0,
-                           Canvas->Width,
-                           Canvas->Height);
+void Gui::Render(const State &state) {
+    GuiCanvas->Wipe();
+    for (const auto &widget : Widgets) {
+        widget->Render(*GuiCanvas, state);
+    }
+}
+
+void Gui::MouseLeftDown(int x, int y) {
+    for (const auto &widget : Widgets) {
+        if (MouseIsOverWidget(*widget, x, y)) {
+            widget->MouseLeftDown(x, y);
+        }
+    }
+}
+
+void Gui::MouseLeftUp(int x, int y) {
+    for (const auto &widget : Widgets) {
+        if (MouseIsOverWidget(*widget, x, y)) {
+            widget->MouseLeftUp(x, y);
+        }
+    }
 }
 
 } // namespace gui

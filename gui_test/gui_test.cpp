@@ -29,32 +29,74 @@
 #include <SDL2/SDL.h>
 
 #include "gui/gui.hpp"
+#include "gui/button.hpp"
+#include "gui/state.hpp"
 #include "versions.hpp"
 #include "memoryfile.hpp"
 
 namespace {
 
-std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window{
+std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> Window{
         nullptr,
         &SDL_DestroyWindow};
-std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer{
+std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> Renderer{
         nullptr,
         &SDL_DestroyRenderer};
 
-trc::gui::Gui gui;
-std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> gui_texture{
+trc::gui::Gui Gui;
+struct GuiState : public trc::gui::State {
+    int _MouseX = 0;
+    int _MouseY = 0;
+    bool _MouseLeftDown = false;
+
+    int MouseX() const override {
+        return _MouseX;
+    }
+
+    int MouseY() const override {
+        return _MouseY;
+    }
+
+    bool MouseLeftDown() const override {
+        return _MouseLeftDown;
+    }
+} GuiState;
+std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> GuiTexture{
         nullptr,
         &SDL_DestroyTexture};
 
-std::unique_ptr<trc::Version> version;
+std::unique_ptr<trc::Version> Version;
 }
 
 void handle_resize() {
     int width;
     int height;
-    SDL_GetRendererOutputSize(renderer.get(), &width, &height);
-    gui.Resize(width, height);
-    gui_texture.reset(SDL_CreateTexture(renderer.get(),
+    SDL_GetRendererOutputSize(Renderer.get(), &width, &height);
+    
+    Gui.Resize(width, height);
+    Gui.Widgets.clear();
+    Gui.Widgets.push_back(std::make_unique<trc::gui::Button>(
+            10,
+            10,
+            &Version->Icons.Button43px,
+            &Version->Icons.Button43pxPressed,
+            trc::gui::Button::ButtonType::Normal,
+            "Normal",
+            trc::Pixel(0xFF, 0xFF, 0xFF),
+            &Version->Fonts.InterfaceSmall,
+            []() { std::cout << "Normal button clicked!\n"; }));
+    Gui.Widgets.push_back(std::make_unique<trc::gui::Button>(
+            10,
+            50,
+            &Version->Icons.Button43px,
+            &Version->Icons.Button43pxPressed,
+            trc::gui::Button::ButtonType::Toggle,
+            "Toggle",
+            trc::Pixel(0xFF, 0xFF, 0xFF),
+            &Version->Fonts.InterfaceSmall,
+            []() { std::cout << "Toggle button clicked!\n"; }));
+    
+    GuiTexture.reset(SDL_CreateTexture(Renderer.get(),
                                         SDL_PIXELFORMAT_RGBA32,
                                         SDL_TEXTUREACCESS_STREAMING,
                                         width,
@@ -70,6 +112,18 @@ void handle_input() {
                 handle_resize();
             }
             break;
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                GuiState._MouseLeftDown = true;
+                Gui.MouseLeftDown(event.button.x, event.button.y);
+            }
+            break;
+        case SDL_MOUSEBUTTONUP:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                GuiState._MouseLeftDown = false;
+                Gui.MouseLeftUp(event.button.x, event.button.y);
+            }
+            break;
         case SDL_QUIT:
             exit(0);
         default:
@@ -80,24 +134,25 @@ void handle_input() {
 
 void main_loop() {
     handle_input();
+    SDL_GetMouseState(&GuiState._MouseX, &GuiState._MouseY);
 
-    SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 255);
-    SDL_RenderClear(renderer.get());
+    SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255);
+    SDL_RenderClear(Renderer.get());
 
     // Render gui to texture
-    if (SDL_LockTexture(gui_texture.get(),
+    if (SDL_LockTexture(GuiTexture.get(),
                          nullptr,
-                         (void **)&gui.Canvas->Buffer,
-                         &gui.Canvas->Stride) != 0) {
+                         (void **)&Gui.GuiCanvas->Buffer,
+                         &Gui.GuiCanvas->Stride) != 0) {
         std::cerr << "Failed to lock texture: " << SDL_GetError() << std::endl;
         exit(1);
     }
-    gui.Render(*version);
-    SDL_UnlockTexture(gui_texture.get());
+    Gui.Render(GuiState);
+    SDL_UnlockTexture(GuiTexture.get());
 
     // Render texture to window
-    SDL_RenderCopy(renderer.get(), gui_texture.get(), nullptr, nullptr);
-    SDL_RenderPresent(renderer.get());
+    SDL_RenderCopy(Renderer.get(), GuiTexture.get(), nullptr, nullptr);
+    SDL_RenderPresent(Renderer.get());
 }
 
 
@@ -147,7 +202,7 @@ int main(int argc, char *argv[]) {
         const trc::MemoryFile pictures(dataFolder / "Tibia.pic");
         const trc::MemoryFile sprites(dataFolder / "Tibia.spr");
         const trc::MemoryFile types(dataFolder / "Tibia.dat");
-        version = std::make_unique<trc::Version>(
+        Version = std::make_unique<trc::Version>(
                 trc::VersionTriplet(major, minor, 0),
                 pictures.Reader(),
                 sprites.Reader(),
@@ -159,29 +214,29 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    window.reset(SDL_CreateWindow("tibiarc GUI test",
+    Window.reset(SDL_CreateWindow("tibiarc GUI test",
                                   SDL_WINDOWPOS_UNDEFINED,
                                   SDL_WINDOWPOS_UNDEFINED,
                                   800,
                                   600,
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
-    if (!window) {
+    if (!Window) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    renderer.reset(SDL_CreateRenderer(window.get(),
+    Renderer.reset(SDL_CreateRenderer(Window.get(),
                                       -1,
                                       SDL_RENDERER_ACCELERATED |
                                               SDL_RENDERER_PRESENTVSYNC |
                                               SDL_RENDERER_TARGETTEXTURE));
-    if (!renderer) {
+    if (!Renderer) {
         std::cerr << "Failed to create renderer: " << SDL_GetError()
                   << std::endl;
         return 1;
     }
 
-    if (SDL_SetRenderDrawBlendMode(renderer.get(), SDL_BLENDMODE_BLEND) != 0) {
+    if (SDL_SetRenderDrawBlendMode(Renderer.get(), SDL_BLENDMODE_BLEND) != 0) {
         std::cerr << "Failed to set blend mode: " << SDL_GetError() << std::endl;
         return 1;
     }
