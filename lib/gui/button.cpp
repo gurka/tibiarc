@@ -18,6 +18,7 @@
  */
 
 #include "button.hpp"
+
 #include "common.hpp"
 #include "state.hpp"
 #include "textrenderer.hpp"

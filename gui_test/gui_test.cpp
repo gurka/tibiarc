@@ -31,6 +31,7 @@
 #include "gui/gui.hpp"
 #include "gui/button.hpp"
 #include "gui/state.hpp"
+#include "gui/window.hpp"
 #include "versions.hpp"
 #include "memoryfile.hpp"
 
@@ -95,12 +96,21 @@ void handle_resize() {
             trc::Pixel(0xFF, 0xFF, 0xFF),
             &Version->Fonts.InterfaceSmall,
             []() { std::cout << "Toggle button clicked!\n"; }));
+    Gui.Widgets.push_back(
+            std::make_unique<trc::gui::Window>(100,
+                                               100,
+                                               200,
+                                               200,
+                                               Version.get(),
+                                               trc::gui::Window::Type::Sidebar,
+                                               &Version->Icons.BattleIcon,
+                                               "Battle"));
     
     GuiTexture.reset(SDL_CreateTexture(Renderer.get(),
-                                        SDL_PIXELFORMAT_RGBA32,
-                                        SDL_TEXTUREACCESS_STREAMING,
-                                        width,
-                                        height));
+                                       SDL_PIXELFORMAT_RGBA32,
+                                       SDL_TEXTUREACCESS_STREAMING,
+                                       width,
+                                       height));
 }
 
 void handle_input() {
