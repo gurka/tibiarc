@@ -34,12 +34,15 @@ namespace trc {
 namespace gui {
 
 struct Window : public Widget {
+    using OnClickHandler = std::function<void()>;
+
     const Version *_Version;
     enum class Type { Sidebar } WindowType;
     const Sprite *Icon;
     std::string Title;
+    OnClickHandler CloseOnClick;
 
-    bool Minimized = false;
+    int MaximizedHeight;
     Button MinimizeButton;
     Button CloseButton;
 
@@ -50,12 +53,16 @@ struct Window : public Widget {
            const Version *version,
            Type type,
            const Sprite *icon,
-           const std::string &title);
+           const std::string &title,
+           const OnClickHandler &closeOnClick);
 
     void Render(Canvas &canvas, const State &state) override;
 
     void MouseLeftDown(int x, int y) override;
     void MouseLeftUp(int x, int y) override;
+
+private:
+    void MinimizeOnClick();
 };
 
 } // namespace gui

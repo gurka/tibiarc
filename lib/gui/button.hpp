@@ -44,8 +44,8 @@ struct Button : public Widget {
     const Font *TextFont;
     OnClickHandler OnClick;
 
-    bool Pressed = false;
-    bool Toggled = false;
+    bool Pressed;
+    bool Toggled;
 
     Button(int x,
            int y,
@@ -80,7 +80,9 @@ struct Button : public Widget {
           Text(text),
           TextColor(textColor),
           TextFont(textFont),
-          OnClick(onClick) {
+          OnClick(onClick),
+          Pressed(false),
+          Toggled(false) {
     }
 
     void Render(Canvas &canvas, const State &state) override;

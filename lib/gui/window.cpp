@@ -41,25 +41,27 @@ Window::Window(int x,
                const Version *version,
                Type type,
                const Sprite *icon,
-               const std::string &title)
+               const std::string &title,
+               const OnClickHandler &closeOnClick)
     : Widget(x, y, width, height),
       _Version(version),
       WindowType(type),
       Icon(icon),
       Title(title),
-      Minimized(false),
+      CloseOnClick(closeOnClick),
+      MaximizedHeight(height),
       MinimizeButton(x + width - 28,
                      y + 2,
                      &version->Icons.Minimize,
                      &version->Icons.MinimizePressed,
                      Button::ButtonType::Toggle,
-                     [this]() { Minimized = !Minimized; }),
+                     [this]() { MinimizeOnClick(); }),
       CloseButton(x + width - 15,
                   y + 2,
                   &version->Icons.Close,
                   &version->Icons.ClosePressed,
                   Button::ButtonType::Normal,
-                  []() {}) {
+                  [this]() { CloseOnClick(); }) {
 }
 
 void Window::Render(Canvas &canvas, const State &state) {
@@ -85,7 +87,15 @@ void Window::Render(Canvas &canvas, const State &state) {
     MinimizeButton.Render(canvas, state);
     CloseButton.Render(canvas, state);
 
-    if (Minimized) {
+    if (MinimizeButton.Toggled) {
+        // Bottom
+        canvas.Draw(icons.WindowBottomLeft, X, Y + Height - 4);
+        canvas.DrawBackground(icons.WindowBottom,
+                              X + 4,
+                              Y + Height - 4,
+                              X + Width - 4,
+                              Y + Height);
+        canvas.Draw(icons.WindowBottomRight, X + Width - 4, Y + Height - 4);
         return;
     }
 
@@ -142,6 +152,14 @@ void Window::MouseLeftUp(int x, int y) {
         MinimizeButton.MouseLeftUp(x, y);
     } else if (MouseIsOverWidget(CloseButton, x, y)) {
         CloseButton.MouseLeftUp(x, y);
+    }
+}
+
+void Window::MinimizeOnClick() {
+    if (MinimizeButton.Toggled) {
+        Height = 19;
+    } else {
+        Height = MaximizedHeight;
     }
 }
 

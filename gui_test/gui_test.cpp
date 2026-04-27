@@ -96,15 +96,16 @@ void handle_resize() {
             trc::Pixel(0xFF, 0xFF, 0xFF),
             &Version->Fonts.InterfaceSmall,
             []() { std::cout << "Toggle button clicked!\n"; }));
-    Gui.Widgets.push_back(
-            std::make_unique<trc::gui::Window>(100,
-                                               100,
-                                               200,
-                                               200,
-                                               Version.get(),
-                                               trc::gui::Window::Type::Sidebar,
-                                               &Version->Icons.BattleIcon,
-                                               "Battle"));
+    Gui.Widgets.push_back(std::make_unique<trc::gui::Window>(
+            100,
+            100,
+            200,
+            200,
+            Version.get(),
+            trc::gui::Window::Type::Sidebar,
+            &Version->Icons.BattleIcon,
+            "Battle",
+            []() { std::cout << "Battle window close button clicked!\n"; }));
     
     GuiTexture.reset(SDL_CreateTexture(Renderer.get(),
                                        SDL_PIXELFORMAT_RGBA32,
