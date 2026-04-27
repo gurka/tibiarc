@@ -17,141 +17,147 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "window.hpp"
+#include "gui/window.hpp"
 
 #include <string>
 
-#include "button.hpp"
+#include "gui/button.hpp"
+#include "gui/common.hpp"
+#include "gui/position.hpp"
+#include "gui/state.hpp"
+#include "gui/widget.hpp"
+
 #include "canvas.hpp"
-#include "common.hpp"
 #include "pixel.hpp"
-#include "state.hpp"
 #include "sprites.hpp"
 #include "textrenderer.hpp"
 #include "versions.hpp"
-#include "widget.hpp"
 
 namespace trc {
 namespace gui {
 
-Window::Window(int x,
-               int y,
-               int width,
+Window::Window(int width,
                int height,
                const Version *version,
                Type type,
                const Sprite *icon,
                const std::string &title,
                const OnClickHandler &closeOnClick)
-    : Widget(x, y, width, height),
+    : Widget(width, height),
       _Version(version),
       WindowType(type),
       Icon(icon),
       Title(title),
       CloseOnClick(closeOnClick),
       MaximizedHeight(height),
-      MinimizeButton(x + width - 28,
-                     y + 2,
-                     &version->Icons.Minimize,
+      MinimizeButton(&version->Icons.Minimize,
                      &version->Icons.MinimizePressed,
                      Button::ButtonType::Toggle,
                      [this]() { MinimizeOnClick(); }),
-      CloseButton(x + width - 15,
-                  y + 2,
-                  &version->Icons.Close,
+      MinimizeButtonPosition(Position(width - 28, 2)),
+      CloseButton(&version->Icons.Close,
                   &version->Icons.ClosePressed,
                   Button::ButtonType::Normal,
-                  [this]() { CloseOnClick(); }) {
+                  [this]() { CloseOnClick(); }),
+      CloseButtonPosition(Position(width - 15, 2)) {
 }
 
-void Window::Render(Canvas &canvas, const State &state) {
+void Window::Render(const State &state, Canvas &canvas, Position offset) {
     const auto &icons = _Version->Icons;
     const auto &fonts = _Version->Fonts;
 
     // Header
-    canvas.Draw(icons.WindowHeaderLeft, X, Y);
+    canvas.Draw(icons.WindowHeaderLeft, offset.X, offset.Y);
     canvas.DrawBackground(icons.WindowHeaderMiddle,
-                          X + 4,
-                          Y,
-                          X + Width - 4,
-                          Y + 15);
-    canvas.Draw(icons.WindowHeaderRight, X + Width - 4, Y);
-    canvas.Draw(*Icon, X + 4, Y + 2);
+                          offset.X + 4,
+                          offset.Y,
+                          offset.X + Width - 4,
+                          offset.Y + 15);
+    canvas.Draw(icons.WindowHeaderRight, offset.X + Width - 4, offset.Y);
+    canvas.Draw(*Icon, offset.X + 4, offset.Y + 2);
     TextRenderer::DrawString(fonts.InterfaceLarge,
                              Pixel(0x8F, 0x8F, 0x8F),
-                             X + 20,
-                             Y + 4,
+                             offset.X + 20,
+                             offset.Y + 4,
                              Title,
                              canvas);
-    
-    MinimizeButton.Render(canvas, state);
-    CloseButton.Render(canvas, state);
+
+    MinimizeButton.Render(state, canvas, offset + MinimizeButtonPosition);
+    CloseButton.Render(state, canvas, offset + CloseButtonPosition);
 
     if (MinimizeButton.Toggled) {
         // Bottom
-        canvas.Draw(icons.WindowBottomLeft, X, Y + Height - 4);
+        canvas.Draw(icons.WindowBottomLeft, offset.X, offset.Y + Height - 4);
         canvas.DrawBackground(icons.WindowBottom,
-                              X + 4,
-                              Y + Height - 4,
-                              X + Width - 4,
-                              Y + Height);
-        canvas.Draw(icons.WindowBottomRight, X + Width - 4, Y + Height - 4);
+                              offset.X + 4,
+                              offset.Y + Height - 4,
+                              offset.X + Width - 4,
+                              offset.Y + Height);
+        canvas.Draw(icons.WindowBottomRight,
+                    offset.X + Width - 4,
+                    offset.Y + Height - 4);
         return;
     }
 
     // Background
     canvas.DrawBackground(icons.ClientBackground,
-                          X + 4,
-                          Y + 15,
-                          X + Width - 4,
-                          Y + Height - 4);
+                          offset.X + 4,
+                          offset.Y + 15,
+                          offset.X + Width - 4,
+                          offset.Y + Height - 4);
 
     // Middle
     canvas.DrawBackground(icons.WindowLeft,
-                          X,
-                          Y + 15,
-                          X + 4,
-                          Y + 15 + Height - 19);
+                          offset.X,
+                          offset.Y + 15,
+                          offset.X + 4,
+                          offset.Y + 15 + Height - 19);
     canvas.DrawBackground(icons.WindowRight,
-                          X + Width - 4,
-                          Y + 15,
-                          X + Width,
-                          Y + 15 + Height - 19);
+                          offset.X + Width - 4,
+                          offset.Y + 15,
+                          offset.X + Width,
+                          offset.Y + 15 + Height - 19);
 
     // Scrollbar
-    canvas.Draw(icons.ScrollbarUp, X + Width - 16, Y + 15);
+    canvas.Draw(icons.ScrollbarUp, offset.X + Width - 16, offset.Y + 15);
     canvas.DrawBackground(icons.ScrollbarBackground,
-                          X + Width - 16,
-                          Y + 27,
-                          X + Width - 16 + 12,
-                          Y + 27 + Height - 43);
-    canvas.Draw(icons.ScrollbarButton, X + Width - 16, Y + 27);
-    canvas.Draw(icons.ScrollbarDown, X + Width - 16, Y + Height - 16);
+                          offset.X + Width - 16,
+                          offset.Y + 27,
+                          offset.X + Width - 16 + 12,
+                          offset.Y + 27 + Height - 43);
+    canvas.Draw(icons.ScrollbarButton, offset.X + Width - 16, offset.Y + 27);
+    canvas.Draw(icons.ScrollbarDown,
+                offset.X + Width - 16,
+                offset.Y + Height - 16);
 
     // Bottom
-    canvas.Draw(icons.WindowBottomLeft, X, Y + 15 + Height - 19);
+    canvas.Draw(icons.WindowBottomLeft, offset.X, offset.Y + 15 + Height - 19);
     canvas.DrawBackground(icons.WindowBottom,
-                          X + 4,
-                          Y + 15 + Height - 19,
-                          X + Width - 4,
-                          Y + 15 + Height - 19 + 4);
-    canvas.Draw(icons.WindowBottomRight, X + Width - 4, Y + 15 + Height - 19);
-    canvas.Draw(icons.WindowResize, X + 3, Y + 15 + Height - 19 - 12);
+                          offset.X + 4,
+                          offset.Y + 15 + Height - 19,
+                          offset.X + Width - 4,
+                          offset.Y + 15 + Height - 19 + 4);
+    canvas.Draw(icons.WindowBottomRight,
+                offset.X + Width - 4,
+                offset.Y + 15 + Height - 19);
+    canvas.Draw(icons.WindowResize,
+                offset.X + 3,
+                offset.Y + 15 + Height - 19 - 12);
 }
 
-void Window::MouseLeftDown(int x, int y) {
-    if (MouseIsOverWidget(MinimizeButton, x, y)) {
-        MinimizeButton.MouseLeftDown(x, y);
-    } else if (MouseIsOverWidget(CloseButton, x, y)) {
-        CloseButton.MouseLeftDown(x, y);
+void Window::MouseLeftDown(Position position) {
+    if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
+        MinimizeButton.MouseLeftDown(position - MinimizeButtonPosition);
+    } else if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
+        CloseButton.MouseLeftDown(position - CloseButtonPosition);
     }
 }
 
-void Window::MouseLeftUp(int x, int y) {
-    if (MouseIsOverWidget(MinimizeButton, x, y)) {
-        MinimizeButton.MouseLeftUp(x, y);
-    } else if (MouseIsOverWidget(CloseButton, x, y)) {
-        CloseButton.MouseLeftUp(x, y);
+void Window::MouseLeftUp(Position position) {
+    if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
+        MinimizeButton.MouseLeftUp(position - MinimizeButtonPosition);
+    } else if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
+        CloseButton.MouseLeftUp(position - CloseButtonPosition);
     }
 }
 

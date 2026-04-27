@@ -23,14 +23,17 @@
 #include <functional>
 #include <string>
 
-#include "button.hpp"
-#include "canvas.hpp"
-#include "sprites.hpp"
-#include "state.hpp"
-#include "versions.hpp"
-#include "widget.hpp"
+#include "gui/button.hpp"
+#include "gui/position.hpp"
+#include "gui/state.hpp"
+#include "gui/widget.hpp"
 
 namespace trc {
+
+class Canvas;
+struct Sprite;
+struct Version;
+
 namespace gui {
 
 struct Window : public Widget {
@@ -44,11 +47,11 @@ struct Window : public Widget {
 
     int MaximizedHeight;
     Button MinimizeButton;
+    Position MinimizeButtonPosition;
     Button CloseButton;
+    Position CloseButtonPosition;
 
-    Window(int x,
-           int y,
-           int width,
+    Window(int width,
            int height,
            const Version *version,
            Type type,
@@ -56,10 +59,12 @@ struct Window : public Widget {
            const std::string &title,
            const OnClickHandler &closeOnClick);
 
-    void Render(Canvas &canvas, const State &state) override;
+    void Render(const State &state,
+                Canvas &canvas,
+                Position offset) override;
 
-    void MouseLeftDown(int x, int y) override;
-    void MouseLeftUp(int x, int y) override;
+    void MouseLeftDown(Position position) override;
+    void MouseLeftUp(Position position) override;
 
 private:
     void MinimizeOnClick();

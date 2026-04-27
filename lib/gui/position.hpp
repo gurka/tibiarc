@@ -17,23 +17,43 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_STATE_HPP__
-#define __TRC_GUI_STATE_HPP__
-
-#include "gui/position.hpp"
+#ifndef __TRC_GUI_POSITION_HPP__
+#define __TRC_GUI_POSITION_HPP__
 
 namespace trc {
 namespace gui {
 
-// This interface should be implemented and passed to Gui::Render to allow
-// widgets to query the current input state
-struct State {
-    virtual Position MousePosition() const = 0;
-    virtual bool MouseLeftDown() const = 0;
+struct Position {
+    int X;
+    int Y;
+
+    Position(int x, int y)
+        : X(x), Y(y) {
+    }
+
+    Position operator+(const Position &other) const {
+        return Position(X + other.X, Y + other.Y);
+    }
+
+    Position &operator+=(const Position &other) {
+        X += other.X;
+        Y += other.Y;
+        return *this;
+    }
+
+    Position operator-(const Position &other) const {
+        return Position(X - other.X, Y - other.Y);
+    }
+
+    Position &operator-=(const Position &other) {
+        X -= other.X;
+        Y -= other.Y;
+        return *this;
+    }
 };
 
 } // namespace gui
 } // namespace trc
 
-#endif // __TRC_GUI_STATE_HPP__
+#endif // __TRC_GUI_POSITION_HPP__
 

@@ -23,15 +23,20 @@
 #include <functional>
 #include <string>
 
-#include "canvas.hpp"
-#include "fonts.hpp"
-#include "sprites.hpp"
-#include "state.hpp"
+#include "gui/position.hpp"
+#include "gui/widget.hpp"
+
 #include "pixel.hpp"
-#include "widget.hpp"
+#include "sprites.hpp"
 
 namespace trc {
+
+struct Font;
+class Canvas;
+
 namespace gui {
+
+struct State;
 
 struct Button : public Widget {
     using OnClickHandler = std::function<void()>;
@@ -47,15 +52,11 @@ struct Button : public Widget {
     bool Pressed;
     bool Toggled;
 
-    Button(int x,
-           int y,
-           const trc::Sprite *spriteNormal,
-           const trc::Sprite *spritePressed,
+    Button(const Sprite *spriteNormal,
+           const Sprite *spritePressed,
            ButtonType type,
            const OnClickHandler &onClick)
-        : Button(x,
-                 y,
-                 spriteNormal,
+        : Button(spriteNormal,
                  spritePressed,
                  type,
                  "",
@@ -64,16 +65,14 @@ struct Button : public Widget {
                  onClick) {
     }
 
-    Button(int x,
-           int y,
-           const trc::Sprite *spriteNormal,
-           const trc::Sprite *spritePressed,
+    Button(const Sprite *spriteNormal,
+           const Sprite *spritePressed,
            ButtonType type,
            const std::string &text,
            const Pixel &textColor,
            const Font *textFont,
            const OnClickHandler &onClick)
-        : Widget(x, y, spriteNormal->Width, spriteNormal->Height),
+        : Widget(spriteNormal->Width, spriteNormal->Height),
           SpriteNormal(spriteNormal),
           SpritePressed(spritePressed),
           Type(type),
@@ -85,10 +84,12 @@ struct Button : public Widget {
           Toggled(false) {
     }
 
-    void Render(Canvas &canvas, const State &state) override;
+    void Render(const State &state,
+                Canvas &canvas,
+                Position offset) override;
 
-    void MouseLeftDown(int x, int y) override;
-    void MouseLeftUp(int x, int y) override;
+    void MouseLeftDown(Position position) override;
+    void MouseLeftUp(Position position) override;
 };
 
 } // namespace gui

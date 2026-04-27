@@ -17,16 +17,19 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "button.hpp"
+#include "gui/button.hpp"
 
-#include "common.hpp"
-#include "state.hpp"
+#include "gui/common.hpp"
+#include "gui/position.hpp"
+#include "gui/state.hpp"
+
+#include "canvas.hpp"
 #include "textrenderer.hpp"
 
 namespace trc {
 namespace gui {
 
-void Button::Render(Canvas &canvas, const State &state) {
+void Button::Render(const State &state, Canvas &canvas, Position offset) {
     // Reset Pressed if the left mouse button is longer down
     if (!state.MouseLeftDown()) {
         Pressed = false;
@@ -34,30 +37,31 @@ void Button::Render(Canvas &canvas, const State &state) {
 
     // Render
     int textOffset = 0;
-    if ((Pressed && MouseIsOverWidget(*this, state.MouseX(), state.MouseY())) || (Type == ButtonType::Toggle && Toggled)) {
-        canvas.Draw(*SpritePressed, X, Y);
+    if ((Pressed && PointInsideWidget(state.MousePosition() - offset, *this)) ||
+        (Type == ButtonType::Toggle && Toggled)) {
+        canvas.Draw(*SpritePressed, offset.X, offset.Y);
         textOffset = 1;
     } else {
-        canvas.Draw(*SpriteNormal, X, Y);
+        canvas.Draw(*SpriteNormal, offset.X, offset.Y);
     }
 
     if (TextFont != nullptr) {
         TextRenderer::DrawCenteredString(
                 *TextFont,
                 TextColor,
-                X + (SpriteNormal->Width / 2) + textOffset,
-                Y + (SpriteNormal->Height / 2) - (TextFont->Height / 2) +
+                offset.X + (SpriteNormal->Width / 2) + textOffset,
+                offset.Y + (SpriteNormal->Height / 2) - (TextFont->Height / 2) +
                         textOffset,
                 Text,
                 canvas);
     }
 }
 
-void Button::MouseLeftDown(int x, int y) {
+void Button::MouseLeftDown(Position position) {
     Pressed = true;
 }
 
-void Button::MouseLeftUp(int x, int y) {
+void Button::MouseLeftUp(Position position) {
     // Only trigger the click action if the mouse was both pressed and released
     // on this button
     if (Pressed) {

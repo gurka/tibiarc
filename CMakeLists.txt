@@ -178,6 +178,7 @@ add_library(tibiarc
   "lib/gui/common.hpp"
   "lib/gui/gui.cpp"
   "lib/gui/gui.hpp"
+  "lib/gui/position.hpp"
   "lib/gui/state.hpp"
   "lib/gui/widget.hpp"
   "lib/gui/window.cpp"

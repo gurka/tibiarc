@@ -20,20 +20,34 @@
 #ifndef __TRC_GUI_COMMON_HPP__
 #define __TRC_GUI_COMMON_HPP__
 
-#include "widget.hpp"
+#include <memory>
+#include <tuple>
+
+#include "gui/position.hpp"
+#include "gui/widget.hpp"
 
 namespace trc {
 namespace gui {
 
-inline bool MouseIsOverWidget(const Widget &widget,
-                       int mouseX,
-                       int mouseY) {
-    return mouseX >= widget.X && mouseX < widget.X + widget.Width &&
-           mouseY >= widget.Y && mouseY < widget.Y + widget.Height;
+using WidgetAndPosition = std::tuple<std::unique_ptr<Widget>, Position>;
+
+inline bool PointInsideWidget(Position position, const Widget &widget) {
+    // Note: assumes that position is relative to the widget
+    return position.X >= 0 && position.X < widget.Width && position.Y >= 0 &&
+           position.Y < widget.Height;
+}
+
+inline bool PointInsideWidget(Position position, const WidgetAndPosition &wap) {
+    const auto &widget = *std::get<0>(wap);
+    const auto &widgetPosition = std::get<1>(wap);
+    return position.X >= widgetPosition.X &&
+           position.X < widgetPosition.X + widget.Width &&
+           position.Y >= widgetPosition.Y &&
+           position.Y < widgetPosition.Y + widget.Height;
 }
 
 } // namespace gui
 } // namespace trc
 
-#endif // __TRC_GUI_STATE_HPP__
+#endif // __TRC_GUI_COMMON_HPP__
 

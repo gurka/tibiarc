@@ -17,13 +17,16 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "gui.hpp"
+#include "gui/gui.hpp"
 
 #include <memory>
+#include <tuple>
+
+#include "gui/common.hpp"
+#include "gui/position.hpp"
+#include "gui/state.hpp"
 
 #include "canvas.hpp"
-#include "common.hpp"
-#include "state.hpp"
 
 namespace trc {
 namespace gui {
@@ -34,23 +37,23 @@ void Gui::Resize(int width, int height) {
 
 void Gui::Render(const State &state) {
     GuiCanvas->Wipe();
-    for (const auto &widget : Widgets) {
-        widget->Render(*GuiCanvas, state);
+    for (const auto &wap : Widgets) {
+        std::get<0>(wap)->Render(state, *GuiCanvas, std::get<1>(wap));
     }
 }
 
-void Gui::MouseLeftDown(int x, int y) {
-    for (const auto &widget : Widgets) {
-        if (MouseIsOverWidget(*widget, x, y)) {
-            widget->MouseLeftDown(x, y);
+void Gui::MouseLeftDown(Position position) {
+    for (const auto &wap : Widgets) {
+        if (PointInsideWidget(position, wap)) {
+            std::get<0>(wap)->MouseLeftDown(position - std::get<1>(wap));
         }
     }
 }
 
-void Gui::MouseLeftUp(int x, int y) {
-    for (const auto &widget : Widgets) {
-        if (MouseIsOverWidget(*widget, x, y)) {
-            widget->MouseLeftUp(x, y);
+void Gui::MouseLeftUp(Position position) {
+    for (const auto &wap : Widgets) {
+        if (PointInsideWidget(position, wap)) {
+            std::get<0>(wap)->MouseLeftUp(position - std::get<1>(wap));
         }
     }
 }

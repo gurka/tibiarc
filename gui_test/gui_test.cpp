@@ -22,18 +22,21 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <tuple>
 
-#ifdef EMSCRIPTEN
-#    include <emscripten.h>
-#endif
 #include <SDL2/SDL.h>
 
-#include "gui/gui.hpp"
 #include "gui/button.hpp"
+#include "gui/gui.hpp"
+#include "gui/position.hpp"
 #include "gui/state.hpp"
 #include "gui/window.hpp"
-#include "versions.hpp"
+
 #include "memoryfile.hpp"
+#include "pixel.hpp"
+#include "versions.hpp"
+
+using namespace trc;
 
 namespace {
 
@@ -44,18 +47,14 @@ std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> Renderer{
         nullptr,
         &SDL_DestroyRenderer};
 
-trc::gui::Gui Gui;
-struct GuiState : public trc::gui::State {
+gui::Gui Gui;
+struct GuiState : public gui::State {
     int _MouseX = 0;
     int _MouseY = 0;
     bool _MouseLeftDown = false;
 
-    int MouseX() const override {
-        return _MouseX;
-    }
-
-    int MouseY() const override {
-        return _MouseY;
+    gui::Position MousePosition() const override {
+        return gui::Position(_MouseX, _MouseY);
     }
 
     bool MouseLeftDown() const override {
@@ -66,7 +65,7 @@ std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> GuiTexture{
         nullptr,
         &SDL_DestroyTexture};
 
-std::unique_ptr<trc::Version> Version;
+std::unique_ptr<Version> _Version;
 }
 
 void handle_resize() {
@@ -76,36 +75,38 @@ void handle_resize() {
     
     Gui.Resize(width, height);
     Gui.Widgets.clear();
-    Gui.Widgets.push_back(std::make_unique<trc::gui::Button>(
-            10,
-            10,
-            &Version->Icons.Button43px,
-            &Version->Icons.Button43pxPressed,
-            trc::gui::Button::ButtonType::Normal,
-            "Normal",
-            trc::Pixel(0xFF, 0xFF, 0xFF),
-            &Version->Fonts.InterfaceSmall,
-            []() { std::cout << "Normal button clicked!\n"; }));
-    Gui.Widgets.push_back(std::make_unique<trc::gui::Button>(
-            10,
-            50,
-            &Version->Icons.Button43px,
-            &Version->Icons.Button43pxPressed,
-            trc::gui::Button::ButtonType::Toggle,
-            "Toggle",
-            trc::Pixel(0xFF, 0xFF, 0xFF),
-            &Version->Fonts.InterfaceSmall,
-            []() { std::cout << "Toggle button clicked!\n"; }));
-    Gui.Widgets.push_back(std::make_unique<trc::gui::Window>(
-            100,
-            100,
-            200,
-            200,
-            Version.get(),
-            trc::gui::Window::Type::Sidebar,
-            &Version->Icons.BattleIcon,
-            "Battle",
-            []() { std::cout << "Battle window close button clicked!\n"; }));
+    Gui.Widgets.push_back(std::make_tuple(
+            std::make_unique<gui::Button>(
+                    &_Version->Icons.Button43px,
+                    &_Version->Icons.Button43pxPressed,
+                    gui::Button::ButtonType::Normal,
+                    "Normal",
+                    Pixel(0xFF, 0xFF, 0xFF),
+                    &_Version->Fonts.InterfaceSmall,
+                    []() { std::cout << "Normal button clicked!\n"; }),
+            gui::Position(10, 10)));
+    Gui.Widgets.push_back(std::make_tuple(
+            std::make_unique<gui::Button>(
+                    &_Version->Icons.Button43px,
+                    &_Version->Icons.Button43pxPressed,
+                    gui::Button::ButtonType::Toggle,
+                    "Toggle",
+                    Pixel(0xFF, 0xFF, 0xFF),
+                    &_Version->Fonts.InterfaceSmall,
+                    []() { std::cout << "Toggle button clicked!\n"; }),
+            gui::Position(10, 50)));
+    Gui.Widgets.push_back(std::make_tuple(
+            std::make_unique<gui::Window>(
+                    200,
+                    200,
+                    _Version.get(),
+                    gui::Window::Type::Sidebar,
+                    &_Version->Icons.BattleIcon,
+                    "Battle",
+                    []() {
+                        std::cout << "Battle window close button clicked!\n";
+                    }),
+            gui::Position(100, 100)));
     
     GuiTexture.reset(SDL_CreateTexture(Renderer.get(),
                                        SDL_PIXELFORMAT_RGBA32,
@@ -126,13 +127,13 @@ void handle_input() {
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 GuiState._MouseLeftDown = true;
-                Gui.MouseLeftDown(event.button.x, event.button.y);
+                Gui.MouseLeftDown(gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_MOUSEBUTTONUP:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 GuiState._MouseLeftDown = false;
-                Gui.MouseLeftUp(event.button.x, event.button.y);
+                Gui.MouseLeftUp(gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_QUIT:
@@ -167,7 +168,6 @@ void main_loop() {
 }
 
 
-#ifndef EMSCRIPTEN
 void emscripten_set_main_loop(const std::function<void(void)>& main_loop,
                               int fps,
                               int simulate_infinite_loop) {
@@ -188,7 +188,6 @@ void emscripten_set_main_loop(const std::function<void(void)>& main_loop,
         }
     }
 }
-#endif
 
 int main(int argc, char *argv[]) {
     int major = 0;
@@ -210,16 +209,16 @@ int main(int argc, char *argv[]) {
 
     try {
         const std::filesystem::path dataFolder = argv[1];
-        const trc::MemoryFile pictures(dataFolder / "Tibia.pic");
-        const trc::MemoryFile sprites(dataFolder / "Tibia.spr");
-        const trc::MemoryFile types(dataFolder / "Tibia.dat");
-        Version = std::make_unique<trc::Version>(
-                trc::VersionTriplet(major, minor, 0),
+        const MemoryFile pictures(dataFolder / "Tibia.pic");
+        const MemoryFile sprites(dataFolder / "Tibia.spr");
+        const MemoryFile types(dataFolder / "Tibia.dat");
+        _Version = std::make_unique<Version>(
+                VersionTriplet(major, minor, 0),
                 pictures.Reader(),
                 sprites.Reader(),
                 types.Reader());
 
-    } catch (const trc::ErrorBase &error) {
+    } catch (const ErrorBase &error) {
         std::cerr << "Unrecoverable error (" << error.Description() << ")"
                   << std::endl;
         return 1;

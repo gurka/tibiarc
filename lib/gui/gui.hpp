@@ -23,22 +23,26 @@
 #include <memory>
 #include <list>
 
-#include "canvas.hpp"
-#include "state.hpp"
-#include "widget.hpp"
+#include "gui/common.hpp"
+#include "gui/position.hpp"
 
 namespace trc {
+
+class Canvas;
+
 namespace gui {
+
+struct State;
 
 struct Gui {
     std::unique_ptr<Canvas> GuiCanvas;
-    std::list<std::unique_ptr<Widget>> Widgets;
+    std::list<WidgetAndPosition> Widgets;
 
     void Resize(int width, int height);
     void Render(const State &state);
 
-    void MouseLeftDown(int x, int y);
-    void MouseLeftUp(int x, int y);
+    void MouseLeftDown(Position position);
+    void MouseLeftUp(Position position);
 };
 
 } // namespace gui

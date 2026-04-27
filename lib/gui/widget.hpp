@@ -20,27 +20,29 @@
 #ifndef __TRC_GUI_WIDGET_HPP__
 #define __TRC_GUI_WIDGET_HPP__
 
-#include "canvas.hpp"
-#include "state.hpp"
+#include "gui/position.hpp"
 
 namespace trc {
+
+class Canvas;
+
 namespace gui {
 
+struct State;
+
 struct Widget {
-    int X;
-    int Y;
     int Width;
     int Height;
 
-    Widget(int x, int y, int width, int height)
-        : X(x), Y(y), Width(width), Height(height) {
+    Widget(int width, int height)
+        : Width(width), Height(height) {
     }
 
-    virtual void Render(Canvas &canvas, const State &state) = 0;
+    virtual void Render(const State &state, Canvas &canvas, Position offset) = 0;
 
-    virtual void MouseLeftDown(int x, int y) {
+    virtual void MouseLeftDown(Position position) {
     }
-    virtual void MouseLeftUp(int x, int y) {
+    virtual void MouseLeftUp(Position position) {
     }
 };
 
