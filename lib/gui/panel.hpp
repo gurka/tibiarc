@@ -17,10 +17,14 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_WIDGET_HPP__
-#define __TRC_GUI_WIDGET_HPP__
+#ifndef __TRC_GUI_PANEL_HPP__
+#define __TRC_GUI_PANEL_HPP__
 
+#include <vector>
+
+#include "gui/common.hpp"
 #include "gui/position.hpp"
+#include "gui/widget.hpp"
 
 namespace trc {
 
@@ -30,31 +34,29 @@ namespace gui {
 
 struct State;
 
-struct Widget {
-    enum class MouseEventResult {
-        None,        // Event was not handled
-        Clicked,     // Event was handled and resulted in a click action
-        StartDrag,   // Event was handled and started a drag action
-        StartResize, // Event was handled and started a resize action
-    };
+struct Panel : public Widget {
+    std::vector<WidgetAndPosition> Widgets;
 
-    int Width;
-    int Height;
+    // Drag action
+    Widget *DragTarget;
+    Position DragStartMousePosition;
 
-    Widget(int width, int height)
-        : Width(width), Height(height) {
+    Panel(int width, int height)
+        : Widget(width, height),
+          DragTarget(nullptr),
+          DragStartMousePosition(0, 0) {
     }
 
-    virtual void Render(const State &state, Canvas &canvas, Position offset) = 0;
+    void Render(const State &state,
+                Canvas &canvas,
+                Position offset) override;
 
-    virtual MouseEventResult MouseLeftDown(Position position) {
-        return MouseEventResult::None;
-    }
-    virtual void MouseLeftUp(Position position) {
-    }
+    MouseEventResult MouseLeftDown(Position position) override;
+    void MouseLeftUp(Position position) override;
 };
 
 } // namespace gui
 } // namespace trc
 
-#endif // __TRC_GUI_WIDGET_HPP__
+#endif // __TRC_GUI_PANEL_HPP__
+

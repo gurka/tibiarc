@@ -57,8 +57,9 @@ void Button::Render(const State &state, Canvas &canvas, Position offset) {
     }
 }
 
-void Button::MouseLeftDown(Position position) {
+Widget::MouseEventResult Button::MouseLeftDown(Position position) {
     Pressed = true;
+    return Widget::MouseEventResult::Clicked;
 }
 
 void Button::MouseLeftUp(Position position) {

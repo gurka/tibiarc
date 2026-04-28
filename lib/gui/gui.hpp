@@ -21,10 +21,10 @@
 #define __TRC_GUI_GUI_HPP__
 
 #include <memory>
-#include <list>
 
-#include "gui/common.hpp"
+#include "gui/panel.hpp"
 #include "gui/position.hpp"
+#include "gui/widget.hpp"
 
 namespace trc {
 
@@ -36,9 +36,11 @@ struct State;
 
 struct Gui {
     std::unique_ptr<Canvas> GuiCanvas;
-    std::list<WidgetAndPosition> Widgets;
+    std::unique_ptr<Panel> RootPanel;
 
     void Resize(int width, int height);
+    void AddWidget(std::unique_ptr<Widget> &&widget, Position position);
+
     void Render(const State &state);
 
     void MouseLeftDown(Position position);

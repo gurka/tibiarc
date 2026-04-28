@@ -22,7 +22,7 @@
 #include <memory>
 #include <tuple>
 
-#include "gui/common.hpp"
+#include "gui/panel.hpp"
 #include "gui/position.hpp"
 #include "gui/state.hpp"
 
@@ -33,29 +33,24 @@ namespace gui {
 
 void Gui::Resize(int width, int height) {
     GuiCanvas = std::make_unique<Canvas>(width, height, Canvas::Type::External);
+    RootPanel = std::make_unique<Panel>(width, height);
+}
+
+void Gui::AddWidget(std::unique_ptr<Widget> &&widget, Position position) {
+    RootPanel->Widgets.push_back(std::make_tuple(std::move(widget), position));
 }
 
 void Gui::Render(const State &state) {
     GuiCanvas->Wipe();
-    for (const auto &wap : Widgets) {
-        std::get<0>(wap)->Render(state, *GuiCanvas, std::get<1>(wap));
-    }
+    RootPanel->Render(state, *GuiCanvas, Position(0, 0));
 }
 
 void Gui::MouseLeftDown(Position position) {
-    for (const auto &wap : Widgets) {
-        if (PointInsideWidget(position, wap)) {
-            std::get<0>(wap)->MouseLeftDown(position - std::get<1>(wap));
-        }
-    }
+    RootPanel->MouseLeftDown(position);
 }
 
 void Gui::MouseLeftUp(Position position) {
-    for (const auto &wap : Widgets) {
-        if (PointInsideWidget(position, wap)) {
-            std::get<0>(wap)->MouseLeftUp(position - std::get<1>(wap));
-        }
-    }
+    RootPanel->MouseLeftUp(position);
 }
 
 } // namespace gui

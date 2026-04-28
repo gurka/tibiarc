@@ -74,28 +74,25 @@ void handle_resize() {
     SDL_GetRendererOutputSize(Renderer.get(), &width, &height);
     
     Gui.Resize(width, height);
-    Gui.Widgets.clear();
-    Gui.Widgets.push_back(std::make_tuple(
-            std::make_unique<gui::Button>(
-                    &_Version->Icons.Button43px,
-                    &_Version->Icons.Button43pxPressed,
-                    gui::Button::ButtonType::Normal,
-                    "Normal",
-                    Pixel(0xFF, 0xFF, 0xFF),
-                    &_Version->Fonts.InterfaceSmall,
-                    []() { std::cout << "Normal button clicked!\n"; }),
-            gui::Position(10, 10)));
-    Gui.Widgets.push_back(std::make_tuple(
-            std::make_unique<gui::Button>(
-                    &_Version->Icons.Button43px,
-                    &_Version->Icons.Button43pxPressed,
-                    gui::Button::ButtonType::Toggle,
-                    "Toggle",
-                    Pixel(0xFF, 0xFF, 0xFF),
-                    &_Version->Fonts.InterfaceSmall,
-                    []() { std::cout << "Toggle button clicked!\n"; }),
-            gui::Position(10, 50)));
-    Gui.Widgets.push_back(std::make_tuple(
+    Gui.AddWidget(std::make_unique<gui::Button>(
+                          &_Version->Icons.Button43px,
+                          &_Version->Icons.Button43pxPressed,
+                          gui::Button::ButtonType::Normal,
+                          "Normal",
+                          Pixel(0xFF, 0xFF, 0xFF),
+                          &_Version->Fonts.InterfaceSmall,
+                          []() { std::cout << "Normal button clicked!\n"; }),
+                  gui::Position(10, 10));
+    Gui.AddWidget(std::make_unique<gui::Button>(
+                          &_Version->Icons.Button43px,
+                          &_Version->Icons.Button43pxPressed,
+                          gui::Button::ButtonType::Toggle,
+                          "Toggle",
+                          Pixel(0xFF, 0xFF, 0xFF),
+                          &_Version->Fonts.InterfaceSmall,
+                          []() { std::cout << "Toggle button clicked!\n"; }),
+                  gui::Position(10, 50));
+    Gui.AddWidget(
             std::make_unique<gui::Window>(
                     200,
                     200,
@@ -106,7 +103,7 @@ void handle_resize() {
                     []() {
                         std::cout << "Battle window close button clicked!\n";
                     }),
-            gui::Position(100, 100)));
+            gui::Position(100, 100));
     
     GuiTexture.reset(SDL_CreateTexture(Renderer.get(),
                                        SDL_PIXELFORMAT_RGBA32,

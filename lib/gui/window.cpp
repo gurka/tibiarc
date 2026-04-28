@@ -145,12 +145,26 @@ void Window::Render(const State &state, Canvas &canvas, Position offset) {
                 offset.Y + 15 + Height - 19 - 12);
 }
 
-void Window::MouseLeftDown(Position position) {
+Widget::MouseEventResult Window::MouseLeftDown(Position position) {
     if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
-        MinimizeButton.MouseLeftDown(position - MinimizeButtonPosition);
-    } else if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
-        CloseButton.MouseLeftDown(position - CloseButtonPosition);
+        return MinimizeButton.MouseLeftDown(position - MinimizeButtonPosition);
     }
+    
+    if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
+        return CloseButton.MouseLeftDown(position - CloseButtonPosition);
+    }
+
+    // If click is on the header, then start drag action
+    if (position.Y < 15) {
+        return Widget::MouseEventResult::StartDrag;
+    }
+
+    // If click is on the bottom, then start resize action
+    if (position.Y >= Height - 19) {
+        return Widget::MouseEventResult::StartResize;
+    }
+
+    return Widget::MouseEventResult::None;
 }
 
 void Window::MouseLeftUp(Position position) {

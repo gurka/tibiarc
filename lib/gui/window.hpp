@@ -63,7 +63,7 @@ struct Window : public Widget {
                 Canvas &canvas,
                 Position offset) override;
 
-    void MouseLeftDown(Position position) override;
+    MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;
 
 private:
