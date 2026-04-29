@@ -22,16 +22,16 @@
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <tuple>
 
 #include <SDL2/SDL.h>
 
 #include "gui/button.hpp"
-#include "gui/gui.hpp"
+#include "gui/panel.hpp"
 #include "gui/position.hpp"
 #include "gui/state.hpp"
 #include "gui/window.hpp"
 
+#include "canvas.hpp"
 #include "memoryfile.hpp"
 #include "pixel.hpp"
 #include "versions.hpp"
@@ -47,8 +47,10 @@ std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> Renderer{
         nullptr,
         &SDL_DestroyRenderer};
 
-gui::Gui Gui;
-struct GuiState : public gui::State {
+std::unique_ptr<Canvas> MainCanvas;
+std::unique_ptr<gui::Panel> MainPanel;
+
+struct State : public gui::State {
     int _MouseX = 0;
     int _MouseY = 0;
     bool _MouseLeftDown = false;
@@ -60,7 +62,8 @@ struct GuiState : public gui::State {
     bool MouseLeftDown() const override {
         return _MouseLeftDown;
     }
-} GuiState;
+} State;
+
 std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> GuiTexture{
         nullptr,
         &SDL_DestroyTexture};
@@ -73,26 +76,29 @@ void handle_resize() {
     int height;
     SDL_GetRendererOutputSize(Renderer.get(), &width, &height);
     
-    Gui.Resize(width, height);
-    Gui.AddWidget(std::make_unique<gui::Button>(
-                          &_Version->Icons.Button43px,
-                          &_Version->Icons.Button43pxPressed,
-                          gui::Button::ButtonType::Normal,
-                          "Normal",
-                          Pixel(0xFF, 0xFF, 0xFF),
-                          &_Version->Fonts.InterfaceSmall,
-                          []() { std::cout << "Normal button clicked!\n"; }),
-                  gui::Position(10, 10));
-    Gui.AddWidget(std::make_unique<gui::Button>(
-                          &_Version->Icons.Button43px,
-                          &_Version->Icons.Button43pxPressed,
-                          gui::Button::ButtonType::Toggle,
-                          "Toggle",
-                          Pixel(0xFF, 0xFF, 0xFF),
-                          &_Version->Fonts.InterfaceSmall,
-                          []() { std::cout << "Toggle button clicked!\n"; }),
-                  gui::Position(10, 50));
-    Gui.AddWidget(
+    MainCanvas = std::make_unique<Canvas>(width, height, Canvas::Type::External);
+    MainPanel = std::make_unique<gui::Panel>(width, height);
+    MainPanel->Widgets.emplace_back(
+            std::make_unique<gui::Button>(
+                    &_Version->Icons.Button43px,
+                    &_Version->Icons.Button43pxPressed,
+                    gui::Button::ButtonType::Normal,
+                    "Normal",
+                    Pixel(0xFF, 0xFF, 0xFF),
+                    &_Version->Fonts.InterfaceSmall,
+                    []() { std::cout << "Normal button clicked!\n"; }),
+            gui::Position(10, 10));
+    MainPanel->Widgets.emplace_back(
+            std::make_unique<gui::Button>(
+                    &_Version->Icons.Button43px,
+                    &_Version->Icons.Button43pxPressed,
+                    gui::Button::ButtonType::Toggle,
+                    "Toggle",
+                    Pixel(0xFF, 0xFF, 0xFF),
+                    &_Version->Fonts.InterfaceSmall,
+                    []() { std::cout << "Toggle button clicked!\n"; }),
+            gui::Position(10, 50));
+    MainPanel->Widgets.emplace_back(
             std::make_unique<gui::Window>(
                     200,
                     200,
@@ -123,14 +129,14 @@ void handle_input() {
             break;
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
-                GuiState._MouseLeftDown = true;
-                Gui.MouseLeftDown(gui::Position(event.button.x, event.button.y));
+                State._MouseLeftDown = true;
+                MainPanel->MouseLeftDown(gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_MOUSEBUTTONUP:
             if (event.button.button == SDL_BUTTON_LEFT) {
-                GuiState._MouseLeftDown = false;
-                Gui.MouseLeftUp(gui::Position(event.button.x, event.button.y));
+                State._MouseLeftDown = false;
+                MainPanel->MouseLeftUp(gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_QUIT:
@@ -143,7 +149,7 @@ void handle_input() {
 
 void main_loop() {
     handle_input();
-    SDL_GetMouseState(&GuiState._MouseX, &GuiState._MouseY);
+    SDL_GetMouseState(&State._MouseX, &State._MouseY);
 
     SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255);
     SDL_RenderClear(Renderer.get());
@@ -151,12 +157,13 @@ void main_loop() {
     // Render gui to texture
     if (SDL_LockTexture(GuiTexture.get(),
                          nullptr,
-                         (void **)&Gui.GuiCanvas->Buffer,
-                         &Gui.GuiCanvas->Stride) != 0) {
+                         (void **)&MainCanvas->Buffer,
+                         &MainCanvas->Stride) != 0) {
         std::cerr << "Failed to lock texture: " << SDL_GetError() << std::endl;
         exit(1);
     }
-    Gui.Render(GuiState);
+    MainCanvas->Wipe();
+    MainPanel->Render(State, *MainCanvas, gui::Position(0, 0));
     SDL_UnlockTexture(GuiTexture.get());
 
     // Render texture to window

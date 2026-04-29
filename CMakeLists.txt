@@ -176,8 +176,6 @@ add_library(tibiarc
   "lib/gui/button.cpp"
   "lib/gui/button.hpp"
   "lib/gui/common.hpp"
-  "lib/gui/gui.cpp"
-  "lib/gui/gui.hpp"
   "lib/gui/panel.cpp"
   "lib/gui/panel.hpp"
   "lib/gui/position.hpp"
