@@ -159,9 +159,8 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
         return Widget::MouseEventResult::StartDrag;
     }
 
-    // If click is on the bottom, then start resize action
     if (position.Y >= Height - 19) {
-        return Widget::MouseEventResult::StartResize;
+        // TODO: handle resize
     }
 
     return Widget::MouseEventResult::None;

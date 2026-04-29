@@ -19,6 +19,7 @@
 
 #include "gui/panel.hpp"
 
+#include <algorithm>
 #include <tuple>
 
 #include "gui/common.hpp"
@@ -35,12 +36,18 @@ void Panel::Render(const State &state,
                    Position offset) {
     // Handle drag action
     if (DragTarget != nullptr) {
-        Position mouseDelta = state.MousePosition() - DragStartMousePosition;
-        DragStartMousePosition = state.MousePosition();
+        Position mouseDelta = state.MousePosition() - DragMouseInitialPosition;
         for (auto &wap : Widgets) {
             if (std::get<0>(wap).get() == DragTarget) {
-                // TODO: restrict movement to within panel bounds
-                std::get<1>(wap) += mouseDelta;
+                std::get<1>(wap) = DragTargetInitialPosition + mouseDelta;
+                std::get<1>(wap).X =
+                        std::clamp(std::get<1>(wap).X,
+                                   0,
+                                   Width - std::get<0>(wap)->Width);
+                std::get<1>(wap).Y =
+                        std::clamp(std::get<1>(wap).Y,
+                                   0,
+                                   Height - std::get<0>(wap)->Height);
                 break;
             }
         }
@@ -60,10 +67,10 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
     for (const auto &wap : Widgets) {
         if (PointInsideWidget(position, wap)) {
             const auto result = std::get<0>(wap)->MouseLeftDown(position - std::get<1>(wap));
-            // TODO: handle StartDrag and StartResize
             if (result == Widget::MouseEventResult::StartDrag) {
                 DragTarget = std::get<0>(wap).get();
-                DragStartMousePosition = position;
+                DragTargetInitialPosition = std::get<1>(wap);
+                DragMouseInitialPosition = position;
             }
 
             return Widget::MouseEventResult::None;

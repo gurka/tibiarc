@@ -35,7 +35,6 @@ struct Widget {
         None,        // Event was not handled
         Clicked,     // Event was handled and resulted in a click action
         StartDrag,   // Event was handled and started a drag action
-        StartResize, // Event was handled and started a resize action
     };
 
     int Width;

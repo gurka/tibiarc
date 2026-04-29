@@ -39,12 +39,14 @@ struct Panel : public Widget {
 
     // Drag action
     Widget *DragTarget;
-    Position DragStartMousePosition;
+    Position DragTargetInitialPosition;
+    Position DragMouseInitialPosition;
 
     Panel(int width, int height)
         : Widget(width, height),
           DragTarget(nullptr),
-          DragStartMousePosition(0, 0) {
+          DragTargetInitialPosition(0, 0),
+          DragMouseInitialPosition(0, 0) {
     }
 
     void Render(const State &state,

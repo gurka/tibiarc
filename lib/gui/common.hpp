@@ -46,6 +46,14 @@ inline bool PointInsideWidget(Position position, const WidgetAndPosition &wap) {
            position.Y < widgetPosition.Y + widget.Height;
 }
 
+inline bool WidgetsIntersect(const Widget &wa,
+                             Position pa,
+                             const Widget &wb,
+                             Position pb) {
+    return pa.X < pb.X + wb.Width && pa.X + wa.Width > pb.X &&
+           pa.Y < pb.Y + wb.Height && pa.Y + wa.Height > pb.Y;
+}
+
 } // namespace gui
 } // namespace trc
 

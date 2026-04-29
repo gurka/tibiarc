@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <tuple>
+#include <utility>
 
 #include "gui/panel.hpp"
 #include "gui/position.hpp"

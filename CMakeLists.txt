@@ -442,39 +442,21 @@ endif()
 # ########################################################################### #
 
 
-if(EMSCRIPTEN OR SDL2_FOUND)
+if(SDL2_FOUND)
   add_executable(gui_test
     "gui_test/gui_test.cpp"
     "utils/memoryfile.cpp"
     "utils/memoryfile.hpp"
   )
-  target_include_directories(gui_test PRIVATE "gui_test" "utils")
-  target_link_libraries(gui_test PRIVATE tibiarc)
+  target_include_directories(gui_test PRIVATE "gui_test" "utils" ${SDL2_INCLUDE_DIRS})
+  target_link_libraries(gui_test PRIVATE tibiarc ${SDL2_LIBRARIES})
 
-  if(NOT EMSCRIPTEN)
-    target_include_directories(gui_test PRIVATE ${SDL2_INCLUDE_DIRS})
-    target_link_libraries(gui_test PRIVATE ${SDL2_LIBRARIES})
-
-    # Ensure that SDL2 does not swallow console output on Windows. This is only
-    # useful for debugging and may cause crashes on its own as SDL2 assumes
-    # -mwindows
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        target_link_options(gui_test PRIVATE -mconsole)
-      endif()
-    endif()
-  else()
-    target_compile_options(gui_test PRIVATE -sUSE_SDL=2)
-    target_link_options(gui_test PRIVATE
-                          -sUSE_SDL=2
-                          -sALLOW_MEMORY_GROWTH=1)
-
+  # Ensure that SDL2 does not swallow console output on Windows. This is only
+  # useful for debugging and may cause crashes on its own as SDL2 assumes
+  # -mwindows
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-      target_link_options(gui_test PRIVATE
-                            -sEXCEPTION_DEBUG=1
-                            -sASSERTIONS=1
-                            -sSAFE_HEAP=1
-                            -sNO_DISABLE_EXCEPTION_CATCHING)
+      target_link_options(gui_test PRIVATE -mconsole)
     endif()
   endif()
 endif()
