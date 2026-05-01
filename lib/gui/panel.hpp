@@ -42,19 +42,30 @@ struct Panel : public Widget {
     Position DragTargetInitialPosition;
     Position DragMouseInitialPosition;
 
+    // Resize action
+    Widget *ResizeTarget;
+    int ResizeTargetInitialHeight;
+    Position ResizeMouseInitialPosition;
+
     Panel(int width, int height)
         : Widget(width, height),
           DragTarget(nullptr),
           DragTargetInitialPosition(0, 0),
-          DragMouseInitialPosition(0, 0) {
+          DragMouseInitialPosition(0, 0),
+          ResizeTarget(nullptr),
+          ResizeTargetInitialHeight(0),
+          ResizeMouseInitialPosition(0, 0) {
     }
 
-    void Render(const State &state,
+    void Render(State &state,
                 Canvas &canvas,
                 Position offset) override;
 
     MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;
+
+private:
+    WidgetAndPosition *GetWidgetAndPosition(Widget *widget);
 };
 
 } // namespace gui

@@ -19,6 +19,7 @@
 
 #include "gui/window.hpp"
 
+#include <iostream>
 #include <string>
 
 #include "gui/button.hpp"
@@ -62,7 +63,13 @@ Window::Window(int width,
       CloseButtonPosition(Position(width - 15, 2)) {
 }
 
-void Window::Render(const State &state, Canvas &canvas, Position offset) {
+void Window::Render(State &state, Canvas &canvas, Position offset) {
+    if (!MinimizeButton.Toggled &&
+        PointInsideWidget(state.MousePosition() - offset, *this) &&
+        state.MousePosition().Y >= offset.Y + Height - 19) {
+        state.RequestMouseCursor(State::MouseCursor::Resize);
+    }
+
     const auto &icons = _Version->Icons;
     const auto &fonts = _Version->Fonts;
 
@@ -159,8 +166,9 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
         return Widget::MouseEventResult::StartDrag;
     }
 
-    if (position.Y >= Height - 19) {
-        // TODO: handle resize
+    // If click is on the bottom, then start resize action
+    if (!MinimizeButton.Toggled && position.Y >= Height - 19) {
+        return Widget::MouseEventResult::Resize;
     }
 
     return Widget::MouseEventResult::None;

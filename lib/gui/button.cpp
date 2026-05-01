@@ -29,7 +29,7 @@
 namespace trc {
 namespace gui {
 
-void Button::Render(const State &state, Canvas &canvas, Position offset) {
+void Button::Render(State &state, Canvas &canvas, Position offset) {
     // Reset Pressed if the left mouse button is longer down
     if (!state.MouseLeftDown()) {
         Pressed = false;

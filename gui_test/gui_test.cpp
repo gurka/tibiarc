@@ -34,6 +34,7 @@
 #include "canvas.hpp"
 #include "memoryfile.hpp"
 #include "pixel.hpp"
+#include "utils.hpp"
 #include "versions.hpp"
 
 using namespace trc;
@@ -51,18 +52,31 @@ std::unique_ptr<Canvas> MainCanvas;
 std::unique_ptr<gui::Panel> MainPanel;
 
 struct State : public gui::State {
-    int _MouseX = 0;
-    int _MouseY = 0;
+    int MouseX = 0;
+    int MouseY = 0;
     bool _MouseLeftDown = false;
+    MouseCursor CurrentCursor = MouseCursor::Default;
+    MouseCursor RequestedCursor = MouseCursor::Default;
 
     gui::Position MousePosition() const override {
-        return gui::Position(_MouseX, _MouseY);
+        return gui::Position(MouseX, MouseY);
     }
 
     bool MouseLeftDown() const override {
         return _MouseLeftDown;
     }
+
+    void RequestMouseCursor(MouseCursor cursor) override {
+        RequestedCursor = cursor;
+    }
 } State;
+
+std::unique_ptr<SDL_Cursor, decltype(&SDL_FreeCursor)> DefaultCursor{
+        nullptr,
+        &SDL_FreeCursor};
+std::unique_ptr<SDL_Cursor, decltype(&SDL_FreeCursor)> ResizeCursor{
+        nullptr,
+        &SDL_FreeCursor};
 
 std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> GuiTexture{
         nullptr,
@@ -149,7 +163,9 @@ void handle_input() {
 
 void main_loop() {
     handle_input();
-    SDL_GetMouseState(&State._MouseX, &State._MouseY);
+
+    SDL_GetMouseState(&State.MouseX, &State.MouseY);
+    State.RequestedCursor = State::MouseCursor::Default;
 
     SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255);
     SDL_RenderClear(Renderer.get());
@@ -165,6 +181,30 @@ void main_loop() {
     MainCanvas->Wipe();
     MainPanel->Render(State, *MainCanvas, gui::Position(0, 0));
     SDL_UnlockTexture(GuiTexture.get());
+
+    // Set cursor if requested
+    if (State.RequestedCursor != State.CurrentCursor) {
+        switch (State.RequestedCursor) {
+        case State::MouseCursor::Default:
+            if (!DefaultCursor) {
+                DefaultCursor.reset(
+                        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+                AbortUnless(DefaultCursor.get() != nullptr);
+            }
+            SDL_SetCursor(DefaultCursor.get());
+            break;
+
+        case State::MouseCursor::Resize:
+            if (!ResizeCursor) {
+                ResizeCursor.reset(
+                        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS));
+                AbortUnless(ResizeCursor.get() != nullptr);
+            }
+            SDL_SetCursor(ResizeCursor.get());
+            break;
+        }
+        State.CurrentCursor = State.RequestedCursor;
+    }
 
     // Render texture to window
     SDL_RenderCopy(Renderer.get(), GuiTexture.get(), nullptr, nullptr);

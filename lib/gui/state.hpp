@@ -28,8 +28,14 @@ namespace gui {
 // This interface should be implemented and passed to Gui::Render to allow
 // widgets to query the current input state
 struct State {
+    enum class MouseCursor {
+        Default,
+        Resize,
+    };
+
     virtual Position MousePosition() const = 0;
     virtual bool MouseLeftDown() const = 0;
+    virtual void RequestMouseCursor(MouseCursor cursor) = 0;
 };
 
 } // namespace gui

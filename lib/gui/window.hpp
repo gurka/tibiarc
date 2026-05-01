@@ -59,7 +59,7 @@ struct Window : public Widget {
            const std::string &title,
            const OnClickHandler &closeOnClick);
 
-    void Render(const State &state,
+    void Render(State &state,
                 Canvas &canvas,
                 Position offset) override;
 

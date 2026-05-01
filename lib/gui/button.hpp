@@ -84,7 +84,7 @@ struct Button : public Widget {
           Toggled(false) {
     }
 
-    void Render(const State &state,
+    void Render(State &state,
                 Canvas &canvas,
                 Position offset) override;
 

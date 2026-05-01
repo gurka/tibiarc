@@ -35,6 +35,7 @@ struct Widget {
         None,        // Event was not handled
         Clicked,     // Event was handled and resulted in a click action
         StartDrag,   // Event was handled and started a drag action
+        Resize,      // Event was handled and started a resize action
     };
 
     int Width;
@@ -44,7 +45,7 @@ struct Widget {
         : Width(width), Height(height) {
     }
 
-    virtual void Render(const State &state, Canvas &canvas, Position offset) = 0;
+    virtual void Render(State &state, Canvas &canvas, Position offset) = 0;
 
     virtual MouseEventResult MouseLeftDown(Position position) {
         return MouseEventResult::None;
