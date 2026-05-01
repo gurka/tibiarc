@@ -45,7 +45,9 @@ struct Widget {
         : Width(width), Height(height) {
     }
 
-    virtual void Render(State &state, Canvas &canvas, Position offset) = 0;
+    virtual void Update(State &state, Position offset) {
+    }
+    virtual void Render(Canvas &canvas, Position offset) = 0;
 
     virtual MouseEventResult MouseLeftDown(Position position) {
         return MouseEventResult::None;

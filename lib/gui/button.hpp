@@ -49,7 +49,13 @@ struct Button : public Widget {
     const Font *TextFont;
     OnClickHandler OnClick;
 
+    // Whether to render normal or pressed sprite
+    bool RenderPressed;
+
+    // Left mouse has been pressed on the button, but not released yet
     bool Pressed;
+
+    // Only used when Type is Toggle
     bool Toggled;
 
     Button(const Sprite *spriteNormal,
@@ -80,13 +86,13 @@ struct Button : public Widget {
           TextColor(textColor),
           TextFont(textFont),
           OnClick(onClick),
+          RenderPressed(false),
           Pressed(false),
           Toggled(false) {
     }
 
-    void Render(State &state,
-                Canvas &canvas,
-                Position offset) override;
+    void Update(State &state, Position offset) override;
+    void Render(Canvas &canvas, Position offset) override;
 
     MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;

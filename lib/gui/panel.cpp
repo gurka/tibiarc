@@ -32,9 +32,7 @@
 namespace trc {
 namespace gui {
 
-void Panel::Render(State &state,
-                   Canvas &canvas,
-                   Position offset) {
+void Panel::Update(State &state, Position offset) {
     // Handle drag action
     if (DragTarget != nullptr) {
         auto *wap = GetWidgetAndPosition(DragTarget);
@@ -71,9 +69,14 @@ void Panel::Render(State &state,
         }
     }
 
-    // Render
     for (const auto &wap : Widgets) {
-        std::get<0>(wap)->Render(state, canvas, offset + std::get<1>(wap));
+        std::get<0>(wap)->Update(state, offset + std::get<1>(wap));
+    }
+}
+
+void Panel::Render(Canvas &canvas, Position offset) {
+    for (const auto &wap : Widgets) {
+        std::get<0>(wap)->Render(canvas, offset + std::get<1>(wap));
     }
 }
 

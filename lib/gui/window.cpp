@@ -63,13 +63,18 @@ Window::Window(int width,
       CloseButtonPosition(Position(width - 15, 2)) {
 }
 
-void Window::Render(State &state, Canvas &canvas, Position offset) {
+void Window::Update(State &state, Position offset) {
+    MinimizeButton.Update(state, offset + MinimizeButtonPosition);
+    CloseButton.Update(state, offset + CloseButtonPosition);
+
     if (!MinimizeButton.Toggled &&
         PointInsideWidget(state.MousePosition() - offset, *this) &&
         state.MousePosition().Y >= offset.Y + Height - 19) {
         state.RequestMouseCursor(State::MouseCursor::Resize);
     }
+}
 
+void Window::Render(Canvas &canvas, Position offset) {
     const auto &icons = _Version->Icons;
     const auto &fonts = _Version->Fonts;
 
@@ -89,8 +94,8 @@ void Window::Render(State &state, Canvas &canvas, Position offset) {
                              Title,
                              canvas);
 
-    MinimizeButton.Render(state, canvas, offset + MinimizeButtonPosition);
-    CloseButton.Render(state, canvas, offset + CloseButtonPosition);
+    MinimizeButton.Render(canvas, offset + MinimizeButtonPosition);
+    CloseButton.Render(canvas, offset + CloseButtonPosition);
 
     if (MinimizeButton.Toggled) {
         // Bottom

@@ -162,25 +162,13 @@ void handle_input() {
 }
 
 void main_loop() {
+    // Handle input
     handle_input();
 
+    // Update widgets
     SDL_GetMouseState(&State.MouseX, &State.MouseY);
     State.RequestedCursor = State::MouseCursor::Default;
-
-    SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255);
-    SDL_RenderClear(Renderer.get());
-
-    // Render gui to texture
-    if (SDL_LockTexture(GuiTexture.get(),
-                         nullptr,
-                         (void **)&MainCanvas->Buffer,
-                         &MainCanvas->Stride) != 0) {
-        std::cerr << "Failed to lock texture: " << SDL_GetError() << std::endl;
-        exit(1);
-    }
-    MainCanvas->Wipe();
-    MainPanel->Render(State, *MainCanvas, gui::Position(0, 0));
-    SDL_UnlockTexture(GuiTexture.get());
+    MainPanel->Update(State, gui::Position(0, 0));
 
     // Set cursor if requested
     if (State.RequestedCursor != State.CurrentCursor) {
@@ -206,11 +194,24 @@ void main_loop() {
         State.CurrentCursor = State.RequestedCursor;
     }
 
+    // Render gui to texture
+    SDL_SetRenderDrawColor(Renderer.get(), 0, 0, 0, 255);
+    SDL_RenderClear(Renderer.get());
+    if (SDL_LockTexture(GuiTexture.get(),
+                         nullptr,
+                         (void **)&MainCanvas->Buffer,
+                         &MainCanvas->Stride) != 0) {
+        std::cerr << "Failed to lock texture: " << SDL_GetError() << std::endl;
+        exit(1);
+    }
+    MainCanvas->Wipe();
+    MainPanel->Render(*MainCanvas, gui::Position(0, 0));
+    SDL_UnlockTexture(GuiTexture.get());
+
     // Render texture to window
     SDL_RenderCopy(Renderer.get(), GuiTexture.get(), nullptr, nullptr);
     SDL_RenderPresent(Renderer.get());
 }
-
 
 void emscripten_set_main_loop(const std::function<void(void)>& main_loop,
                               int fps,

@@ -22,6 +22,7 @@
 #include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/state.hpp"
+#include "gui/widget.hpp"
 
 #include "canvas.hpp"
 #include "textrenderer.hpp"
@@ -29,16 +30,20 @@
 namespace trc {
 namespace gui {
 
-void Button::Render(State &state, Canvas &canvas, Position offset) {
-    // Reset Pressed if the left mouse button is longer down
+void Button::Update(State &state, Position offset) {
     if (!state.MouseLeftDown()) {
         Pressed = false;
     }
 
-    // Render
+    RenderPressed =
+            (Pressed &&
+             PointInsideWidget(state.MousePosition() - offset, *this)) ||
+            (Type == ButtonType::Toggle && Toggled);
+}
+
+void Button::Render(Canvas &canvas, Position offset) {
     int textOffset = 0;
-    if ((Pressed && PointInsideWidget(state.MousePosition() - offset, *this)) ||
-        (Type == ButtonType::Toggle && Toggled)) {
+    if (RenderPressed) {
         canvas.Draw(*SpritePressed, offset.X, offset.Y);
         textOffset = 1;
     } else {
