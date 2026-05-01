@@ -68,8 +68,8 @@ void Window::Update(State &state, Position offset) {
     CloseButton.Update(state, offset + CloseButtonPosition);
 
     if (!MinimizeButton.Toggled &&
-        PointInsideWidget(state.MousePosition() - offset, *this) &&
-        state.MousePosition().Y >= offset.Y + Height - 19) {
+        PointInsideWidget(state.MousePosition(offset), *this) &&
+        state.MousePosition(offset).Y >= Height - 19) {
         state.RequestMouseCursor(State::MouseCursor::Resize);
     }
 }

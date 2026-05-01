@@ -36,6 +36,7 @@ struct State;
 
 struct Panel : public Widget {
     std::vector<WidgetAndPosition> Widgets;
+    int Border;
 
     // Drag action
     Widget *DragTarget;
@@ -47,8 +48,10 @@ struct Panel : public Widget {
     int ResizeTargetInitialHeight;
     Position ResizeMouseInitialPosition;
 
-    Panel(int width, int height)
+    Panel(int width, int height, int border)
         : Widget(width, height),
+          Widgets(),
+          Border(border),
           DragTarget(nullptr),
           DragTargetInitialPosition(0, 0),
           DragMouseInitialPosition(0, 0),

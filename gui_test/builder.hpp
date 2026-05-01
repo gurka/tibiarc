@@ -17,34 +17,18 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_STATE_HPP__
-#define __TRC_GUI_STATE_HPP__
+#ifndef __TRC_GUI_TEST_GUI_BUILDER_HPP__
+#define __TRC_GUI_TEST_GUI_BUILDER_HPP__
 
-#include "gui/position.hpp"
+#include <memory>
 
-namespace trc {
-namespace gui {
+#include "gui/panel.hpp"
+#include "gamestate.hpp"
 
-// This interface should be implemented and passed to Gui::Render to allow
-// widgets to query the current input state
-struct State {
-    enum class MouseCursor {
-        Default,
-        Resize,
-    };
+namespace Builder {
 
-    // Get the current (relative) mouse position
-    virtual Position MousePosition(Position offset) const = 0;
+std::unique_ptr<trc::gui::Panel> BuildGui(int width, int height, trc::Gamestate *gamestate);
 
-    // Get whether the left mouse button is currently down
-    virtual bool MouseLeftDown() const = 0;
-
-    // Request a specific mouse cursor to be shown
-    virtual void RequestMouseCursor(MouseCursor cursor) = 0;
-};
-
-} // namespace gui
-} // namespace trc
-
-#endif // __TRC_GUI_STATE_HPP__
-
+} // namespace Builder
+    
+#endif // __TRC_GUI_TEST_GUI_BUILDER_HPP__

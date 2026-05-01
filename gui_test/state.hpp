@@ -17,34 +17,30 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_STATE_HPP__
-#define __TRC_GUI_STATE_HPP__
+#ifndef __TRC_GUI_TEST_GUI_STATE_HPP__
+#define __TRC_GUI_TEST_GUI_STATE_HPP__
 
+#include "gui/state.hpp"
 #include "gui/position.hpp"
 
-namespace trc {
-namespace gui {
+struct GuiState : public trc::gui::State {
+    int MouseX = 0;
+    int MouseY = 0;
+    bool _MouseLeftDown = false;
+    MouseCursor CurrentCursor = MouseCursor::Default;
+    MouseCursor RequestedCursor = MouseCursor::Default;
 
-// This interface should be implemented and passed to Gui::Render to allow
-// widgets to query the current input state
-struct State {
-    enum class MouseCursor {
-        Default,
-        Resize,
-    };
+    trc::gui::Position MousePosition(trc::gui::Position offset) const override {
+        return trc::gui::Position(MouseX, MouseY) - offset;
+    }
 
-    // Get the current (relative) mouse position
-    virtual Position MousePosition(Position offset) const = 0;
+    bool MouseLeftDown() const override {
+        return _MouseLeftDown;
+    }
 
-    // Get whether the left mouse button is currently down
-    virtual bool MouseLeftDown() const = 0;
-
-    // Request a specific mouse cursor to be shown
-    virtual void RequestMouseCursor(MouseCursor cursor) = 0;
+    void RequestMouseCursor(MouseCursor cursor) override {
+        RequestedCursor = cursor;
+    }
 };
-
-} // namespace gui
-} // namespace trc
-
-#endif // __TRC_GUI_STATE_HPP__
-
+    
+#endif // __TRC_GUI_TEST_GUI_STATE_HPP__

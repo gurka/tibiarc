@@ -442,7 +442,14 @@ endif()
 
 if(SDL2_FOUND)
   add_executable(gui_test
+    "gui_test/builder.cpp"
+    "gui_test/builder.hpp"
+    "gui_test/common.cpp"
+    "gui_test/common.hpp"
     "gui_test/gui_test.cpp"
+    "gui_test/playback.cpp"
+    "gui_test/playback.hpp"
+    "gui_test/state.hpp"
     "utils/memoryfile.cpp"
     "utils/memoryfile.hpp"
   )

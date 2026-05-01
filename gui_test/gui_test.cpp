@@ -25,17 +25,17 @@
 
 #include <SDL2/SDL.h>
 
-#include "gui/button.hpp"
 #include "gui/panel.hpp"
 #include "gui/position.hpp"
-#include "gui/state.hpp"
-#include "gui/window.hpp"
 
 #include "canvas.hpp"
 #include "memoryfile.hpp"
-#include "pixel.hpp"
 #include "utils.hpp"
 #include "versions.hpp"
+
+#include "state.hpp"
+#include "builder.hpp"
+#include "playback.hpp"
 
 using namespace trc;
 
@@ -51,25 +51,7 @@ std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> Renderer{
 std::unique_ptr<Canvas> MainCanvas;
 std::unique_ptr<gui::Panel> MainPanel;
 
-struct State : public gui::State {
-    int MouseX = 0;
-    int MouseY = 0;
-    bool _MouseLeftDown = false;
-    MouseCursor CurrentCursor = MouseCursor::Default;
-    MouseCursor RequestedCursor = MouseCursor::Default;
-
-    gui::Position MousePosition() const override {
-        return gui::Position(MouseX, MouseY);
-    }
-
-    bool MouseLeftDown() const override {
-        return _MouseLeftDown;
-    }
-
-    void RequestMouseCursor(MouseCursor cursor) override {
-        RequestedCursor = cursor;
-    }
-} State;
+GuiState State;
 
 std::unique_ptr<SDL_Cursor, decltype(&SDL_FreeCursor)> DefaultCursor{
         nullptr,
@@ -82,7 +64,8 @@ std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> GuiTexture{
         nullptr,
         &SDL_DestroyTexture};
 
-std::unique_ptr<Version> _Version;
+std::unique_ptr<Playback> _Playback;
+
 }
 
 void handle_resize() {
@@ -91,45 +74,12 @@ void handle_resize() {
     SDL_GetRendererOutputSize(Renderer.get(), &width, &height);
     
     MainCanvas = std::make_unique<Canvas>(width, height, Canvas::Type::External);
-    MainPanel = std::make_unique<gui::Panel>(width, height);
-    MainPanel->Widgets.emplace_back(
-            std::make_unique<gui::Button>(
-                    &_Version->Icons.Button43px,
-                    &_Version->Icons.Button43pxPressed,
-                    gui::Button::ButtonType::Normal,
-                    "Normal",
-                    Pixel(0xFF, 0xFF, 0xFF),
-                    &_Version->Fonts.InterfaceSmall,
-                    []() { std::cout << "Normal button clicked!\n"; }),
-            gui::Position(10, 10));
-    MainPanel->Widgets.emplace_back(
-            std::make_unique<gui::Button>(
-                    &_Version->Icons.Button43px,
-                    &_Version->Icons.Button43pxPressed,
-                    gui::Button::ButtonType::Toggle,
-                    "Toggle",
-                    Pixel(0xFF, 0xFF, 0xFF),
-                    &_Version->Fonts.InterfaceSmall,
-                    []() { std::cout << "Toggle button clicked!\n"; }),
-            gui::Position(10, 50));
-    MainPanel->Widgets.emplace_back(
-            std::make_unique<gui::Window>(
-                    200,
-                    200,
-                    _Version.get(),
-                    gui::Window::Type::Sidebar,
-                    &_Version->Icons.BattleIcon,
-                    "Battle",
-                    []() {
-                        std::cout << "Battle window close button clicked!\n";
-                    }),
-            gui::Position(100, 100));
-    
     GuiTexture.reset(SDL_CreateTexture(Renderer.get(),
                                        SDL_PIXELFORMAT_RGBA32,
                                        SDL_TEXTUREACCESS_STREAMING,
                                        width,
                                        height));
+    MainPanel = Builder::BuildGui(width, height, _Playback->Gamestate.get());
 }
 
 void handle_input() {
@@ -167,13 +117,13 @@ void main_loop() {
 
     // Update widgets
     SDL_GetMouseState(&State.MouseX, &State.MouseY);
-    State.RequestedCursor = State::MouseCursor::Default;
+    State.RequestedCursor = GuiState::MouseCursor::Default;
     MainPanel->Update(State, gui::Position(0, 0));
 
     // Set cursor if requested
     if (State.RequestedCursor != State.CurrentCursor) {
         switch (State.RequestedCursor) {
-        case State::MouseCursor::Default:
+        case GuiState::MouseCursor::Default:
             if (!DefaultCursor) {
                 DefaultCursor.reset(
                         SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
@@ -182,7 +132,7 @@ void main_loop() {
             SDL_SetCursor(DefaultCursor.get());
             break;
 
-        case State::MouseCursor::Resize:
+        case GuiState::MouseCursor::Resize:
             if (!ResizeCursor) {
                 ResizeCursor.reset(
                         SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS));
@@ -238,14 +188,14 @@ int main(int argc, char *argv[]) {
     int major = 0;
     int minor = 0;
 
-    if (argc < 2 || argc > 3) {
-        std::cout << "usage: " << argv[0] << " DATA_FOLDER [VERSION]"
+    if (argc < 3 || argc > 4) {
+        std::cout << "usage: " << argv[0] << " DATA_FOLDER RECORDING [VERSION]"
                   << std::endl;
         return 1;
     }
 
-    if (argc == 3) {
-        if (sscanf(argv[2], "%u.%u", &major, &minor) < 2) {
+    if (argc == 4) {
+        if (sscanf(argv[3], "%u.%u", &major, &minor) < 2) {
             std::cerr << "version must be in the format 'X.Y', e.g. '8.55'"
                       << std::endl;
             return 1;
@@ -257,11 +207,16 @@ int main(int argc, char *argv[]) {
         const MemoryFile pictures(dataFolder / "Tibia.pic");
         const MemoryFile sprites(dataFolder / "Tibia.spr");
         const MemoryFile types(dataFolder / "Tibia.dat");
-        _Version = std::make_unique<Version>(
-                VersionTriplet(major, minor, 0),
-                pictures.Reader(),
-                sprites.Reader(),
-                types.Reader());
+
+        const std::filesystem::path recordingName = argv[2];
+        const MemoryFile recording(recordingName);
+
+        _Playback = std::make_unique<Playback>(recording.Reader(),
+                                               recordingName,
+                                               pictures.Reader(),
+                                               sprites.Reader(),
+                                               types.Reader(),
+                                               VersionTriplet(major, minor, 0));
 
     } catch (const ErrorBase &error) {
         std::cerr << "Unrecoverable error (" << error.Description() << ")"

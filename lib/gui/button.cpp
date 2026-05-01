@@ -37,7 +37,7 @@ void Button::Update(State &state, Position offset) {
 
     RenderPressed =
             (Pressed &&
-             PointInsideWidget(state.MousePosition() - offset, *this)) ||
+             PointInsideWidget(state.MousePosition(offset), *this)) ||
             (Type == ButtonType::Toggle && Toggled);
 }
 
