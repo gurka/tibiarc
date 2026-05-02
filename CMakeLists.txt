@@ -180,6 +180,8 @@ add_library(tibiarc
   "lib/gui/panel.hpp"
   "lib/gui/position.hpp"
   "lib/gui/state.hpp"
+  "lib/gui/vertical_panel.cpp"
+  "lib/gui/vertical_panel.hpp"
   "lib/gui/widget.hpp"
   "lib/gui/window.cpp"
   "lib/gui/window.hpp"

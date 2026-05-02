@@ -42,15 +42,14 @@ void Panel::Update(State &state, Position offset) {
             AbortUnless(wap != nullptr);
 
 #pragma warning(suppress : 6011)
-            std::get<1>(*wap) = DragTargetInitialPosition +
-                                state.MousePosition(offset) -
-                                DragMouseInitialPosition;
-            std::get<1>(*wap).X =
-                    std::clamp(std::get<1>(*wap).X,
-                               Border,
-                               Width - std::get<0>(*wap)->Width - Border);
-            std::get<1>(*wap).Y =
-                    std::clamp(std::get<1>(*wap).Y,
+            auto &[_, position] = *wap;
+            position = DragTargetInitialPosition + state.MousePosition(offset) -
+                       DragMouseInitialPosition;
+            position.X = std::clamp(position.X,
+                                    Border,
+                                    Width - std::get<0>(*wap)->Width - Border);
+            position.Y =
+                    std::clamp(position.Y,
                                Border,
                                Height - std::get<0>(*wap)->Height - Border);
         }
@@ -77,13 +76,15 @@ void Panel::Update(State &state, Position offset) {
     }
 
     for (const auto &wap : Widgets) {
-        std::get<0>(wap)->Update(state, offset + std::get<1>(wap));
+        auto &[widget, position] = wap;
+        widget->Update(state, offset + position);
     }
 }
 
 void Panel::Render(Canvas &canvas, Position offset) {
     for (const auto &wap : Widgets) {
-        std::get<0>(wap)->Render(canvas, offset + std::get<1>(wap));
+        auto &[widget, position] = wap;
+        widget->Render(canvas, offset + position);
     }
 }
 

@@ -19,14 +19,13 @@
 
 #include "builder.hpp"
 
-#include <algorithm>
 #include <memory>
 #include <string>
 
 #include "gui/button.hpp"
-#include "gui/common.hpp"
 #include "gui/panel.hpp"
 #include "gui/position.hpp"
+#include "gui/vertical_panel.hpp"
 #include "gui/widget.hpp"
 #include "gui/state.hpp"
 
@@ -35,7 +34,6 @@
 #include "pixel.hpp"
 #include "renderer.hpp"
 #include "textrenderer.hpp"
-#include "utils.hpp"
 #include "versions.hpp"
 
 #include "common.hpp"
@@ -388,102 +386,17 @@ struct SidebarButtons : public gui::Widget {
     }
 };
 
-struct SidebarTop : public gui::Panel {
+struct SidebarTop : public gui::VerticalPanel {
     Gamestate *_Gamestate;
 
-    // This is used to keep track of the empty space created by dragging
-    // a widget, which we use to determine when to shift other widgets
-    // up or down during the drag action
-    // Note: we use DragEmptyHeight = 0 to indicate that neither DragEmptyY nor
-    // DragEmptyHeight are currently valid
-    int DragEmptyY = 0;
-    int DragEmptyHeight = 0;
-
-    SidebarTop(int height, Gamestate *gamestate)
-        : gui::Panel(176, height, 2), _Gamestate(gamestate) {
-
-        Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate),
-                             gui::Position(2, 2));
-        Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate),
-                             gui::Position(2, 119));
-        Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate),
-                             gui::Position(2, 151));
-        Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate),
-                             gui::Position(2, 306));
+    SidebarTop(Gamestate *gamestate)
+        : VerticalPanel(176, 2), _Gamestate(gamestate) {
+        Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate));
+        Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate));
+        Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate));
+        Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate));
     }
 
-    void Update(gui::State &state, gui::Position offset) override {
-        if (DragTarget != nullptr && !state.MouseLeftDown()) {
-            // Drag action ended, make sure that the widget ends up
-            // in the empty space
-            std::get<1>(*GetWidgetAndPosition(DragTarget)).Y = DragEmptyY;
-
-            // Reset DragEmptyHeight
-            DragEmptyHeight = 0;
-        }
-
-        gui::Panel::Update(state, offset);
-
-        // If a widget is being dragged, check if we need to shift any
-        // other widget up or down
-        if (DragTarget != nullptr) {
-            if (DragEmptyHeight == 0) {
-                DragEmptyY = DragTargetInitialPosition.Y;
-                DragEmptyHeight = DragTarget->Height;
-            }
-
-            // Find the widget that the drag target is intersecting with (if any)
-            auto *dragTargetWap = GetWidgetAndPosition(DragTarget);
-            AbortUnless(dragTargetWap != nullptr);
-            gui::WidgetAndPosition *otherWap = nullptr;
-            for (auto &wap : Widgets) {
-                #pragma warning(suppress : 6011)
-                if (std::get<0>(wap).get() != DragTarget &&
-                    gui::WidgetsIntersect(*dragTargetWap, wap)) {
-                    otherWap = &wap;
-                    break;
-                }
-            }
-
-            if (otherWap != nullptr) {
-                const auto &[dragWidget, dragPos] = *dragTargetWap;
-                auto &[otherWidget, otherPos] = *otherWap;
-
-                const auto otherMidY = otherPos.Y + otherWidget->Height / 2;
-                const auto emptyIsBelow = DragEmptyY > dragPos.Y;
-                const auto emptyIsAbove = DragEmptyY < dragPos.Y;
-
-                if (emptyIsBelow && dragPos.Y < otherMidY) {
-                    // Empty slot is below; drag target crossed above other =>
-                    // shift other down
-                    const auto oldOtherY = otherPos.Y;
-                    otherPos.Y =
-                            DragEmptyY + DragEmptyHeight - otherWidget->Height;
-                    DragEmptyY = oldOtherY;
-                } else if (emptyIsAbove &&
-                           dragPos.Y + dragWidget->Height > otherMidY) {
-                    // Empty slot is above; drag target crossed below other =>
-                    // shift other up
-                    const auto oldOtherY = otherPos.Y;
-                    otherPos.Y = DragEmptyY;
-                    DragEmptyY += otherWidget->Height;
-                }
-            }
-        } else {
-            // If no widget is being dragged then make sure that we have
-            // the correct height set
-            // (which can only change by minimizing/maximizing SidebarIventory)
-            const auto oldHeight = Height;
-            Height = 0;
-            for (const auto &wap : Widgets) {
-                Height = std::max(Height,
-                                  std::get<1>(wap).Y + std::get<0>(wap)->Height + Border);
-            }
-            if (Height != oldHeight) {
-                // TODO
-            }
-        }
-    }
 
     void Render(Canvas &canvas, gui::Position offset) override {
         Common::DrawBorder2px(_Gamestate->Version.Icons,
@@ -493,26 +406,14 @@ struct SidebarTop : public gui::Panel {
                               offset.X + Width,
                               offset.Y + Height);
 
-        // We can't render using Panel::Render since we need to render
-        // the drag taget (if any) last
-        for (const auto &wap : Widgets) {
-            if (DragTarget != nullptr && std::get<0>(wap).get() == DragTarget) {
-                continue;
-            }
-            std::get<0>(wap)->Render(canvas, offset + std::get<1>(wap));
-        }
-        if (DragTarget != nullptr) {
-            DragTarget->Render(
-                    canvas,
-                    offset + std::get<1>(*GetWidgetAndPosition(DragTarget)));
-        }
+        VerticalPanel::Render(canvas, offset);
     }
 };
 
 std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamestate *gamestate) {
     auto gui = std::make_unique<gui::Panel>(width, height, 0);
 
-    gui->Widgets.emplace_back(std::make_unique<SidebarTop>(height, gamestate),
+    gui->Widgets.emplace_back(std::make_unique<SidebarTop>(gamestate),
                               gui::Position(width - 176, 0));
 
     return gui;

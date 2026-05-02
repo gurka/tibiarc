@@ -17,9 +17,10 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_PANEL_HPP__
-#define __TRC_GUI_PANEL_HPP__
+#ifndef __TRC_GUI_VERTICAL_PANEL_HPP__
+#define __TRC_GUI_VERTICAL_PANEL_HPP__
 
+#include <memory>
 #include <vector>
 
 #include "gui/common.hpp"
@@ -34,12 +35,13 @@ namespace gui {
 
 struct State;
 
-struct Panel : public Widget {
-    std::vector<WidgetAndPosition> Widgets;
+struct VerticalPanel : public Widget {
+    std::vector<std::unique_ptr<Widget>> Widgets;
     int Border;
 
     // Drag action
     Widget *DragTarget;
+    Position DragTargetPosition;
     Position DragTargetInitialPosition;
     Position DragMouseInitialPosition;
 
@@ -48,11 +50,12 @@ struct Panel : public Widget {
     int ResizeTargetInitialHeight;
     Position ResizeMouseInitialPosition;
 
-    Panel(int width, int height, int border)
-        : Widget(width, height),
+    VerticalPanel(int width, int border)
+        : Widget(width, border * 2),
           Widgets(),
           Border(border),
           DragTarget(nullptr),
+          DragTargetPosition(0, 0),
           DragTargetInitialPosition(0, 0),
           DragMouseInitialPosition(0, 0),
           ResizeTarget(nullptr),
@@ -67,11 +70,12 @@ struct Panel : public Widget {
     void MouseLeftUp(Position position) override;
 
 private:
-    WidgetAndPosition *GetWidgetAndPosition(Widget *widget);
+    int GetWidgetY(const Widget *widget) const;
+    int GetWidgetIndex(const Widget *widget) const;
 };
 
 } // namespace gui
 } // namespace trc
 
-#endif // __TRC_GUI_PANEL_HPP__
+#endif // __TRC_GUI_VERTICAL_PANEL_HPP__
 

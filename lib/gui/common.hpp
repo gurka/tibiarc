@@ -46,6 +46,14 @@ inline bool PointInsideWidget(Position position, const WidgetAndPosition &wap) {
            position.Y < widgetPosition.Y + widget.Height;
 }
 
+inline bool PointInsideArea(Position position,
+                            Position area,
+                            int areaWidth,
+                            int areaHeight) {
+    return position.X >= area.X && position.X < area.X + areaWidth &&
+           position.Y >= area.Y && position.Y < area.Y + areaHeight;
+}
+
 inline bool WidgetsIntersect(const Widget &wa,
                              Position pa,
                              const Widget &wb,
@@ -59,6 +67,16 @@ inline bool WidgetsIntersect(const WidgetAndPosition &wapa,
     const auto &[wa, pa] = wapa;
     const auto &[wb, pb] = wapb;
     return WidgetsIntersect(*wa, pa, *wb, pb);
+}
+
+inline bool AreasIntersect(Position ap,
+                           int aw,
+                           int ah,
+                           Position bp,
+                           int bw,
+                           int bh) {
+    return ap.X < bp.X + bw && ap.X + aw > bp.X && ap.Y < bp.Y + bh &&
+           ap.Y + ah > bp.Y;
 }
 
 } // namespace gui
