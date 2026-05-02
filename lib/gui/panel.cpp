@@ -35,36 +35,44 @@ namespace gui {
 void Panel::Update(State &state, Position offset) {
     // Handle drag action
     if (DragTarget != nullptr) {
-        auto *wap = GetWidgetAndPosition(DragTarget);
-        AbortUnless(wap != nullptr);
-
-        #pragma warning(suppress: 6011)
-        std::get<1>(*wap) = DragTargetInitialPosition + state.MousePosition(offset) - DragMouseInitialPosition;
-        std::get<1>(*wap).X =
-                std::clamp(std::get<1>(*wap).X,
-                           Border,
-                           Width - std::get<0>(*wap)->Width - Border);
-        std::get<1>(*wap).Y =
-                std::clamp(std::get<1>(*wap).Y,
-                           Border,
-                           Height - std::get<0>(*wap)->Height - Border);
         if (!state.MouseLeftDown()) {
             DragTarget = nullptr;
+        } else {
+            auto *wap = GetWidgetAndPosition(DragTarget);
+            AbortUnless(wap != nullptr);
+
+#pragma warning(suppress : 6011)
+            std::get<1>(*wap) = DragTargetInitialPosition +
+                                state.MousePosition(offset) -
+                                DragMouseInitialPosition;
+            std::get<1>(*wap).X =
+                    std::clamp(std::get<1>(*wap).X,
+                               Border,
+                               Width - std::get<0>(*wap)->Width - Border);
+            std::get<1>(*wap).Y =
+                    std::clamp(std::get<1>(*wap).Y,
+                               Border,
+                               Height - std::get<0>(*wap)->Height - Border);
         }
     }
 
     // Handle resize action
     if (ResizeTarget != nullptr) {
-        auto *wap = GetWidgetAndPosition(ResizeTarget);
-        AbortUnless(wap != nullptr);
-
-        #pragma warning(suppress: 6011)
-        const auto maxHeight = Height - std::get<1>(*wap).Y - Border;
-        // TODO: minHeight should probably be decided by the widget itself
-        const auto minHeight = 50;
-        ResizeTarget->Height = std::clamp(ResizeTargetInitialHeight + state.MousePosition(offset).Y - ResizeMouseInitialPosition.Y, minHeight, maxHeight);
         if (!state.MouseLeftDown()) {
             ResizeTarget = nullptr;
+        } else {
+            auto *wap = GetWidgetAndPosition(ResizeTarget);
+            AbortUnless(wap != nullptr);
+
+#pragma warning(suppress : 6011)
+            const auto maxHeight = Height - std::get<1>(*wap).Y - Border;
+            // TODO: minHeight should probably be decided by the widget itself
+            const auto minHeight = 50;
+            ResizeTarget->Height = std::clamp(
+                    ResizeTargetInitialHeight + state.MousePosition(offset).Y -
+                            ResizeMouseInitialPosition.Y,
+                    minHeight,
+                    maxHeight);
         }
     }
 

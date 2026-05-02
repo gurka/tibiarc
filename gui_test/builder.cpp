@@ -19,20 +19,23 @@
 
 #include "builder.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <string>
 
+#include "gui/common.hpp"
 #include "gui/panel.hpp"
 #include "gui/position.hpp"
 #include "gui/widget.hpp"
-#include "gui/window.hpp"
+#include "gui/state.hpp"
 
 #include "canvas.hpp"
-#include "pixel.hpp"
-#include "textrenderer.hpp"
 #include "gamestate.hpp"
-#include "versions.hpp"
+#include "pixel.hpp"
 #include "renderer.hpp"
+#include "textrenderer.hpp"
+#include "utils.hpp"
+#include "versions.hpp"
 
 #include "common.hpp"
 
@@ -365,8 +368,15 @@ struct SidebarButtons : public gui::Widget {
 struct SidebarTop : public gui::Panel {
     Gamestate *_Gamestate;
 
+    // This is used to keep track of the empty space created by dragging
+    // a widget, which we use to determine when to shift other widgets
+    // up or down during the drag action
+    int DragEmptyY = 0;
+    int DragEmptyHeight = 0;
+
     SidebarTop(int height, Gamestate *gamestate)
         : gui::Panel(176, height, 2), _Gamestate(gamestate) {
+
         Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate),
                              gui::Position(2, 2));
         Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate),
@@ -374,11 +384,78 @@ struct SidebarTop : public gui::Panel {
         Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate),
                              gui::Position(2, 151));
         Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate),
-                             gui::Position(2, 310));
+                             gui::Position(2, 306));
     }
 
     void Update(gui::State &state, gui::Position offset) override {
+        if (DragTarget != nullptr && !state.MouseLeftDown()) {
+            // Drag action ended, make sure that the widget ends up
+            // in the empty space
+            std::get<1>(*GetWidgetAndPosition(DragTarget)).Y = DragEmptyY;
+        }
+
         gui::Panel::Update(state, offset);
+
+        // If a widget is being dragged, check if we need to shift any
+        // other widget up or down
+        if (DragTarget != nullptr) {
+            if (DragEmptyHeight == 0) {
+                DragEmptyY = DragTargetInitialPosition.Y;
+                DragEmptyHeight = DragTarget->Height;
+            }
+
+            // Find the widget that the drag target is intersecting with (if any)
+            auto *dragTargetWap = GetWidgetAndPosition(DragTarget);
+            AbortUnless(dragTargetWap != nullptr);
+            gui::WidgetAndPosition *otherWap = nullptr;
+            for (auto &wap : Widgets) {
+                #pragma warning(suppress : 6011)
+                if (std::get<0>(wap).get() != DragTarget &&
+                    gui::WidgetsIntersect(*dragTargetWap, wap)) {
+                    otherWap = &wap;
+                    break;
+                }
+            }
+
+            if (otherWap != nullptr) {
+                const auto emptySpaceBelowDragTarget =
+                        DragEmptyY > std::get<1>(*dragTargetWap).Y;
+                const auto emptySpaceAboveDragTarget =
+                        DragEmptyY < std::get<1>(*dragTargetWap).Y;
+                const auto dragTargetAboveOther =
+                        std::get<1>(*dragTargetWap).Y <
+                        std::get<1>(*otherWap).Y +
+                                (std::get<0>(*otherWap)->Height / 2);
+                const auto dragTargetBelowOther =
+                        std::get<1>(*dragTargetWap).Y + DragTarget->Height >
+                        std::get<1>(*otherWap).Y +
+                                (std::get<0>(*otherWap)->Height / 2);
+                if (emptySpaceBelowDragTarget && dragTargetAboveOther) {
+                    // Shift other widget down
+                    const auto oldOtherY = std::get<1>(*otherWap).Y;
+                    std::get<1>(*otherWap).Y =
+                            DragEmptyY + DragEmptyHeight - std::get<0>(*otherWap)->Height;
+                    DragEmptyY = oldOtherY;
+                } else if (emptySpaceAboveDragTarget && dragTargetBelowOther) {
+                    // Shift other widget up
+                    const auto oldOtherY = std::get<1>(*otherWap).Y;
+                    std::get<1>(*otherWap).Y = DragEmptyY;
+                    DragEmptyY += std::get<0>(*otherWap)->Height;
+                }
+            }
+        } else {
+            // Reset DragEmptyHeight
+            DragEmptyHeight = 0;
+
+            // If no widget is being dragged then make sure that we have
+            // the correct height set
+            // (which can only change by minimizing/maximizing SidebarIventory)
+            Height = 0;
+            for (const auto &wap : Widgets) {
+                Height = std::max(Height,
+                                  std::get<1>(wap).Y + std::get<0>(wap)->Height + Border);
+            }
+        }
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -388,7 +465,20 @@ struct SidebarTop : public gui::Panel {
                               offset.Y,
                               offset.X + Width,
                               offset.Y + Height);
-        gui::Panel::Render(canvas, offset);
+
+        // We can't render using Panel::Render since we need to render
+        // the drag taget (if any) last
+        for (const auto &wap : Widgets) {
+            if (DragTarget != nullptr && std::get<0>(wap).get() == DragTarget) {
+                continue;
+            }
+            std::get<0>(wap)->Render(canvas, offset + std::get<1>(wap));
+        }
+        if (DragTarget != nullptr) {
+            DragTarget->Render(
+                    canvas,
+                    offset + std::get<1>(*GetWidgetAndPosition(DragTarget)));
+        }
     }
 
     Panel::MouseEventResult MouseLeftDown(gui::Position position) override {

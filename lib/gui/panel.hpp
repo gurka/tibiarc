@@ -66,7 +66,7 @@ struct Panel : public Widget {
     MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;
 
-private:
+protected:
     WidgetAndPosition *GetWidgetAndPosition(Widget *widget);
 };
 

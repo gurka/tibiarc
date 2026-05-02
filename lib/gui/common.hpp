@@ -54,6 +54,14 @@ inline bool WidgetsIntersect(const Widget &wa,
            pa.Y < pb.Y + wb.Height && pa.Y + wa.Height > pb.Y;
 }
 
+inline bool WidgetsIntersect(const WidgetAndPosition &wapa,
+                             const WidgetAndPosition &wapb) {
+    return WidgetsIntersect(*std::get<0>(wapa),
+                            std::get<1>(wapa),
+                            *std::get<0>(wapb),
+                            std::get<1>(wapb));
+}
+
 } // namespace gui
 } // namespace trc
 
