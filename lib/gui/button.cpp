@@ -38,16 +38,26 @@ void Button::Update(State &state, Position offset) {
     RenderPressed =
             (Pressed &&
              PointInsideWidget(state.MousePosition(offset), *this)) ||
-            (Type == ButtonType::Toggle && Toggled);
+            (Type == ButtonType::Toggle && Toggled && SpriteToggledPressed == nullptr);
 }
 
 void Button::Render(Canvas &canvas, Position offset) {
     int textOffset = 0;
     if (RenderPressed) {
-        canvas.Draw(*SpritePressed, offset.X, offset.Y);
+        if (Type == ButtonType::Toggle && Toggled &&
+            SpriteToggledPressed != nullptr) {
+            canvas.Draw(*SpriteToggledPressed, offset.X, offset.Y);
+        } else {
+            canvas.Draw(*SpritePressed, offset.X, offset.Y);
+        }
         textOffset = 1;
     } else {
-        canvas.Draw(*SpriteNormal, offset.X, offset.Y);
+        if (Type == ButtonType::Toggle && Toggled &&
+            SpriteToggledNormal != nullptr) {
+            canvas.Draw(*SpriteToggledNormal, offset.X, offset.Y);
+        } else {
+            canvas.Draw(*SpriteNormal, offset.X, offset.Y);
+        }
     }
 
     if (TextFont != nullptr) {

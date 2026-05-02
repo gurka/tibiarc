@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include "gui/button.hpp"
 #include "gui/common.hpp"
 #include "gui/panel.hpp"
 #include "gui/position.hpp"
@@ -150,17 +151,27 @@ struct SidebarResources : public gui::Widget {
 
 struct SidebarInventory : public gui::Widget {
     Gamestate *_Gamestate;
-    //gui::Button MinimizeButton;
+    gui::Button MinimizeButton;
 
-    SidebarInventory(Gamestate *gamestate) : Widget(172, 155), _Gamestate(gamestate) {
+    SidebarInventory(Gamestate *gamestate)
+        : Widget(172, 155),
+          _Gamestate(gamestate),
+          MinimizeButton(&gamestate->Version.Icons.Minimize,
+                         &gamestate->Version.Icons.MinimizePressed,
+                         &gamestate->Version.Icons.Maximize,
+                         &gamestate->Version.Icons.MaximizePressed) {
+        MinimizeButton.SetOnClick([this](){ Height = MinimizeButton.Toggled ? 32 : 155; });
+    }
+
+    void Update(gui::State &state, gui::Position offset) override {
+        MinimizeButton.Update(state, offset + gui::Position(8, 4));
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
         const auto &icons = _Gamestate->Version.Icons;
         const auto &fonts = _Gamestate->Version.Fonts;
 
-        //if (!InventoryMinimized) {
-        if (true) {
+        if (!MinimizeButton.Toggled) {
             canvas.DrawBackground(icons.ClientBackground,
                                   offset.X,
                                   offset.Y,
@@ -168,9 +179,9 @@ struct SidebarInventory : public gui::Widget {
                                   offset.Y + 155);
 
             // Inventory
-            canvas.Draw(icons.Minimize, offset.X + 8, offset.Y + 4);
+            MinimizeButton.Render(canvas, offset + gui::Position(8, 4));
 
-            for (auto [slot, x, y] :
+            for (const auto &[slot, x, y] :
                  std::initializer_list<std::tuple<InventorySlot, int, int>>{
                          {InventorySlot::Head, offset.X + 45, offset.Y + 4},
                          {InventorySlot::Amulet, offset.X + 8, offset.Y + 18},
@@ -266,7 +277,7 @@ struct SidebarInventory : public gui::Widget {
                                   offset.Y + 48);
 
             // Inventory
-            canvas.Draw(icons.Maximize, offset.X + 8, offset.Y + 4);
+            MinimizeButton.Render(canvas, offset + gui::Position(8, 4));
 
             // Status background
             canvas.Draw(icons.MinimizedInventoryStatusBackground,
@@ -300,7 +311,19 @@ struct SidebarInventory : public gui::Widget {
     }
 
     MouseEventResult MouseLeftDown(gui::Position position) override {
+        if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
+            position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
+            MinimizeButton.MouseLeftDown(position - gui::Position(8, 4));
+            return MouseEventResult::Clicked;
+        }
         return MouseEventResult::StartDrag;
+    }
+
+    void MouseLeftUp(gui::Position position) override {
+        if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
+            position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
+            MinimizeButton.MouseLeftUp(position - gui::Position(8, 4));
+        }
     }
 };
 
@@ -371,6 +394,8 @@ struct SidebarTop : public gui::Panel {
     // This is used to keep track of the empty space created by dragging
     // a widget, which we use to determine when to shift other widgets
     // up or down during the drag action
+    // Note: we use DragEmptyHeight = 0 to indicate that neither DragEmptyY nor
+    // DragEmptyHeight are currently valid
     int DragEmptyY = 0;
     int DragEmptyHeight = 0;
 
@@ -392,6 +417,9 @@ struct SidebarTop : public gui::Panel {
             // Drag action ended, make sure that the widget ends up
             // in the empty space
             std::get<1>(*GetWidgetAndPosition(DragTarget)).Y = DragEmptyY;
+
+            // Reset DragEmptyHeight
+            DragEmptyHeight = 0;
         }
 
         gui::Panel::Update(state, offset);
@@ -418,42 +446,41 @@ struct SidebarTop : public gui::Panel {
             }
 
             if (otherWap != nullptr) {
-                const auto emptySpaceBelowDragTarget =
-                        DragEmptyY > std::get<1>(*dragTargetWap).Y;
-                const auto emptySpaceAboveDragTarget =
-                        DragEmptyY < std::get<1>(*dragTargetWap).Y;
-                const auto dragTargetAboveOther =
-                        std::get<1>(*dragTargetWap).Y <
-                        std::get<1>(*otherWap).Y +
-                                (std::get<0>(*otherWap)->Height / 2);
-                const auto dragTargetBelowOther =
-                        std::get<1>(*dragTargetWap).Y + DragTarget->Height >
-                        std::get<1>(*otherWap).Y +
-                                (std::get<0>(*otherWap)->Height / 2);
-                if (emptySpaceBelowDragTarget && dragTargetAboveOther) {
-                    // Shift other widget down
-                    const auto oldOtherY = std::get<1>(*otherWap).Y;
-                    std::get<1>(*otherWap).Y =
-                            DragEmptyY + DragEmptyHeight - std::get<0>(*otherWap)->Height;
+                const auto &[dragWidget, dragPos] = *dragTargetWap;
+                auto &[otherWidget, otherPos] = *otherWap;
+
+                const auto otherMidY = otherPos.Y + otherWidget->Height / 2;
+                const auto emptyIsBelow = DragEmptyY > dragPos.Y;
+                const auto emptyIsAbove = DragEmptyY < dragPos.Y;
+
+                if (emptyIsBelow && dragPos.Y < otherMidY) {
+                    // Empty slot is below; drag target crossed above other =>
+                    // shift other down
+                    const auto oldOtherY = otherPos.Y;
+                    otherPos.Y =
+                            DragEmptyY + DragEmptyHeight - otherWidget->Height;
                     DragEmptyY = oldOtherY;
-                } else if (emptySpaceAboveDragTarget && dragTargetBelowOther) {
-                    // Shift other widget up
-                    const auto oldOtherY = std::get<1>(*otherWap).Y;
-                    std::get<1>(*otherWap).Y = DragEmptyY;
-                    DragEmptyY += std::get<0>(*otherWap)->Height;
+                } else if (emptyIsAbove &&
+                           dragPos.Y + dragWidget->Height > otherMidY) {
+                    // Empty slot is above; drag target crossed below other =>
+                    // shift other up
+                    const auto oldOtherY = otherPos.Y;
+                    otherPos.Y = DragEmptyY;
+                    DragEmptyY += otherWidget->Height;
                 }
             }
         } else {
-            // Reset DragEmptyHeight
-            DragEmptyHeight = 0;
-
             // If no widget is being dragged then make sure that we have
             // the correct height set
             // (which can only change by minimizing/maximizing SidebarIventory)
+            const auto oldHeight = Height;
             Height = 0;
             for (const auto &wap : Widgets) {
                 Height = std::max(Height,
                                   std::get<1>(wap).Y + std::get<0>(wap)->Height + Border);
+            }
+            if (Height != oldHeight) {
+                // TODO
             }
         }
     }
@@ -479,14 +506,6 @@ struct SidebarTop : public gui::Panel {
                     canvas,
                     offset + std::get<1>(*GetWidgetAndPosition(DragTarget)));
         }
-    }
-
-    Panel::MouseEventResult MouseLeftDown(gui::Position position) override {
-        return gui::Panel::MouseLeftDown(position);
-    }
-
-    void MouseLeftUp(gui::Position position) override {
-        gui::Panel::MouseLeftUp(position);
     }
 };
 

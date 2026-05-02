@@ -53,14 +53,14 @@ Window::Window(int width,
       MaximizedHeight(height),
       MinimizeButton(&version->Icons.Minimize,
                      &version->Icons.MinimizePressed,
-                     Button::ButtonType::Toggle,
-                     [this]() { MinimizeOnClick(); }),
+                     Button::ButtonType::Toggle),
       MinimizeButtonPosition(Position(width - 28, 2)),
       CloseButton(&version->Icons.Close,
                   &version->Icons.ClosePressed,
-                  Button::ButtonType::Normal,
-                  [this]() { CloseOnClick(); }),
+                  Button::ButtonType::Normal),
       CloseButtonPosition(Position(width - 15, 2)) {
+    MinimizeButton.SetOnClick([this]() { MinimizeOnClick(); });
+    CloseButton.SetOnClick(CloseOnClick);
 }
 
 void Window::Update(State &state, Position offset) {

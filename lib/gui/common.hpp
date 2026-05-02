@@ -56,10 +56,9 @@ inline bool WidgetsIntersect(const Widget &wa,
 
 inline bool WidgetsIntersect(const WidgetAndPosition &wapa,
                              const WidgetAndPosition &wapb) {
-    return WidgetsIntersect(*std::get<0>(wapa),
-                            std::get<1>(wapa),
-                            *std::get<0>(wapb),
-                            std::get<1>(wapb));
+    const auto &[wa, pa] = wapa;
+    const auto &[wb, pb] = wapb;
+    return WidgetsIntersect(*wa, pa, *wb, pb);
 }
 
 } // namespace gui

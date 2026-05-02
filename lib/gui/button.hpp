@@ -43,6 +43,8 @@ struct Button : public Widget {
 
     const Sprite *SpriteNormal;
     const Sprite *SpritePressed;
+    const Sprite *SpriteToggledNormal;
+    const Sprite *SpriteToggledPressed;
     enum class ButtonType { Normal, Toggle } Type;
     std::string Text;
     Pixel TextColor;
@@ -60,35 +62,39 @@ struct Button : public Widget {
 
     Button(const Sprite *spriteNormal,
            const Sprite *spritePressed,
-           ButtonType type,
-           const OnClickHandler &onClick)
-        : Button(spriteNormal,
-                 spritePressed,
-                 type,
-                 "",
-                 Pixel(0, 0, 0),
-                 nullptr,
-                 onClick) {
+           ButtonType type)
+        : Widget(spriteNormal->Width, spriteNormal->Height),
+          SpriteNormal(spriteNormal),
+          SpritePressed(spritePressed),
+          SpriteToggledNormal(nullptr),
+          SpriteToggledPressed(nullptr),
+          Type(type),
+          Text(""),
+          TextColor(Pixel(0, 0, 0)),
+          TextFont(nullptr),
+          OnClick(nullptr),
+          RenderPressed(false),
+          Pressed(false),
+          Toggled(false) {
     }
 
     Button(const Sprite *spriteNormal,
            const Sprite *spritePressed,
-           ButtonType type,
-           const std::string &text,
-           const Pixel &textColor,
-           const Font *textFont,
-           const OnClickHandler &onClick)
-        : Widget(spriteNormal->Width, spriteNormal->Height),
-          SpriteNormal(spriteNormal),
-          SpritePressed(spritePressed),
-          Type(type),
-          Text(text),
-          TextColor(textColor),
-          TextFont(textFont),
-          OnClick(onClick),
-          RenderPressed(false),
-          Pressed(false),
-          Toggled(false) {
+           const Sprite *spriteToggledNormal,
+           const Sprite *spriteToggledPressed)
+        : Button(spriteNormal, spritePressed, ButtonType::Toggle) {
+        SpriteToggledNormal = spriteToggledNormal;
+        SpriteToggledPressed = spriteToggledPressed;
+    }
+
+    void SetOnClick(const OnClickHandler &onClick) {
+        OnClick = onClick;
+    }
+
+    void SetText(const std::string &text, const Pixel &textColor, const Font *textFont) {
+        Text = text;
+        TextColor = textColor;
+        TextFont = textFont;
     }
 
     void Update(State &state, Position offset) override;
