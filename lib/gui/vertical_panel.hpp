@@ -23,7 +23,6 @@
 #include <memory>
 #include <vector>
 
-#include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/widget.hpp"
 

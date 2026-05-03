@@ -173,6 +173,8 @@ add_library(tibiarc
   "lib/formats/yatc.cpp"
   "lib/gamestate.cpp"
   "lib/gamestate.hpp"
+  "lib/gui/border.cpp"
+  "lib/gui/border.hpp"
   "lib/gui/button.cpp"
   "lib/gui/button.hpp"
   "lib/gui/common.hpp"
@@ -446,8 +448,6 @@ if(SDL2_FOUND)
   add_executable(gui_test
     "gui_test/builder.cpp"
     "gui_test/builder.hpp"
-    "gui_test/common.cpp"
-    "gui_test/common.hpp"
     "gui_test/gui_test.cpp"
     "gui_test/playback.cpp"
     "gui_test/playback.hpp"

@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include "gui/border.hpp"
 #include "gui/button.hpp"
 #include "gui/panel.hpp"
 #include "gui/position.hpp"
@@ -35,8 +36,6 @@
 #include "renderer.hpp"
 #include "textrenderer.hpp"
 #include "versions.hpp"
-
-#include "common.hpp"
 
 using namespace trc;
 
@@ -57,12 +56,15 @@ struct SidebarMinimap : public gui::Widget {
                               offset.Y + 117);
 
         // Minimap, empty for now
+        // TODO: use Border widget
+        /*
         Common::DrawBorder1px(icons,
                               canvas,
                               offset.X + 8,
                               offset.Y + 4,
                               offset.X + 8 + 108,
                               offset.Y + 4 + 108);
+        */
         canvas.DrawRectangle(Pixel(0, 0, 0), offset.X + 9, offset.Y + 5, 106, 106);
 
         // Buttons, since they are disabled we just render them instead
@@ -158,7 +160,7 @@ struct SidebarInventory : public gui::Widget {
                          &gamestate->Version.Icons.MinimizePressed,
                          &gamestate->Version.Icons.Maximize,
                          &gamestate->Version.Icons.MaximizePressed) {
-        MinimizeButton.SetOnClick([this](){ Height = MinimizeButton.Toggled ? 32 : 155; });
+        MinimizeButton.SetOnClick([this](){ Height = MinimizeButton.Toggled ? 48 : 155; });
     }
 
     void Update(gui::State &state, gui::Position offset) override {
@@ -386,34 +388,21 @@ struct SidebarButtons : public gui::Widget {
     }
 };
 
-struct SidebarTop : public gui::VerticalPanel {
-    Gamestate *_Gamestate;
-
-    SidebarTop(Gamestate *gamestate)
-        : VerticalPanel(176, 2), _Gamestate(gamestate) {
-        Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate));
-        Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate));
-        Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate));
-        Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate));
-    }
-
-
-    void Render(Canvas &canvas, gui::Position offset) override {
-        Common::DrawBorder2px(_Gamestate->Version.Icons,
-                              canvas,
-                              offset.X,
-                              offset.Y,
-                              offset.X + Width,
-                              offset.Y + Height);
-
-        VerticalPanel::Render(canvas, offset);
-    }
-};
-
 std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamestate *gamestate) {
     auto gui = std::make_unique<gui::Panel>(width, height, 0);
 
-    gui->Widgets.emplace_back(std::make_unique<SidebarTop>(gamestate),
+    auto sidebarTop = std::make_unique<gui::VerticalPanel>(172, 0);
+    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate));
+    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate));
+    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate));
+    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate));
+
+    auto sidebarTopBorder =
+            std::make_unique<gui::Border>(&gamestate->Version.Icons,
+                                          gui::Border::BorderType::Raised,
+                                          std::move(sidebarTop));
+
+    gui->Widgets.emplace_back(std::move(sidebarTopBorder),
                               gui::Position(width - 176, 0));
 
     return gui;
