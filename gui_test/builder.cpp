@@ -19,8 +19,12 @@
 
 #include "builder.hpp"
 
+#include <functional>
 #include <memory>
 #include <string>
+#include <vector>
+#include <tuple>
+#include <utility>
 
 #include "gui/border.hpp"
 #include "gui/button.hpp"
@@ -28,11 +32,13 @@
 #include "gui/position.hpp"
 #include "gui/vertical_panel.hpp"
 #include "gui/widget.hpp"
+#include "gui/window.hpp"
 #include "gui/state.hpp"
 
 #include "canvas.hpp"
 #include "gamestate.hpp"
 #include "pixel.hpp"
+#include "player.hpp"
 #include "renderer.hpp"
 #include "textrenderer.hpp"
 #include "versions.hpp"
@@ -388,22 +394,142 @@ struct SidebarButtons : public gui::Widget {
     }
 };
 
-std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamestate *gamestate) {
-    auto gui = std::make_unique<gui::Panel>(width, height, 0);
+struct SidebarSkillsContent : public gui::Widget {
+    Gamestate *_Gamestate;
 
-    auto sidebarTop = std::make_unique<gui::VerticalPanel>(172, 0);
+    SidebarSkillsContent(Gamestate *gamestate)
+        : Widget(172, 14 * 15), _Gamestate(gamestate) {
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
+        const auto &icons = _Gamestate->Version.Icons;
+        const auto &fonts = _Gamestate->Version.Fonts;
+
+        canvas.DrawBackground(icons.ClientBackground,
+                              offset.X,
+                              offset.Y,
+                              offset.X + Width,
+                              offset.Y + Height);
+
+        const auto stats = std::vector<
+                std::tuple<std::string,
+                           std::function<uint64_t(const PlayerData &)>>>{
+                {"Experience",
+                 [](const PlayerData &player) {
+                     return player.Stats.Experience;
+                 }},
+                {"Level",
+                 [](const PlayerData &player) { return player.Stats.Level; }},
+                {"Hit points",
+                 [](const PlayerData &player) { return player.Stats.Health; }},
+                {"Mana",
+                 [](const PlayerData &player) { return player.Stats.Mana; }},
+                {"Speed",
+                 [](const PlayerData &player) { return player.Stats.Speed; }},
+                {"Capacity",
+                 [](const PlayerData &player) {
+                     return player.Stats.Capacity;
+                 }},
+                {"Magic Level",
+                 [](const PlayerData &player) {
+                     return player.Stats.MagicLevel;
+                 }},
+        };
+        const auto skills = std::vector<std::tuple<std::string, int>>{
+                {"Fist Fighting", 0},
+                {"Club Fighting", 1},
+                {"Sword Fighting", 2},
+                {"Axe Fighting", 3},
+                {"Distance Fighting", 4},
+                {"Shielding", 5},
+                {"Fishing", 6},
+        };
+
+        int y = offset.Y;
+        for (const auto &[stat, statFunc] : stats) {
+            TextRenderer::DrawString(fonts.InterfaceLarge,
+                                     Pixel(0xAF, 0xAF, 0xAF),
+                                     offset.X + 14,
+                                     y,
+                                     stat,
+                                     canvas);
+            TextRenderer::DrawRightAlignedString(
+                    fonts.InterfaceLarge,
+                    Pixel(0xAF, 0xAF, 0xAF),
+                    offset.X + 149,
+                    y,
+                    ThousandSeparators(statFunc(_Gamestate->Player)),
+                    canvas);
+
+            y += 14;
+        }
+        for (const auto &[skill, skillIndex] : skills) {
+            TextRenderer::DrawString(fonts.InterfaceLarge,
+                                     Pixel(0xAF, 0xAF, 0xAF),
+                                     offset.X + 14,
+                                     y,
+                                     skill,
+                                     canvas);
+            TextRenderer::DrawRightAlignedString(
+                    fonts.InterfaceLarge,
+                    Pixel(0xAF, 0xAF, 0xAF),
+                    offset.X + 149,
+                    y,
+                    std::to_string(_Gamestate->Player.Skills[skillIndex].Effective),
+                    canvas);
+            y += 14;
+        }
+    }
+};
+
+std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamestate *gamestate) {
+    auto gui = std::make_unique<gui::Panel>(width, height);
+
+    // The sidebar is built as:
+    // - VerticalPanel that contains:
+    //   - Border that contains:
+    //     - VerticalPanel (SidebarTop) that contains:
+    //       - SidebarMinimap
+    //       - SidebarResources
+    //       - SidebarInventory
+    //       - SidebarButtons
+    //   - VerticalPanel (SidebarBottom) that contains:
+    //     - SidebarSkills
+    //     - SidebarBattle
+    //     - SidebarVIP
+    //     - Open container 1..n
+    //     - SidebarEmpty (remaining space, can be invisible/Height=0)
+
+    // Sidebar
+    auto sidebar = std::make_unique<gui::VerticalPanel>(176);
+
+    // Sidebar top
+    auto sidebarTop = std::make_unique<gui::VerticalPanel>(172);
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate));
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate));
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate));
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate));
-
-    auto sidebarTopBorder =
-            std::make_unique<gui::Border>(&gamestate->Version.Icons,
+    sidebar->Widgets.emplace_back(std::make_unique<gui::Border>(&gamestate->Version.Icons,
                                           gui::Border::BorderType::Raised,
-                                          std::move(sidebarTop));
+                                          std::move(sidebarTop)));
 
-    gui->Widgets.emplace_back(std::move(sidebarTopBorder),
+    // Sidebar bottom
+    auto sidebarSkillsWindow =
+            std::make_unique<gui::Window>(172,
+                                          100,
+                                          &gamestate->Version,
+                                          gui::Window::Type::Sidebar,
+                                          &gamestate->Version.Icons.SkillsIcon,
+                                          "Skills",
+                                          []() { /* TODO */ });
+    sidebarSkillsWindow->Content = std::make_unique<SidebarSkillsContent>(gamestate);
+
+    auto sidebarBottom = std::make_unique<gui::VerticalPanel>(172);
+    sidebarBottom->Widgets.emplace_back(std::move(sidebarSkillsWindow));
+    sidebar->Widgets.emplace_back(std::move(sidebarBottom));
+
+    // Add sidebar to gui
+    gui->Widgets.emplace_back(std::move(sidebar),
                               gui::Position(width - 176, 0));
-
     return gui;
 }

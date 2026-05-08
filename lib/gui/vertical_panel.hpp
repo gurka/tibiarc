@@ -36,7 +36,6 @@ struct State;
 
 struct VerticalPanel : public Widget {
     std::vector<std::unique_ptr<Widget>> Widgets;
-    int Border;
 
     // Drag action
     Widget *DragTarget;
@@ -49,10 +48,9 @@ struct VerticalPanel : public Widget {
     int ResizeTargetInitialHeight;
     Position ResizeMouseInitialPosition;
 
-    VerticalPanel(int width, int border)
-        : Widget(width, border * 2),
+    VerticalPanel(int width)
+        : Widget(width, 0),
           Widgets(),
-          Border(border),
           DragTarget(nullptr),
           DragTargetPosition(0, 0),
           DragTargetInitialPosition(0, 0),

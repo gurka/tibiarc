@@ -41,8 +41,13 @@ struct Widget {
     int Width;
     int Height;
 
+    // Only used if the widget is resizable, otherwise they should be equal
+    // to Height
+    int MinHeight;
+    int MaxHeight;
+
     Widget(int width, int height)
-        : Width(width), Height(height) {
+        : Width(width), Height(height), MinHeight(height), MaxHeight(height) {
     }
 
     virtual void Update(State &state, Position offset) {

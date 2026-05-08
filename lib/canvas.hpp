@@ -85,6 +85,15 @@ public:
                         int rightX,
                         int bottomY);
 
+    static void Copy(Canvas &dest,
+                     const Canvas &source,
+                     int sourceLeftX,
+                     int sourceTopY,
+                     int sourceRightX,
+                     int sourceBottomY,
+                     int destLeftX,
+                     int destTopY);
+
     void Tint(const Sprite &sprite,
               int x,
               int y,

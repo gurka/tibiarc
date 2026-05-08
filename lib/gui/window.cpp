@@ -50,6 +50,9 @@ Window::Window(int width,
       Icon(icon),
       Title(title),
       CloseOnClick(closeOnClick),
+      Content(nullptr),
+      ContentCanvas(nullptr),
+      ScrollOffset(0),
       MaximizedHeight(height),
       MinimizeButton(&version->Icons.Minimize,
                      &version->Icons.MinimizePressed,
@@ -64,6 +67,17 @@ Window::Window(int width,
 }
 
 void Window::Update(State &state, Position offset) {
+    if (Content) {
+        Content->Update(state, offset + Position(4, 15));
+
+        // Re-create content canvas if content size has changed
+        if (!ContentCanvas || (Content->Width != ContentCanvas->Width ||
+                               Content->Height != ContentCanvas->Height)) {
+            ContentCanvas =
+                    std::make_unique<Canvas>(Content->Width, Content->Height);
+        }
+    }
+
     MinimizeButton.Update(state, offset + MinimizeButtonPosition);
     CloseButton.Update(state, offset + CloseButtonPosition);
 
@@ -111,12 +125,29 @@ void Window::Render(Canvas &canvas, Position offset) {
         return;
     }
 
-    // Background
-    canvas.DrawBackground(icons.ClientBackground,
-                          offset.X + 4,
-                          offset.Y + 15,
-                          offset.X + Width - 4,
-                          offset.Y + Height - 4);
+    if (Content) {
+        // Render on content canvas first
+        ContentCanvas->Wipe();
+        Content->Render(*ContentCanvas, Position(0, 0));
+        
+        // Then render content canvas to the given canvas
+        // with respect to the scrollbar
+        Canvas::Copy(canvas,
+                     *ContentCanvas,
+                     0,
+                     ScrollOffset,
+                     Width - 4 - 16,
+                     ScrollOffset + Height - 15 - 4,
+                     offset.X + 4,
+                     offset.Y + 15);
+
+    } else {
+        canvas.DrawBackground(icons.ClientBackground,
+                              offset.X + 4,
+                              offset.Y + 15,
+                              offset.X + Width - 4,
+                              offset.Y + Height - 4);
+    }
 
     // Middle
     canvas.DrawBackground(icons.WindowLeft,

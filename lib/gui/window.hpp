@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <string>
+#include <memory>
 
 #include "gui/button.hpp"
 #include "gui/position.hpp"
@@ -37,19 +38,11 @@ struct Version;
 namespace gui {
 
 struct Window : public Widget {
+    std::unique_ptr<Widget> Content;
+
     using OnClickHandler = std::function<void()>;
 
-    const Version *_Version;
-    enum class Type { Sidebar } WindowType;
-    const Sprite *Icon;
-    std::string Title;
-    OnClickHandler CloseOnClick;
-
-    int MaximizedHeight;
-    Button MinimizeButton;
-    Position MinimizeButtonPosition;
-    Button CloseButton;
-    Position CloseButtonPosition;
+    enum class Type { Sidebar };
 
     Window(int width,
            int height,
@@ -66,6 +59,21 @@ struct Window : public Widget {
     void MouseLeftUp(Position position) override;
 
 private:
+    const Version *_Version;
+    Type WindowType;
+    const Sprite *Icon;
+    std::string Title;
+    OnClickHandler CloseOnClick;
+
+    std::unique_ptr<Canvas> ContentCanvas;
+    int ScrollOffset;
+
+    int MaximizedHeight;
+    Button MinimizeButton;
+    Position MinimizeButtonPosition;
+    Button CloseButton;
+    Position CloseButtonPosition;
+
     void MinimizeOnClick();
 };
 

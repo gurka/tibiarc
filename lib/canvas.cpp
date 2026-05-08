@@ -509,6 +509,36 @@ void Canvas::DrawBackground(const Sprite &sprite,
     }
 }
 
+void Canvas::Copy(Canvas &dest,
+                  const Canvas &source,
+                  int sourceLeftX,
+                  int sourceTopY,
+                  int sourceRightX,
+                  int sourceBottomY,
+                  int destLeftX,
+                  int destTopY) {
+    // TODO: this can probably be optimized with memcpy
+    for (int y = 0; y < (sourceBottomY - sourceTopY); y++) {
+        int sourceY = sourceTopY + y;
+        int destY = destTopY + y;
+        if (sourceY >= source.Height || destY >= dest.Height) {
+            break;
+        } else if (sourceY < 0 || destY < 0) {
+            continue;
+        }
+        for (int x = 0; x < (sourceRightX - sourceLeftX); x++) {
+            int sourceX = sourceLeftX + x;
+            int destX = destLeftX + x;
+            if (sourceX >= source.Width || destX >= dest.Width) {
+                break;
+            } else if (sourceX < 0 || destX < 0) {
+                continue;
+            }
+            dest.GetPixel(destX, destY) = source.GetPixel(sourceX, sourceY);
+        }
+    }
+}
+
 void Canvas::Wipe() {
     DrawRectangle(Pixel(0, 0, 0, 0), 0, 0, Width, Height);
 }

@@ -46,12 +46,12 @@ void Panel::Update(State &state, Position offset) {
             position = DragTargetInitialPosition + state.MousePosition(offset) -
                        DragMouseInitialPosition;
             position.X = std::clamp(position.X,
-                                    Border,
-                                    Width - std::get<0>(*wap)->Width - Border);
+                                    0,
+                                    Width - std::get<0>(*wap)->Width);
             position.Y =
                     std::clamp(position.Y,
-                               Border,
-                               Height - std::get<0>(*wap)->Height - Border);
+                               0,
+                               Height - std::get<0>(*wap)->Height);
         }
     }
 
@@ -64,14 +64,12 @@ void Panel::Update(State &state, Position offset) {
             AbortUnless(wap != nullptr);
 
 #pragma warning(suppress : 6011)
-            const auto maxHeight = Height - std::get<1>(*wap).Y - Border;
-            // TODO: minHeight should probably be decided by the widget itself
-            const auto minHeight = 50;
+            const auto maxHeightPanel = Height - std::get<1>(*wap).Y;
             ResizeTarget->Height = std::clamp(
                     ResizeTargetInitialHeight + state.MousePosition(offset).Y -
                             ResizeMouseInitialPosition.Y,
-                    minHeight,
-                    maxHeight);
+                    ResizeTarget->MinHeight,
+                    std::min(ResizeTarget->MaxHeight, maxHeightPanel));
         }
     }
 

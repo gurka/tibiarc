@@ -41,12 +41,12 @@ void VerticalPanel::Update(State &state, Position offset) {
                                  DragMouseInitialPosition;
             DragTargetPosition.X =
                     std::clamp(DragTargetPosition.X,
-                               Border,
-                               Width - DragTarget->Width - Border);
+                               0,
+                               Width - DragTarget->Width);
             DragTargetPosition.Y =
                     std::clamp(DragTargetPosition.Y,
-                               Border,
-                               Height - DragTarget->Height - Border);
+                               0,
+                               Height - DragTarget->Height);
         }
     }
 
@@ -55,7 +55,7 @@ void VerticalPanel::Update(State &state, Position offset) {
         if (!state.MouseLeftDown()) {
             ResizeTarget = nullptr;
         } else {
-            const auto maxHeight = Height - GetWidgetY(ResizeTarget) - Border;
+            const auto maxHeight = Height - GetWidgetY(ResizeTarget);
             // TODO: minHeight should probably be decided by the widget itself
             const auto minHeight = 50;
             ResizeTarget->Height = std::clamp(
@@ -67,9 +67,9 @@ void VerticalPanel::Update(State &state, Position offset) {
     }
 
     // Update widgets
-    auto y = Border;
+    auto y = 0;
     for (const auto &widget : Widgets) {
-        widget->Update(state, offset + Position(Border, y));
+        widget->Update(state, offset + Position(0, y));
         y += widget->Height;
     }
 
@@ -78,7 +78,7 @@ void VerticalPanel::Update(State &state, Position offset) {
     if (DragTarget != nullptr) {
         // Find the widget that the drag target is intersecting with (if any)
         Widget *otherWidget = nullptr;
-        auto otherY = Border;
+        auto otherY = 0;
         bool otherIsAbove = true;
         for (auto &widget : Widgets) {
             if (widget.get() == DragTarget) {
@@ -86,7 +86,7 @@ void VerticalPanel::Update(State &state, Position offset) {
             } else if (AreasIntersect(DragTargetPosition,
                                       DragTarget->Width,
                                       DragTarget->Height,
-                                      Position(Border, otherY),
+                                      Position(0, otherY),
                                       widget->Width,
                                       widget->Height)) {
                 otherWidget = widget.get();
@@ -108,17 +108,17 @@ void VerticalPanel::Update(State &state, Position offset) {
 
     // Make sure that Height is up to date
     // TODO: What can we do to avoid having to recalculate this every frame?
-    Height = Border * 2;
+    Height = 0;
     for (const auto &widget : Widgets) {
         Height += widget->Height;
     }
 }
 
 void VerticalPanel::Render(Canvas &canvas, Position offset) {
-    auto y = Border;
+    auto y = 0;
     for (const auto &widget : Widgets) {
         if (widget.get() != DragTarget) {
-            widget->Render(canvas, offset + gui::Position(Border, y));
+            widget->Render(canvas, offset + gui::Position(0, y));
         }
         y += widget->Height;
     }
@@ -128,16 +128,16 @@ void VerticalPanel::Render(Canvas &canvas, Position offset) {
 }
 
 Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
-    auto y = Border;
+    auto y = 0;
     for (const auto &widget : Widgets) {
         if (PointInsideArea(position,
-                            Position(Border, y),
+                            Position(0, y),
                             widget->Width,
                             widget->Height)) {
-            const auto result = widget->MouseLeftDown(position - Position(Border, y));
+            const auto result = widget->MouseLeftDown(position - Position(0, y));
             if (result == Widget::MouseEventResult::StartDrag) {
                 DragTarget = widget.get();
-                DragTargetPosition = Position(Border, y);
+                DragTargetPosition = Position(0, y);
                 DragTargetInitialPosition = DragTargetPosition;
                 DragMouseInitialPosition = position;
             } else if (result == Widget::MouseEventResult::Resize) {
@@ -156,17 +156,17 @@ Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
 }
 
 void VerticalPanel::MouseLeftUp(Position position) {
-    auto y = Border;
+    auto y = 0;
     for (const auto &widget : Widgets) {
-        if (PointInsideArea(position, Position(Border, y), widget->Width, widget->Height)) {
-            widget->MouseLeftUp(position - Position(Border, y));
+        if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
+            widget->MouseLeftUp(position - Position(0, y));
         }
         y += widget->Height;
     }
 }
 
 int VerticalPanel::GetWidgetY(const Widget *widget) const {
-    int y = Border;
+    int y = 0;
     for (const auto &w : Widgets) {
         if (w.get() == widget) {
             return y;
