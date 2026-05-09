@@ -492,12 +492,11 @@ void Canvas::Draw(const Sprite &sprite,
     }
 }
 
-// TODO: Rename to something better, as we use this to draw more than just backgrounds
-void Canvas::DrawBackground(const Sprite &sprite,
-                            int leftX,
-                            int topY,
-                            int rightX,
-                            int bottomY) {
+void Canvas::DrawTiled(const Sprite &sprite,
+                       int leftX,
+                       int topY,
+                       int rightX,
+                       int bottomY) {
     for (int toY = topY; toY < bottomY; toY += sprite.Height) {
         for (int toX = leftX; toX < rightX; toX += sprite.Width) {
             Draw(sprite,
@@ -505,6 +504,27 @@ void Canvas::DrawBackground(const Sprite &sprite,
                  toY,
                  std::min(sprite.Width, rightX - toX),
                  std::min(sprite.Height, bottomY - toY));
+        }
+    }
+}
+
+void Canvas::DrawTiledBottomUp(const Sprite &sprite,
+                               int leftX,
+                               int topY,
+                               int rightX,
+                               int bottomY) {
+    Canvas area = Slice(leftX, topY, rightX, bottomY);
+    const int areaWidth = rightX - leftX;
+    const int areaHeight = bottomY - topY;
+
+    for (int toY = areaHeight - sprite.Height; toY + sprite.Height > 0;
+         toY -= sprite.Height) {
+        for (int toX = 0; toX < areaWidth; toX += sprite.Width) {
+            area.Draw(sprite,
+                      toX,
+                      toY,
+                      std::min(sprite.Width, areaWidth - toX),
+                      sprite.Height);
         }
     }
 }

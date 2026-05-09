@@ -115,12 +115,16 @@ void VerticalPanel::Update(State &state, Position offset) {
         }
 
         if (otherWidget != nullptr) {
-            const auto otherMidY = otherY + (otherWidget->Height / 2);
-            if ((otherIsAbove && DragTargetPosition.Y < otherMidY) ||
-                (!otherIsAbove &&
-                  DragTargetPosition.Y + DragTarget->Height > otherMidY)) {
-                std::swap(Widgets[GetWidgetIndex(DragTarget)],
-                          Widgets[GetWidgetIndex(otherWidget)]);
+            // Don't swap with the bottom widget if ResizeBottomWidget is true
+            if (ResizeBottomWidget &&
+                otherWidget != Widgets[Widgets.size() - 1].get()) {
+                const auto otherMidY = otherY + (otherWidget->Height / 2);
+                if ((otherIsAbove && DragTargetPosition.Y < otherMidY) ||
+                    (!otherIsAbove &&
+                     DragTargetPosition.Y + DragTarget->Height > otherMidY)) {
+                    std::swap(Widgets[GetWidgetIndex(DragTarget)],
+                              Widgets[GetWidgetIndex(otherWidget)]);
+                }
             }
         }
     }

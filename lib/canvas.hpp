@@ -79,11 +79,17 @@ public:
 
     void Draw(const Sprite &sprite, int x, int y);
     void Draw(const Sprite &sprite, int x, int y, int width, int height);
-    void DrawBackground(const Sprite &sprite,
-                        int leftX,
-                        int topY,
-                        int rightX,
-                        int bottomY);
+
+    void DrawTiled(const Sprite &sprite,
+                   int leftX,
+                   int topY,
+                   int rightX,
+                   int bottomY);
+    void DrawTiledBottomUp(const Sprite &sprite,
+                           int leftX,
+                           int topY,
+                           int rightX,
+                           int bottomY);
 
     static void Copy(Canvas &dest,
                      const Canvas &source,

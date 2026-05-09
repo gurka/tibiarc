@@ -99,11 +99,11 @@ void Window::Render(Canvas &canvas, Position offset) {
 
     // Header
     canvas.Draw(icons.WindowHeaderLeft, offset.X, offset.Y);
-    canvas.DrawBackground(icons.WindowHeaderMiddle,
-                          offset.X + 4,
-                          offset.Y,
-                          offset.X + Width - 4,
-                          offset.Y + 15);
+    canvas.DrawTiled(icons.WindowHeaderMiddle,
+                     offset.X + 4,
+                     offset.Y,
+                     offset.X + Width - 4,
+                     offset.Y + 15);
     canvas.Draw(icons.WindowHeaderRight, offset.X + Width - 4, offset.Y);
     canvas.Draw(*Icon, offset.X + 4, offset.Y + 2);
     TextRenderer::DrawString(fonts.InterfaceLarge,
@@ -119,11 +119,11 @@ void Window::Render(Canvas &canvas, Position offset) {
     if (MinimizeButton.Toggled) {
         // Bottom
         canvas.Draw(icons.WindowBottomLeft, offset.X, offset.Y + Height - 4);
-        canvas.DrawBackground(icons.WindowBottom,
-                              offset.X + 4,
-                              offset.Y + Height - 4,
-                              offset.X + Width - 4,
-                              offset.Y + Height);
+        canvas.DrawTiled(icons.WindowBottom,
+                         offset.X + 4,
+                         offset.Y + Height - 4,
+                         offset.X + Width - 4,
+                         offset.Y + Height);
         canvas.Draw(icons.WindowBottomRight,
                     offset.X + Width - 4,
                     offset.Y + Height - 4);
@@ -147,32 +147,32 @@ void Window::Render(Canvas &canvas, Position offset) {
                      offset.Y + 15);
 
     } else {
-        canvas.DrawBackground(icons.ClientBackground,
-                              offset.X + 4,
-                              offset.Y + 15,
-                              offset.X + Width - 4,
-                              offset.Y + Height - 4);
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X + 4,
+                         offset.Y + 15,
+                         offset.X + Width - 4,
+                         offset.Y + Height - 4);
     }
 
     // Middle
-    canvas.DrawBackground(icons.WindowLeft,
-                          offset.X,
-                          offset.Y + 15,
-                          offset.X + 4,
-                          offset.Y + 15 + Height - 19);
-    canvas.DrawBackground(icons.WindowRight,
-                          offset.X + Width - 4,
-                          offset.Y + 15,
-                          offset.X + Width,
-                          offset.Y + 15 + Height - 19);
+    canvas.DrawTiled(icons.WindowLeft,
+                     offset.X,
+                     offset.Y + 15,
+                     offset.X + 4,
+                     offset.Y + 15 + Height - 19);
+    canvas.DrawTiled(icons.WindowRight,
+                     offset.X + Width - 4,
+                     offset.Y + 15,
+                     offset.X + Width,
+                     offset.Y + 15 + Height - 19);
 
     // Scrollbar
     canvas.Draw(icons.ScrollbarUp, offset.X + Width - 16, offset.Y + 15);
-    canvas.DrawBackground(icons.ScrollbarBackground,
-                          offset.X + Width - 16,
-                          offset.Y + 27,
-                          offset.X + Width - 16 + 12,
-                          offset.Y + 27 + Height - 43);
+    canvas.DrawTiled(icons.ScrollbarBackground,
+                     offset.X + Width - 16,
+                     offset.Y + 27,
+                     offset.X + Width - 16 + 12,
+                     offset.Y + 27 + Height - 43);
     canvas.Draw(icons.ScrollbarButton, offset.X + Width - 16, offset.Y + 27);
     canvas.Draw(icons.ScrollbarDown,
                 offset.X + Width - 16,
@@ -180,11 +180,11 @@ void Window::Render(Canvas &canvas, Position offset) {
 
     // Bottom
     canvas.Draw(icons.WindowBottomLeft, offset.X, offset.Y + 15 + Height - 19);
-    canvas.DrawBackground(icons.WindowBottom,
-                          offset.X + 4,
-                          offset.Y + 15 + Height - 19,
-                          offset.X + Width - 4,
-                          offset.Y + 15 + Height - 19 + 4);
+    canvas.DrawTiled(icons.WindowBottom,
+                     offset.X + 4,
+                     offset.Y + 15 + Height - 19,
+                     offset.X + Width - 4,
+                     offset.Y + 15 + Height - 19 + 4);
     canvas.Draw(icons.WindowBottomRight,
                 offset.X + Width - 4,
                 offset.Y + 15 + Height - 19);
@@ -197,7 +197,7 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
     if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
         return MinimizeButton.MouseLeftDown(position - MinimizeButtonPosition);
     }
-    
+
     if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
         return CloseButton.MouseLeftDown(position - CloseButtonPosition);
     }

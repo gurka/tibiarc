@@ -72,69 +72,69 @@ void Border::MouseLeftUp(Position position) {
 }
 
 void Border::RenderSunkenBorder(Canvas &canvas, Position offset) {
-    canvas.DrawBackground(_Icons->BorderHorizontalDark,
-                          offset.X,
-                          offset.Y,
-                          offset.X + Width,
-                          offset.Y + 1);
-    canvas.DrawBackground(_Icons->BorderVerticalDark,
-                          offset.X,
-                          offset.Y + 1,
-                          offset.X + 1,
-                          offset.Y + Height - 1);
-    canvas.DrawBackground(_Icons->BorderVerticalLight,
-                          offset.X + Width - 1,
-                          offset.Y + 1,
-                          offset.X + Width,
-                          offset.Y + Height - 1);
-    canvas.DrawBackground(_Icons->BorderHorizontalLight,
-                          offset.X,
-                          offset.Y + Height - 1,
-                          offset.X + Width,
-                          offset.Y + Height);
+    canvas.DrawTiled(_Icons->BorderHorizontalDark,
+                     offset.X,
+                     offset.Y,
+                     offset.X + Width,
+                     offset.Y + 1);
+    canvas.DrawTiled(_Icons->BorderVerticalDark,
+                     offset.X,
+                     offset.Y + 1,
+                     offset.X + 1,
+                     offset.Y + Height - 1);
+    canvas.DrawTiled(_Icons->BorderVerticalLight,
+                     offset.X + Width - 1,
+                     offset.Y + 1,
+                     offset.X + Width,
+                     offset.Y + Height - 1);
+    canvas.DrawTiled(_Icons->BorderHorizontalLight,
+                     offset.X,
+                     offset.Y + Height - 1,
+                     offset.X + Width,
+                     offset.Y + Height);
 }
 
 void Border::RenderRaisedBorder(Canvas &canvas, Position offset) {
-    canvas.DrawBackground(_Icons->BorderCornerLight,
-                          offset.X,
-                          offset.Y,
-                          offset.X + 2,
-                          offset.Y + 2);
-    canvas.DrawBackground(_Icons->BorderHorizontalLight,
-                          offset.X + 2,
-                          offset.Y,
-                          offset.X + Width - 2,
-                          offset.Y + 2);
-    canvas.DrawBackground(_Icons->BorderCornerLightDark,
-                          offset.X + Width - 2,
-                          offset.Y,
-                          offset.X + Width,
-                          offset.Y + 2);
-    canvas.DrawBackground(_Icons->BorderVerticalLight,
-                          offset.X,
-                          offset.Y + 2,
-                          offset.X + 2,
-                          offset.Y + Height - 2);
-    canvas.DrawBackground(_Icons->BorderVerticalDark,
-                          offset.X + Width - 2,
-                          offset.Y + 2,
-                          offset.X + Width,
-                          offset.Y + Height - 2);
-    canvas.DrawBackground(_Icons->BorderCornerLightDark,
-                          offset.X,
-                          offset.Y + Height - 2,
-                          offset.X + 2,
-                          offset.Y + Height);
-    canvas.DrawBackground(_Icons->BorderHorizontalDark,
-                          offset.X + 2,
-                          offset.Y + Height - 2,
-                          offset.X + Width - 2,
-                          offset.Y + Height);
-    canvas.DrawBackground(_Icons->BorderCornerDark,
-                          offset.X + Width - 2,
-                          offset.Y + Height - 2,
-                          offset.X + Width,
-                          offset.Y + Height);
+    canvas.DrawTiled(_Icons->BorderCornerLight,
+                     offset.X,
+                     offset.Y,
+                     offset.X + 2,
+                     offset.Y + 2);
+    canvas.DrawTiled(_Icons->BorderHorizontalLight,
+                     offset.X + 2,
+                     offset.Y,
+                     offset.X + Width - 2,
+                     offset.Y + 2);
+    canvas.DrawTiled(_Icons->BorderCornerLightDark,
+                     offset.X + Width - 2,
+                     offset.Y,
+                     offset.X + Width,
+                     offset.Y + 2);
+    canvas.DrawTiled(_Icons->BorderVerticalLight,
+                     offset.X,
+                     offset.Y + 2,
+                     offset.X + 2,
+                     offset.Y + Height - 2);
+    canvas.DrawTiled(_Icons->BorderVerticalDark,
+                     offset.X + Width - 2,
+                     offset.Y + 2,
+                     offset.X + Width,
+                     offset.Y + Height - 2);
+    canvas.DrawTiled(_Icons->BorderCornerLightDark,
+                     offset.X,
+                     offset.Y + Height - 2,
+                     offset.X + 2,
+                     offset.Y + Height);
+    canvas.DrawTiled(_Icons->BorderHorizontalDark,
+                     offset.X + 2,
+                     offset.Y + Height - 2,
+                     offset.X + Width - 2,
+                     offset.Y + Height);
+    canvas.DrawTiled(_Icons->BorderCornerDark,
+                     offset.X + Width - 2,
+                     offset.Y + Height - 2,
+                     offset.X + Width,
+                     offset.Y + Height);
 }
 
 } // namespace gui

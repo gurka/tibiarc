@@ -48,18 +48,19 @@ using namespace trc;
 struct SidebarMinimap : public gui::Widget {
     Gamestate *_Gamestate;
 
-    SidebarMinimap(Gamestate *gamestate) : Widget(172, 117), _Gamestate(gamestate) {
+    SidebarMinimap(Gamestate *gamestate)
+        : Widget(172, 117), _Gamestate(gamestate) {
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
         const auto &fonts = _Gamestate->Version.Fonts;
         const auto &icons = _Gamestate->Version.Icons;
 
-        canvas.DrawBackground(icons.ClientBackground,
-                              offset.X,
-                              offset.Y,
-                              offset.X + 172,
-                              offset.Y + 117);
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X,
+                         offset.Y,
+                         offset.X + 172,
+                         offset.Y + 117);
 
         // Minimap, empty for now
         // TODO: use Border widget
@@ -71,7 +72,11 @@ struct SidebarMinimap : public gui::Widget {
                               offset.X + 8 + 108,
                               offset.Y + 4 + 108);
         */
-        canvas.DrawRectangle(Pixel(0, 0, 0), offset.X + 9, offset.Y + 5, 106, 106);
+        canvas.DrawRectangle(Pixel(0, 0, 0),
+                             offset.X + 9,
+                             offset.Y + 5,
+                             106,
+                             106);
 
         // Buttons, since they are disabled we just render them instead
         // of using the Button widget
@@ -97,24 +102,26 @@ struct SidebarMinimap : public gui::Widget {
 struct SidebarResources : public gui::Widget {
     Gamestate *_Gamestate;
 
-    SidebarResources(Gamestate *gamestate) : Widget(172, 32), _Gamestate(gamestate  ) {
+    SidebarResources(Gamestate *gamestate)
+        : Widget(172, 32), _Gamestate(gamestate) {
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
         const auto &icons = _Gamestate->Version.Icons;
         const auto &fonts = _Gamestate->Version.Fonts;
 
-        canvas.DrawBackground(icons.ClientBackground,
-                              offset.X,
-                              offset.Y,
-                              offset.X + 172,
-                              offset.Y + 32);
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X,
+                         offset.Y,
+                         offset.X + 172,
+                         offset.Y + 32);
 
         // Health
         canvas.Draw(icons.HealthIcon, offset.X + 9, offset.Y + 5);
         canvas.Draw(icons.EmptyStatusBar, offset.X + 26, offset.Y + 4);
         if (_Gamestate->Player.Stats.MaxHealth > 0 &&
-            _Gamestate->Player.Stats.Health <= _Gamestate->Player.Stats.MaxHealth) {
+            _Gamestate->Player.Stats.Health <=
+                    _Gamestate->Player.Stats.MaxHealth) {
             canvas.Draw(
                     icons.HealthBar,
                     offset.X + 26,
@@ -123,12 +130,13 @@ struct SidebarResources : public gui::Widget {
                             _Gamestate->Player.Stats.MaxHealth,
                     11);
         }
-        TextRenderer::DrawString(fonts.InterfaceLarge,
-                                 Pixel(0xAF, 0xAF, 0xAF),
-                                 offset.X + 127,
-                                 offset.Y + 5,
-                                 std::to_string(_Gamestate->Player.Stats.Health),
-                                 canvas);
+        TextRenderer::DrawString(
+                fonts.InterfaceLarge,
+                Pixel(0xAF, 0xAF, 0xAF),
+                offset.X + 127,
+                offset.Y + 5,
+                std::to_string(_Gamestate->Player.Stats.Health),
+                canvas);
 
         // Mana
         canvas.Draw(icons.ManaIcon, offset.X + 9, offset.Y + 18);
@@ -166,7 +174,8 @@ struct SidebarInventory : public gui::Widget {
                          &gamestate->Version.Icons.MinimizePressed,
                          &gamestate->Version.Icons.Maximize,
                          &gamestate->Version.Icons.MaximizePressed) {
-        MinimizeButton.SetOnClick([this](){ Height = MinimizeButton.Toggled ? 48 : 155; });
+        MinimizeButton.SetOnClick(
+                [this]() { Height = MinimizeButton.Toggled ? 48 : 155; });
     }
 
     void Update(gui::State &state, gui::Position offset) override {
@@ -178,11 +187,11 @@ struct SidebarInventory : public gui::Widget {
         const auto &fonts = _Gamestate->Version.Fonts;
 
         if (!MinimizeButton.Toggled) {
-            canvas.DrawBackground(icons.ClientBackground,
-                                  offset.X,
-                                  offset.Y,
-                                  offset.X + 172,
-                                  offset.Y + 155);
+            canvas.DrawTiled(icons.ClientBackground,
+                             offset.X,
+                             offset.Y,
+                             offset.X + 172,
+                             offset.Y + 155);
 
             // Inventory
             MinimizeButton.Render(canvas, offset + gui::Position(8, 4));
@@ -191,7 +200,9 @@ struct SidebarInventory : public gui::Widget {
                  std::initializer_list<std::tuple<InventorySlot, int, int>>{
                          {InventorySlot::Head, offset.X + 45, offset.Y + 4},
                          {InventorySlot::Amulet, offset.X + 8, offset.Y + 18},
-                         {InventorySlot::Backpack, offset.X + 82, offset.Y + 18},
+                         {InventorySlot::Backpack,
+                          offset.X + 82,
+                          offset.Y + 18},
                          {InventorySlot::Chest, offset.X + 45, offset.Y + 41},
                          {InventorySlot::RightArm, offset.X + 8, offset.Y + 55},
                          {InventorySlot::LeftArm, offset.X + 82, offset.Y + 55},
@@ -227,7 +238,9 @@ struct SidebarInventory : public gui::Widget {
             }
             */
 
-            canvas.Draw(icons.SecondaryStatBackground, offset.X + 82, offset.Y + 128);
+            canvas.Draw(icons.SecondaryStatBackground,
+                        offset.X + 82,
+                        offset.Y + 128);
             TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
                                              Pixel(0xFF, 0xFF, 0xFF),
                                              offset.X + 99,
@@ -276,11 +289,11 @@ struct SidebarInventory : public gui::Widget {
                                              "Help",
                                              canvas);
         } else {
-            canvas.DrawBackground(icons.ClientBackground,
-                                  offset.X,
-                                  offset.Y,
-                                  offset.X + 172,
-                                  offset.Y + 48);
+            canvas.DrawTiled(icons.ClientBackground,
+                             offset.X,
+                             offset.Y,
+                             offset.X + 172,
+                             offset.Y + 48);
 
             // Inventory
             MinimizeButton.Render(canvas, offset + gui::Position(8, 4));
@@ -297,12 +310,13 @@ struct SidebarInventory : public gui::Widget {
                                              canvas);
             uint32_t capacity = _Gamestate->Player.Stats.Capacity /
                                 _Gamestate->Version.Features.CapacityDivisor;
-            TextRenderer::DrawCenteredString(_Gamestate->Version.Fonts.InterfaceLarge,
-                                             Pixel(0xBF, 0xBF, 0xBF),
-                                             offset.X + 39,
-                                             offset.Y + 15,
-                                             std::to_string(capacity),
-                                             canvas);
+            TextRenderer::DrawCenteredString(
+                    _Gamestate->Version.Fonts.InterfaceLarge,
+                    Pixel(0xBF, 0xBF, 0xBF),
+                    offset.X + 39,
+                    offset.Y + 15,
+                    std::to_string(capacity),
+                    canvas);
 
             // TODO: Draw status icons
 
@@ -344,15 +358,13 @@ struct SidebarButtons : public gui::Widget {
         const auto &icons = _Gamestate->Version.Icons;
         const auto &fonts = _Gamestate->Version.Fonts;
 
-        canvas.DrawBackground(icons.ClientBackground,
-                              offset.X,
-                              offset.Y,
-                              offset.X + 172,
-                              offset.Y + 26);
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X,
+                         offset.Y,
+                         offset.X + 172,
+                         offset.Y + 26);
 
-        canvas.Draw(icons.Button34px,
-                    offset.X + 8,
-                    offset.Y + 3);
+        canvas.Draw(icons.Button34px, offset.X + 8, offset.Y + 3);
         TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
                                          Pixel(0xFF, 0xFF, 0xFF),
                                          offset.X + 25,
@@ -360,9 +372,7 @@ struct SidebarButtons : public gui::Widget {
                                          "Skills",
                                          canvas);
 
-        canvas.Draw(icons.Button34px,
-                    offset.X + 45,
-                    offset.Y + 3);
+        canvas.Draw(icons.Button34px, offset.X + 45, offset.Y + 3);
         TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
                                          Pixel(0xFF, 0xFF, 0xFF),
                                          offset.X + 62,
@@ -370,9 +380,7 @@ struct SidebarButtons : public gui::Widget {
                                          "Battle",
                                          canvas);
 
-        canvas.Draw(icons.Button34px,
-                    offset.X + 82,
-                    offset.Y + 3);
+        canvas.Draw(icons.Button34px, offset.X + 82, offset.Y + 3);
         TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
                                          Pixel(0xFF, 0xFF, 0xFF),
                                          offset.X + 99,
@@ -405,11 +413,11 @@ struct SidebarSkillsContent : public gui::Widget {
         const auto &icons = _Gamestate->Version.Icons;
         const auto &fonts = _Gamestate->Version.Fonts;
 
-        canvas.DrawBackground(icons.ClientBackground,
-                              offset.X,
-                              offset.Y,
-                              offset.X + Width,
-                              offset.Y + Height);
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X,
+                         offset.Y,
+                         offset.X + Width,
+                         offset.Y + Height);
 
         const auto stats = std::vector<
                 std::tuple<std::string,
@@ -475,7 +483,8 @@ struct SidebarSkillsContent : public gui::Widget {
                     Pixel(0xAF, 0xAF, 0xAF),
                     offset.X + 145,
                     y,
-                    std::to_string(_Gamestate->Player.Skills[skillIndex].Effective),
+                    std::to_string(
+                            _Gamestate->Player.Skills[skillIndex].Effective),
                     canvas);
             y += 14;
         }
@@ -487,21 +496,23 @@ struct SidebarBottomFiller : public gui::Widget {
     Gamestate *_Gamestate;
 
     SidebarBottomFiller(Gamestate *gamestate)
-        : Widget(176, 0), _Gamestate(gamestate) {
+        : Widget(172, 0), _Gamestate(gamestate) {
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
         const auto &icons = _Gamestate->Version.Icons;
 
-        canvas.DrawBackground(icons.ClientBackground,
-                              offset.X,
-                              offset.Y,
-                              offset.X + Width,
-                              offset.Y + Height);
+        canvas.DrawTiledBottomUp(icons.ClientBackground,
+                                 offset.X,
+                                 offset.Y,
+                                 offset.X + Width,
+                                 offset.Y + Height);
     }
 };
 
-std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamestate *gamestate) {
+std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
+                                              int height,
+                                              trc::Gamestate *gamestate) {
     auto gui = std::make_unique<gui::Panel>(width, height);
 
     // The sidebar is built as:
@@ -525,20 +536,27 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamest
     sidebar->ResizeBottomWidget = true;
 
     // Sidebar top
-    // Dynamic size based on content (SidebarInventory can be minimized/maximized)
+    // Dynamic size based on content (SidebarInventory can be
+    // minimized/maximized)
     auto sidebarTop = std::make_unique<gui::VerticalPanel>(172, 0);
     sidebarTop->DynamicHeight = true;
-    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate));
-    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate));
-    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate));
-    sidebarTop->Widgets.emplace_back(std::make_unique<SidebarButtons>(gamestate));
-    sidebar->Widgets.emplace_back(std::make_unique<gui::Border>(&gamestate->Version.Icons,
+    sidebarTop->Widgets.emplace_back(
+            std::make_unique<SidebarMinimap>(gamestate));
+    sidebarTop->Widgets.emplace_back(
+            std::make_unique<SidebarResources>(gamestate));
+    sidebarTop->Widgets.emplace_back(
+            std::make_unique<SidebarInventory>(gamestate));
+    sidebarTop->Widgets.emplace_back(
+            std::make_unique<SidebarButtons>(gamestate));
+    sidebar->Widgets.emplace_back(
+            std::make_unique<gui::Border>(&gamestate->Version.Icons,
                                           gui::Border::BorderType::Raised,
                                           std::move(sidebarTop)));
 
     // Sidebar bottom
-    // Dynamic size based on parent (Sidebar), it should fill the remaining space
-    // And what should fill the remaining space is the bottom/last widget in sidebarBottom
+    // Dynamic size based on parent (Sidebar), it should fill the remaining
+    // space And what should fill the remaining space is the bottom/last widget
+    // in sidebarBottom
     auto sidebarBottom = std::make_unique<gui::VerticalPanel>(176, 0);
     sidebarBottom->ResizeBottomWidget = true;
     auto sidebarSkillsWindow =
@@ -549,7 +567,8 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamest
                                           &gamestate->Version.Icons.SkillsIcon,
                                           "Skills",
                                           []() { /* TODO */ });
-    sidebarSkillsWindow->Content = std::make_unique<SidebarSkillsContent>(gamestate);
+    sidebarSkillsWindow->Content =
+            std::make_unique<SidebarSkillsContent>(gamestate);
     sidebarBottom->Widgets.emplace_back(std::move(sidebarSkillsWindow));
     sidebarBottom->Widgets.emplace_back(std::make_unique<gui::Border>(
             &gamestate->Version.Icons,
