@@ -62,6 +62,8 @@ Window::Window(int width,
                   &version->Icons.ClosePressed,
                   Button::ButtonType::Normal),
       CloseButtonPosition(Position(width - 15, 2)) {
+    MinHeight = 57;
+    MaxHeight = height;
     MinimizeButton.SetOnClick([this]() { MinimizeOnClick(); });
     CloseButton.SetOnClick(CloseOnClick);
 }
@@ -76,6 +78,9 @@ void Window::Update(State &state, Position offset) {
             ContentCanvas =
                     std::make_unique<Canvas>(Content->Width, Content->Height);
         }
+
+        // Set MaxHeight based on content size
+        MaxHeight = Content->Height + 19;
     }
 
     MinimizeButton.Update(state, offset + MinimizeButtonPosition);
@@ -129,7 +134,7 @@ void Window::Render(Canvas &canvas, Position offset) {
         // Render on content canvas first
         ContentCanvas->Wipe();
         Content->Render(*ContentCanvas, Position(0, 0));
-        
+
         // Then render content canvas to the given canvas
         // with respect to the scrollbar
         Canvas::Copy(canvas,

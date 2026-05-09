@@ -28,9 +28,16 @@ namespace trc {
 namespace gui {
 
 void Border::Update(State &state, Position offset) {
+    // Update the size of the child if our size has changed
+    if (Child->Width != Width - BorderWidth() * 2 ||
+        Child->Height != Height - BorderWidth() * 2) {
+        Child->Width = Width - BorderWidth() * 2;
+        Child->Height = Height - BorderWidth() * 2;
+    }
+
     Child->Update(state, offset + Position(BorderWidth(), BorderWidth()));
 
-    // Update the size in case the child has changed size
+    // Update the size in case the child changed its size
     Width = BorderWidth() * 2 + Child->Width;
     Height = BorderWidth() * 2 + Child->Height;
 }

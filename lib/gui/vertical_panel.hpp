@@ -37,6 +37,23 @@ struct State;
 struct VerticalPanel : public Widget {
     std::vector<std::unique_ptr<Widget>> Widgets;
 
+    // Whether the panel should automatically adjust its height based on the height
+    // of all widgets
+    bool DynamicHeight;
+
+    // Whether the bottom (last) widget should be resized to fill the remaining
+    // space in the panel
+    bool ResizeBottomWidget;
+
+    VerticalPanel(int width, int height);
+
+    void Update(State &state, Position offset) override;
+    void Render(Canvas &canvas, Position offset) override;
+
+    MouseEventResult MouseLeftDown(Position position) override;
+    void MouseLeftUp(Position position) override;
+
+private:
     // Drag action
     Widget *DragTarget;
     Position DragTargetPosition;
@@ -48,25 +65,6 @@ struct VerticalPanel : public Widget {
     int ResizeTargetInitialHeight;
     Position ResizeMouseInitialPosition;
 
-    VerticalPanel(int width)
-        : Widget(width, 0),
-          Widgets(),
-          DragTarget(nullptr),
-          DragTargetPosition(0, 0),
-          DragTargetInitialPosition(0, 0),
-          DragMouseInitialPosition(0, 0),
-          ResizeTarget(nullptr),
-          ResizeTargetInitialHeight(0),
-          ResizeMouseInitialPosition(0, 0) {
-    }
-
-    void Update(State &state, Position offset) override;
-    void Render(Canvas &canvas, Position offset) override;
-
-    MouseEventResult MouseLeftDown(Position position) override;
-    void MouseLeftUp(Position position) override;
-
-private:
     int GetWidgetY(const Widget *widget) const;
     int GetWidgetIndex(const Widget *widget) const;
 };

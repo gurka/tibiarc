@@ -445,18 +445,18 @@ struct SidebarSkillsContent : public gui::Widget {
                 {"Fishing", 6},
         };
 
-        int y = offset.Y;
+        int y = offset.Y + 10;
         for (const auto &[stat, statFunc] : stats) {
             TextRenderer::DrawString(fonts.InterfaceLarge,
                                      Pixel(0xAF, 0xAF, 0xAF),
-                                     offset.X + 14,
+                                     offset.X + 10,
                                      y,
                                      stat,
                                      canvas);
             TextRenderer::DrawRightAlignedString(
                     fonts.InterfaceLarge,
                     Pixel(0xAF, 0xAF, 0xAF),
-                    offset.X + 149,
+                    offset.X + 145,
                     y,
                     ThousandSeparators(statFunc(_Gamestate->Player)),
                     canvas);
@@ -466,19 +466,38 @@ struct SidebarSkillsContent : public gui::Widget {
         for (const auto &[skill, skillIndex] : skills) {
             TextRenderer::DrawString(fonts.InterfaceLarge,
                                      Pixel(0xAF, 0xAF, 0xAF),
-                                     offset.X + 14,
+                                     offset.X + 10,
                                      y,
                                      skill,
                                      canvas);
             TextRenderer::DrawRightAlignedString(
                     fonts.InterfaceLarge,
                     Pixel(0xAF, 0xAF, 0xAF),
-                    offset.X + 149,
+                    offset.X + 145,
                     y,
                     std::to_string(_Gamestate->Player.Skills[skillIndex].Effective),
                     canvas);
             y += 14;
         }
+    }
+};
+
+struct SidebarBottomFiller : public gui::Widget {
+
+    Gamestate *_Gamestate;
+
+    SidebarBottomFiller(Gamestate *gamestate)
+        : Widget(176, 0), _Gamestate(gamestate) {
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
+        const auto &icons = _Gamestate->Version.Icons;
+
+        canvas.DrawBackground(icons.ClientBackground,
+                              offset.X,
+                              offset.Y,
+                              offset.X + Width,
+                              offset.Y + Height);
     }
 };
 
@@ -501,10 +520,14 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamest
     //     - SidebarEmpty (remaining space, can be invisible/Height=0)
 
     // Sidebar
-    auto sidebar = std::make_unique<gui::VerticalPanel>(176);
+    // Always the same height (window/gui height)
+    auto sidebar = std::make_unique<gui::VerticalPanel>(176, height);
+    sidebar->ResizeBottomWidget = true;
 
     // Sidebar top
-    auto sidebarTop = std::make_unique<gui::VerticalPanel>(172);
+    // Dynamic size based on content (SidebarInventory can be minimized/maximized)
+    auto sidebarTop = std::make_unique<gui::VerticalPanel>(172, 0);
+    sidebarTop->DynamicHeight = true;
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarMinimap>(gamestate));
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarResources>(gamestate));
     sidebarTop->Widgets.emplace_back(std::make_unique<SidebarInventory>(gamestate));
@@ -514,8 +537,12 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamest
                                           std::move(sidebarTop)));
 
     // Sidebar bottom
+    // Dynamic size based on parent (Sidebar), it should fill the remaining space
+    // And what should fill the remaining space is the bottom/last widget in sidebarBottom
+    auto sidebarBottom = std::make_unique<gui::VerticalPanel>(176, 0);
+    sidebarBottom->ResizeBottomWidget = true;
     auto sidebarSkillsWindow =
-            std::make_unique<gui::Window>(172,
+            std::make_unique<gui::Window>(176,
                                           100,
                                           &gamestate->Version,
                                           gui::Window::Type::Sidebar,
@@ -523,9 +550,11 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width, int height, trc::Gamest
                                           "Skills",
                                           []() { /* TODO */ });
     sidebarSkillsWindow->Content = std::make_unique<SidebarSkillsContent>(gamestate);
-
-    auto sidebarBottom = std::make_unique<gui::VerticalPanel>(172);
     sidebarBottom->Widgets.emplace_back(std::move(sidebarSkillsWindow));
+    sidebarBottom->Widgets.emplace_back(std::make_unique<gui::Border>(
+            &gamestate->Version.Icons,
+            gui::Border::BorderType::Raised,
+            std::make_unique<SidebarBottomFiller>(gamestate)));
     sidebar->Widgets.emplace_back(std::move(sidebarBottom));
 
     // Add sidebar to gui

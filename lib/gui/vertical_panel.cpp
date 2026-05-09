@@ -24,11 +24,26 @@
 #include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/state.hpp"
+#include "gui/widget.hpp"
 
 #include "canvas.hpp"
 
 namespace trc {
 namespace gui {
+
+VerticalPanel::VerticalPanel(int width, int height)
+    : Widget(width, height),
+      Widgets(),
+      DynamicHeight(false),
+      ResizeBottomWidget(false),
+      DragTarget(nullptr),
+      DragTargetPosition(0, 0),
+      DragTargetInitialPosition(0, 0),
+      DragMouseInitialPosition(0, 0),
+      ResizeTarget(nullptr),
+      ResizeTargetInitialHeight(0),
+      ResizeMouseInitialPosition(0, 0) {
+}
 
 void VerticalPanel::Update(State &state, Position offset) {
     // Handle drag action
@@ -55,9 +70,9 @@ void VerticalPanel::Update(State &state, Position offset) {
         if (!state.MouseLeftDown()) {
             ResizeTarget = nullptr;
         } else {
-            const auto maxHeight = Height - GetWidgetY(ResizeTarget);
-            // TODO: minHeight should probably be decided by the widget itself
-            const auto minHeight = 50;
+            const auto minHeight = ResizeTarget->MinHeight; 
+            const auto maxHeight = std::min(ResizeTarget->MaxHeight,
+                                            Height - GetWidgetY(ResizeTarget));
             ResizeTarget->Height = std::clamp(
                     ResizeTargetInitialHeight + state.MousePosition(offset).Y -
                             ResizeMouseInitialPosition.Y,
@@ -68,7 +83,11 @@ void VerticalPanel::Update(State &state, Position offset) {
 
     // Update widgets
     auto y = 0;
-    for (const auto &widget : Widgets) {
+    for (auto i = 0; i < Widgets.size(); ++i) {
+        auto &widget = Widgets[i];
+        if (ResizeBottomWidget && i == Widgets.size() - 1) {
+            widget->Height = Height - y;
+        }
         widget->Update(state, offset + Position(0, y));
         y += widget->Height;
     }
@@ -106,11 +125,13 @@ void VerticalPanel::Update(State &state, Position offset) {
         }
     }
 
-    // Make sure that Height is up to date
-    // TODO: What can we do to avoid having to recalculate this every frame?
-    Height = 0;
-    for (const auto &widget : Widgets) {
-        Height += widget->Height;
+    if (DynamicHeight) {
+        // Make sure that Height is up to date
+        // TODO: What can we do to avoid having to recalculate this every frame?
+        Height = 0;
+        for (const auto &widget : Widgets) {
+            Height += widget->Height;
+        }
     }
 }
 
