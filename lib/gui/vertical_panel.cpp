@@ -116,7 +116,7 @@ void VerticalPanel::Update(State &state, Position offset) {
 
         if (otherWidget != nullptr) {
             // Don't swap with the bottom widget if ResizeBottomWidget is true
-            if (ResizeBottomWidget &&
+            if (!ResizeBottomWidget ||
                 otherWidget != Widgets[Widgets.size() - 1].get()) {
                 const auto otherMidY = otherY + (otherWidget->Height / 2);
                 if ((otherIsAbove && DragTargetPosition.Y < otherMidY) ||
