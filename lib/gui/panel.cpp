@@ -98,11 +98,11 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
                 ResizeMouseInitialPosition = position;
             }
 
-            return Widget::MouseEventResult::None;
+            return Widget::MouseEventResult::Handled;
         }
     }
 
-    return Widget::MouseEventResult::None;
+    return Widget::MouseEventResult::NotHandled;
 }
 
 void Panel::MouseLeftUp(Position position) {

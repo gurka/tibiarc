@@ -334,7 +334,7 @@ struct SidebarInventory : public gui::Widget {
         if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
             position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
             MinimizeButton.MouseLeftDown(position - gui::Position(8, 4));
-            return MouseEventResult::Clicked;
+            return MouseEventResult::Handled;
         }
         return MouseEventResult::StartDrag;
     }

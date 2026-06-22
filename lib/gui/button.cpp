@@ -74,7 +74,7 @@ void Button::Render(Canvas &canvas, Position offset) {
 
 Widget::MouseEventResult Button::MouseLeftDown(Position position) {
     Pressed = true;
-    return Widget::MouseEventResult::Clicked;
+    return Widget::MouseEventResult::Handled;
 }
 
 void Button::MouseLeftUp(Position position) {

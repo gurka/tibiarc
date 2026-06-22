@@ -171,13 +171,13 @@ Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
                 ResizeMouseInitialPosition = position;
             }
 
-            return Widget::MouseEventResult::None;
+            return Widget::MouseEventResult::Handled;
         }
 
         y += widget->Height;
     }
 
-    return Widget::MouseEventResult::None;
+    return Widget::MouseEventResult::NotHandled;
 }
 
 void VerticalPanel::MouseLeftUp(Position position) {

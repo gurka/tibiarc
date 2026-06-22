@@ -57,7 +57,7 @@ void Border::Render(Canvas &canvas, Position offset) {
 Border::MouseEventResult Border::MouseLeftDown(Position position) {
     if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
         position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-        return MouseEventResult::None;
+        return MouseEventResult::NotHandled;
     }
     return Child->MouseLeftDown(position -
                                 Position(BorderWidth(), BorderWidth()));

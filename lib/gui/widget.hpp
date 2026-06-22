@@ -32,10 +32,10 @@ struct State;
 
 struct Widget {
     enum class MouseEventResult {
-        None,        // Event was not handled
-        Clicked,     // Event was handled and resulted in a click action
-        StartDrag,   // Event was handled and started a drag action
-        Resize,      // Event was handled and started a resize action
+        NotHandled, // Event was not handled — caller may continue processing
+        Handled,    // Event was handled — caller should stop processing
+        StartDrag,  // Event was handled and started a drag action
+        Resize,     // Event was handled and started a resize action
     };
 
     int Width;
@@ -55,7 +55,7 @@ struct Widget {
     virtual void Render(Canvas &canvas, Position offset) = 0;
 
     virtual MouseEventResult MouseLeftDown(Position position) {
-        return MouseEventResult::None;
+        return MouseEventResult::NotHandled;
     }
     virtual void MouseLeftUp(Position position) {
     }

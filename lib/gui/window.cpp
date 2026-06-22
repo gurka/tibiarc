@@ -212,7 +212,7 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
         return Widget::MouseEventResult::Resize;
     }
 
-    return Widget::MouseEventResult::None;
+    return Widget::MouseEventResult::NotHandled;
 }
 
 void Window::MouseLeftUp(Position position) {
