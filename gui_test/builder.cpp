@@ -577,7 +577,6 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     sidebar->Widgets.emplace_back(std::move(sidebarBottom));
 
     // Add sidebar to gui
-    gui->Widgets.emplace_back(std::move(sidebar),
-                              gui::Position(width - 176, 0));
+    gui->Widgets.push_back({std::move(sidebar), gui::Position(width - 176, 0)});
     return gui;
 }

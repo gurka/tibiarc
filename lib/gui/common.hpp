@@ -21,7 +21,6 @@
 #define __TRC_GUI_COMMON_HPP__
 
 #include <memory>
-#include <tuple>
 
 #include "gui/position.hpp"
 #include "gui/widget.hpp"
@@ -29,7 +28,10 @@
 namespace trc {
 namespace gui {
 
-using WidgetAndPosition = std::tuple<std::unique_ptr<Widget>, Position>;
+struct PlacedWidget {
+    std::unique_ptr<Widget> Widget;
+    Position Position;
+};
 
 inline bool PointInsideWidget(Position position, const Widget &widget) {
     // Note: assumes that position is relative to the widget
@@ -37,13 +39,11 @@ inline bool PointInsideWidget(Position position, const Widget &widget) {
            position.Y < widget.Height;
 }
 
-inline bool PointInsideWidget(Position position, const WidgetAndPosition &wap) {
-    const auto &widget = *std::get<0>(wap);
-    const auto &widgetPosition = std::get<1>(wap);
-    return position.X >= widgetPosition.X &&
-           position.X < widgetPosition.X + widget.Width &&
-           position.Y >= widgetPosition.Y &&
-           position.Y < widgetPosition.Y + widget.Height;
+inline bool PointInsideWidget(Position position, const PlacedWidget &pw) {
+    return position.X >= pw.Position.X &&
+           position.X < pw.Position.X + pw.Widget->Width &&
+           position.Y >= pw.Position.Y &&
+           position.Y < pw.Position.Y + pw.Widget->Height;
 }
 
 inline bool PointInsideArea(Position position,
@@ -62,11 +62,8 @@ inline bool WidgetsIntersect(const Widget &wa,
            pa.Y < pb.Y + wb.Height && pa.Y + wa.Height > pb.Y;
 }
 
-inline bool WidgetsIntersect(const WidgetAndPosition &wapa,
-                             const WidgetAndPosition &wapb) {
-    const auto &[wa, pa] = wapa;
-    const auto &[wb, pb] = wapb;
-    return WidgetsIntersect(*wa, pa, *wb, pb);
+inline bool WidgetsIntersect(const PlacedWidget &pwa, const PlacedWidget &pwb) {
+    return WidgetsIntersect(*pwa.Widget, pwa.Position, *pwb.Widget, pwb.Position);
 }
 
 inline bool AreasIntersect(Position ap,

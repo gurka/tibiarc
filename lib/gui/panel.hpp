@@ -35,7 +35,7 @@ namespace gui {
 struct State;
 
 struct Panel : public Widget {
-    std::vector<WidgetAndPosition> Widgets;
+    std::vector<PlacedWidget> Widgets;
 
     // Drag action
     Widget *DragTarget;
@@ -65,7 +65,7 @@ struct Panel : public Widget {
     void MouseLeftUp(Position position) override;
 
 private:
-    WidgetAndPosition *GetWidgetAndPosition(Widget *widget);
+    PlacedWidget *GetWidgetAndPosition(Widget *widget);
 };
 
 } // namespace gui

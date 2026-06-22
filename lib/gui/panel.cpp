@@ -20,7 +20,6 @@
 #include "gui/panel.hpp"
 
 #include <algorithm>
-#include <tuple>
 
 #include "gui/common.hpp"
 #include "gui/position.hpp"
@@ -42,16 +41,15 @@ void Panel::Update(State &state, Position offset) {
             AbortUnless(wap != nullptr);
 
 #pragma warning(suppress : 6011)
-            auto &[_, position] = *wap;
-            position = DragTargetInitialPosition + state.MousePosition(offset) -
-                       DragMouseInitialPosition;
-            position.X = std::clamp(position.X,
-                                    0,
-                                    Width - std::get<0>(*wap)->Width);
-            position.Y =
-                    std::clamp(position.Y,
-                               0,
-                               Height - std::get<0>(*wap)->Height);
+            wap->Position = DragTargetInitialPosition +
+                            state.MousePosition(offset) -
+                            DragMouseInitialPosition;
+            wap->Position.X = std::clamp(wap->Position.X,
+                                         0,
+                                         Width - wap->Widget->Width);
+            wap->Position.Y = std::clamp(wap->Position.Y,
+                                         0,
+                                         Height - wap->Widget->Height);
         }
     }
 
@@ -64,7 +62,7 @@ void Panel::Update(State &state, Position offset) {
             AbortUnless(wap != nullptr);
 
 #pragma warning(suppress : 6011)
-            const auto maxHeightPanel = Height - std::get<1>(*wap).Y;
+            const auto maxHeightPanel = Height - wap->Position.Y;
             ResizeTarget->Height = std::clamp(
                     ResizeTargetInitialHeight + state.MousePosition(offset).Y -
                             ResizeMouseInitialPosition.Y,
@@ -89,14 +87,14 @@ void Panel::Render(Canvas &canvas, Position offset) {
 Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
     for (const auto &wap : Widgets) {
         if (PointInsideWidget(position, wap)) {
-            const auto result = std::get<0>(wap)->MouseLeftDown(position - std::get<1>(wap));
+            const auto result = wap.Widget->MouseLeftDown(position - wap.Position);
             if (result == Widget::MouseEventResult::StartDrag) {
-                DragTarget = std::get<0>(wap).get();
-                DragTargetInitialPosition = std::get<1>(wap);
+                DragTarget = wap.Widget.get();
+                DragTargetInitialPosition = wap.Position;
                 DragMouseInitialPosition = position;
             } else if (result == Widget::MouseEventResult::Resize) {
-                ResizeTarget = std::get<0>(wap).get();
-                ResizeTargetInitialHeight = std::get<0>(wap)->Height;
+                ResizeTarget = wap.Widget.get();
+                ResizeTargetInitialHeight = wap.Widget->Height;
                 ResizeMouseInitialPosition = position;
             }
 
@@ -110,14 +108,14 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
 void Panel::MouseLeftUp(Position position) {
     for (const auto &wap : Widgets) {
         if (PointInsideWidget(position, wap)) {
-            std::get<0>(wap)->MouseLeftUp(position - std::get<1>(wap));
+            wap.Widget->MouseLeftUp(position - wap.Position);
         }
     }
 }
 
-WidgetAndPosition *Panel::GetWidgetAndPosition(Widget *widget) {
+PlacedWidget *Panel::GetWidgetAndPosition(Widget *widget) {
     for (auto &wap : Widgets) {
-        if (std::get<0>(wap).get() == widget) {
+        if (wap.Widget.get() == widget) {
             return &wap;
         }
     }
