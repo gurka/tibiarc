@@ -23,6 +23,7 @@
 #include <memory>
 #include <vector>
 
+#include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/widget.hpp"
 
@@ -61,16 +62,8 @@ struct VerticalPanel : public Widget {
 private:
     std::vector<std::unique_ptr<Widget>> Widgets;
 
-    // Drag action
-    Widget *DragTarget;
-    Position DragTargetPosition;
-    Position DragTargetInitialPosition;
-    Position DragMouseInitialPosition;
-
-    // Resize action
-    Widget *ResizeTarget;
-    int ResizeTargetInitialHeight;
-    Position ResizeMouseInitialPosition;
+    DragState Drag;
+    ResizeState Resize;
 
     int GetWidgetY(const Widget *widget) const;
     int GetWidgetIndex(const Widget *widget) const;

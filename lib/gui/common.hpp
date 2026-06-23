@@ -20,6 +20,7 @@
 #ifndef __TRC_GUI_COMMON_HPP__
 #define __TRC_GUI_COMMON_HPP__
 
+#include <algorithm>
 #include <memory>
 
 #include "gui/position.hpp"
@@ -31,6 +32,74 @@ namespace gui {
 struct PlacedWidget {
     std::unique_ptr<Widget> Widget;
     Position Position;
+};
+
+// Tracks the in-progress drag of a widget inside a container.
+struct DragState {
+    Widget *Target = nullptr;
+    Position CurrentPosition{0, 0};
+    Position InitialPosition{0, 0};
+    Position MouseInitialPosition{0, 0};
+
+    bool Active() const {
+        return Target != nullptr;
+    }
+
+    void Begin(Widget *target, Position widgetPos, Position mousePos) {
+        Target = target;
+        CurrentPosition = widgetPos;
+        InitialPosition = widgetPos;
+        MouseInitialPosition = mousePos;
+    }
+
+    // Recomputes CurrentPosition. Clears Target if the mouse button was
+    // released. Returns true while a drag is still active.
+    bool Update(bool mouseDown, Position mousePos, int containerW, int containerH) {
+        if (!Active()) {
+            return false;
+        }
+        if (!mouseDown) {
+            Target = nullptr;
+            return false;
+        }
+        CurrentPosition = InitialPosition + mousePos - MouseInitialPosition;
+        CurrentPosition.X = std::clamp(CurrentPosition.X, 0, containerW - Target->Width);
+        CurrentPosition.Y = std::clamp(CurrentPosition.Y, 0, containerH - Target->Height);
+        return true;
+    }
+};
+
+// Tracks the in-progress resize of a widget inside a container.
+struct ResizeState {
+    Widget *Target = nullptr;
+    int InitialHeight = 0;
+    Position MouseInitialPosition{0, 0};
+
+    bool Active() const {
+        return Target != nullptr;
+    }
+
+    void Begin(Widget *target, Position mousePos) {
+        Target = target;
+        InitialHeight = target->Height;
+        MouseInitialPosition = mousePos;
+    }
+
+    // Updates Target->Height. Clears Target if the mouse button was released.
+    // maxHeightFromPanel is the remaining panel space below the widget's top edge.
+    void Update(bool mouseDown, Position mousePos, int maxHeightFromPanel) {
+        if (!Active()) {
+            return;
+        }
+        if (!mouseDown) {
+            Target = nullptr;
+            return;
+        }
+        Target->Height = std::clamp(
+                InitialHeight + mousePos.Y - MouseInitialPosition.Y,
+                Target->MinHeight,
+                std::min(Target->MaxHeight, maxHeightFromPanel));
+    }
 };
 
 inline bool PointInsideWidget(Position position, const Widget &widget) {

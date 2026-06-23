@@ -19,8 +19,6 @@
 
 #include "gui/panel.hpp"
 
-#include <algorithm>
-
 #include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/state.hpp"
@@ -33,42 +31,20 @@ namespace gui {
 
 void Panel::Update(State &state, Position offset) {
     // Handle drag action
-    if (DragTarget != nullptr) {
-        if (!state.MouseLeftDown()) {
-            DragTarget = nullptr;
-        } else {
-            auto *wap = GetWidgetAndPosition(DragTarget);
-            AbortUnless(wap != nullptr);
-
-#pragma warning(suppress : 6011)
-            wap->Position = DragTargetInitialPosition +
-                            state.MousePosition(offset) -
-                            DragMouseInitialPosition;
-            wap->Position.X = std::clamp(wap->Position.X,
-                                         0,
-                                         Width - wap->Widget->Width);
-            wap->Position.Y = std::clamp(wap->Position.Y,
-                                         0,
-                                         Height - wap->Widget->Height);
+    if (Drag.Active()) {
+        auto *pw = GetWidgetAndPosition(Drag.Target);
+        AbortUnless(pw != nullptr);
+        if (Drag.Update(state.MouseLeftDown(), state.MousePosition(offset), Width, Height)) {
+            pw->Position = Drag.CurrentPosition;
         }
     }
 
     // Handle resize action
-    if (ResizeTarget != nullptr) {
-        if (!state.MouseLeftDown()) {
-            ResizeTarget = nullptr;
-        } else {
-            auto *wap = GetWidgetAndPosition(ResizeTarget);
-            AbortUnless(wap != nullptr);
-
-#pragma warning(suppress : 6011)
-            const auto maxHeightPanel = Height - wap->Position.Y;
-            ResizeTarget->Height = std::clamp(
-                    ResizeTargetInitialHeight + state.MousePosition(offset).Y -
-                            ResizeMouseInitialPosition.Y,
-                    ResizeTarget->MinHeight,
-                    std::min(ResizeTarget->MaxHeight, maxHeightPanel));
-        }
+    if (Resize.Active()) {
+        auto *pw = GetWidgetAndPosition(Resize.Target);
+        AbortUnless(pw != nullptr);
+        const auto maxHeightPanel = Height - pw->Position.Y;
+        Resize.Update(state.MouseLeftDown(), state.MousePosition(offset), maxHeightPanel);
     }
 
     for (const auto &wap : Widgets) {
@@ -89,13 +65,9 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
         if (PointInsideWidget(position, wap)) {
             const auto result = wap.Widget->MouseLeftDown(position - wap.Position);
             if (result == Widget::MouseEventResult::StartDrag) {
-                DragTarget = wap.Widget.get();
-                DragTargetInitialPosition = wap.Position;
-                DragMouseInitialPosition = position;
+                Drag.Begin(wap.Widget.get(), wap.Position, position);
             } else if (result == Widget::MouseEventResult::Resize) {
-                ResizeTarget = wap.Widget.get();
-                ResizeTargetInitialHeight = wap.Widget->Height;
-                ResizeMouseInitialPosition = position;
+                Resize.Begin(wap.Widget.get(), position);
             }
 
             return Widget::MouseEventResult::Handled;

@@ -36,14 +36,7 @@ struct State;
 
 struct Panel : public Widget {
     Panel(int width, int height)
-        : Widget(width, height),
-          Widgets(),
-          DragTarget(nullptr),
-          DragTargetInitialPosition(0, 0),
-          DragMouseInitialPosition(0, 0),
-          ResizeTarget(nullptr),
-          ResizeTargetInitialHeight(0),
-          ResizeMouseInitialPosition(0, 0) {
+        : Widget(width, height) {
     }
 
     template<typename T>
@@ -62,15 +55,8 @@ struct Panel : public Widget {
 private:
     std::vector<PlacedWidget> Widgets;
 
-    // Drag action
-    Widget *DragTarget;
-    Position DragTargetInitialPosition;
-    Position DragMouseInitialPosition;
-
-    // Resize action
-    Widget *ResizeTarget;
-    int ResizeTargetInitialHeight;
-    Position ResizeMouseInitialPosition;
+    DragState Drag;
+    ResizeState Resize;
 
     PlacedWidget *GetWidgetAndPosition(Widget *widget);
 };
