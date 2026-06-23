@@ -35,8 +35,6 @@ namespace gui {
 struct State;
 
 struct VerticalPanel : public Widget {
-    std::vector<std::unique_ptr<Widget>> Widgets;
-
     // Whether the panel should automatically adjust its height based on the height
     // of all widgets
     bool DynamicHeight;
@@ -47,6 +45,13 @@ struct VerticalPanel : public Widget {
 
     VerticalPanel(int width, int height);
 
+    template<typename T>
+    T &Add(std::unique_ptr<T> widget) {
+        T &ref = *widget;
+        Widgets.emplace_back(std::move(widget));
+        return ref;
+    }
+
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 
@@ -54,6 +59,8 @@ struct VerticalPanel : public Widget {
     void MouseLeftUp(Position position) override;
 
 private:
+    std::vector<std::unique_ptr<Widget>> Widgets;
+
     // Drag action
     Widget *DragTarget;
     Position DragTargetPosition;

@@ -540,18 +540,13 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     // minimized/maximized)
     auto sidebarTop = std::make_unique<gui::VerticalPanel>(172, 0);
     sidebarTop->DynamicHeight = true;
-    sidebarTop->Widgets.emplace_back(
-            std::make_unique<SidebarMinimap>(gamestate));
-    sidebarTop->Widgets.emplace_back(
-            std::make_unique<SidebarResources>(gamestate));
-    sidebarTop->Widgets.emplace_back(
-            std::make_unique<SidebarInventory>(gamestate));
-    sidebarTop->Widgets.emplace_back(
-            std::make_unique<SidebarButtons>(gamestate));
-    sidebar->Widgets.emplace_back(
-            std::make_unique<gui::Border>(&gamestate->Version.Icons,
-                                          gui::Border::BorderType::Raised,
-                                          std::move(sidebarTop)));
+    sidebarTop->Add(std::make_unique<SidebarMinimap>(gamestate));
+    sidebarTop->Add(std::make_unique<SidebarResources>(gamestate));
+    sidebarTop->Add(std::make_unique<SidebarInventory>(gamestate));
+    sidebarTop->Add(std::make_unique<SidebarButtons>(gamestate));
+    sidebar->Add(std::make_unique<gui::Border>(&gamestate->Version.Icons,
+                                               gui::Border::BorderType::Raised,
+                                               std::move(sidebarTop)));
 
     // Sidebar bottom
     // Dynamic size based on parent (Sidebar), it should fill the remaining
@@ -559,24 +554,22 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     // in sidebarBottom
     auto sidebarBottom = std::make_unique<gui::VerticalPanel>(176, 0);
     sidebarBottom->ResizeBottomWidget = true;
-    auto sidebarSkillsWindow =
+    auto &skillsWindow = sidebarBottom->Add(
             std::make_unique<gui::Window>(176,
-                                          100,
-                                          &gamestate->Version,
-                                          gui::Window::Type::Sidebar,
-                                          &gamestate->Version.Icons.SkillsIcon,
-                                          "Skills",
-                                          []() { /* TODO */ });
-    sidebarSkillsWindow->Content =
-            std::make_unique<SidebarSkillsContent>(gamestate);
-    sidebarBottom->Widgets.emplace_back(std::move(sidebarSkillsWindow));
-    sidebarBottom->Widgets.emplace_back(std::make_unique<gui::Border>(
+                                         100,
+                                         &gamestate->Version,
+                                         gui::Window::Type::Sidebar,
+                                         &gamestate->Version.Icons.SkillsIcon,
+                                         "Skills",
+                                         []() { /* TODO */ }));
+    skillsWindow.Content = std::make_unique<SidebarSkillsContent>(gamestate);
+    sidebarBottom->Add(std::make_unique<gui::Border>(
             &gamestate->Version.Icons,
             gui::Border::BorderType::Raised,
             std::make_unique<SidebarBottomFiller>(gamestate)));
-    sidebar->Widgets.emplace_back(std::move(sidebarBottom));
+    sidebar->Add(std::move(sidebarBottom));
 
     // Add sidebar to gui
-    gui->Widgets.push_back({std::move(sidebar), gui::Position(width - 176, 0)});
+    gui->Add(std::move(sidebar), gui::Position(width - 176, 0));
     return gui;
 }

@@ -35,6 +35,31 @@ namespace gui {
 struct State;
 
 struct Panel : public Widget {
+    Panel(int width, int height)
+        : Widget(width, height),
+          Widgets(),
+          DragTarget(nullptr),
+          DragTargetInitialPosition(0, 0),
+          DragMouseInitialPosition(0, 0),
+          ResizeTarget(nullptr),
+          ResizeTargetInitialHeight(0),
+          ResizeMouseInitialPosition(0, 0) {
+    }
+
+    template<typename T>
+    T &Add(std::unique_ptr<T> widget, Position position) {
+        T &ref = *widget;
+        Widgets.push_back({std::move(widget), position});
+        return ref;
+    }
+
+    void Update(State &state, Position offset) override;
+    void Render(Canvas &canvas, Position offset) override;
+
+    MouseEventResult MouseLeftDown(Position position) override;
+    void MouseLeftUp(Position position) override;
+
+private:
     std::vector<PlacedWidget> Widgets;
 
     // Drag action
@@ -47,24 +72,6 @@ struct Panel : public Widget {
     int ResizeTargetInitialHeight;
     Position ResizeMouseInitialPosition;
 
-    Panel(int width, int height)
-        : Widget(width, height),
-          Widgets(),
-          DragTarget(nullptr),
-          DragTargetInitialPosition(0, 0),
-          DragMouseInitialPosition(0, 0),
-          ResizeTarget(nullptr),
-          ResizeTargetInitialHeight(0),
-          ResizeMouseInitialPosition(0, 0) {
-    }
-
-    void Update(State &state, Position offset) override;
-    void Render(Canvas &canvas, Position offset) override;
-
-    MouseEventResult MouseLeftDown(Position position) override;
-    void MouseLeftUp(Position position) override;
-
-private:
     PlacedWidget *GetWidgetAndPosition(Widget *widget);
 };
 
