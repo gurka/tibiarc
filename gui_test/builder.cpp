@@ -536,7 +536,7 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     // Sidebar
     // Always the same height (window/gui height)
     auto sidebar = std::make_unique<gui::VerticalPanel>(176, height);
-    sidebar->ResizeBottomWidget = true;
+    sidebar->StretchLastChild = true;
 
     // Sidebar top
     // Dynamic size based on content (SidebarInventory can be
@@ -556,7 +556,7 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     // space And what should fill the remaining space is the bottom/last widget
     // in sidebarBottom
     auto sidebarBottom = std::make_unique<gui::VerticalPanel>(176, 0);
-    sidebarBottom->ResizeBottomWidget = true;
+    sidebarBottom->StretchLastChild = true;
     auto &skillsWindow = sidebarBottom->Add(
             std::make_unique<gui::Window>(176,
                                          100,

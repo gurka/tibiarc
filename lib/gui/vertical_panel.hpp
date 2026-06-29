@@ -40,9 +40,9 @@ struct VerticalPanel : public Widget {
     // of all widgets
     bool DynamicHeight;
 
-    // Whether the bottom (last) widget should be resized to fill the remaining
+    // Whether the last widget should be stretched to fill the remaining
     // space in the panel
-    bool ResizeBottomWidget;
+    bool StretchLastChild;
 
     VerticalPanel(int width, int height);
 

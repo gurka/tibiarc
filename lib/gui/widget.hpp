@@ -50,6 +50,13 @@ struct Widget {
         : Width(width), Height(height), MinHeight(height), MaxHeight(height) {
     }
 
+    // Called by a parent container to assign this widget a specific height.
+    // Wrapper widgets (e.g. Border) should override this to propagate the
+    // assignment to their child.
+    virtual void SetHeight(int h) {
+        Height = h;
+    }
+
     virtual void Update(State &state, Position offset) {
     }
     virtual void Render(Canvas &canvas, Position offset) = 0;

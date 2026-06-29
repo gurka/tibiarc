@@ -33,7 +33,7 @@ VerticalPanel::VerticalPanel(int width, int height)
     : Widget(width, height),
       Widgets(),
       DynamicHeight(false),
-      ResizeBottomWidget(false) {
+      StretchLastChild(false) {
 }
 
 void VerticalPanel::Update(State &state, Position offset) {
@@ -50,10 +50,10 @@ void VerticalPanel::Update(State &state, Position offset) {
 
     // Update widgets
     auto y = 0;
-    for (auto i = 0; i < Widgets.size(); ++i) {
+    for (auto i = 0; i < static_cast<int>(Widgets.size()); ++i) {
         auto &widget = Widgets[i];
-        if (ResizeBottomWidget && i == Widgets.size() - 1) {
-            widget->Height = Height - y;
+        if (StretchLastChild && i == static_cast<int>(Widgets.size()) - 1) {
+            widget->SetHeight(Height - y);
         }
         widget->Update(state, offset + Position(0, y));
         y += widget->Height;
@@ -82,8 +82,8 @@ void VerticalPanel::Update(State &state, Position offset) {
         }
 
         if (otherWidget != nullptr) {
-            // Don't swap with the bottom widget if ResizeBottomWidget is true
-            if (!ResizeBottomWidget ||
+            // Don't swap with the last widget if StretchLastChild is true
+            if (!StretchLastChild ||
                 otherWidget != Widgets[Widgets.size() - 1].get()) {
                 const auto otherMidY = otherY + (otherWidget->Height / 2);
                 if ((otherIsAbove && Drag.CurrentPosition.Y < otherMidY) ||
@@ -97,12 +97,7 @@ void VerticalPanel::Update(State &state, Position offset) {
     }
 
     if (DynamicHeight) {
-        // Make sure that Height is up to date
-        // TODO: What can we do to avoid having to recalculate this every frame?
-        Height = 0;
-        for (const auto &widget : Widgets) {
-            Height += widget->Height;
-        }
+        Height = y;
     }
 }
 
