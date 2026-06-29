@@ -61,6 +61,8 @@ void Panel::Render(Canvas &canvas, Position offset) {
 }
 
 Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
+    PressedWidget = nullptr;
+
     for (const auto &wap : Widgets) {
         if (PointInsideWidget(position, wap)) {
             const auto result = wap.Widget->MouseLeftDown(position - wap.Position);
@@ -68,6 +70,11 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
                 Drag.Begin(wap.Widget.get(), wap.Position, position);
             } else if (result == Widget::MouseEventResult::Resize) {
                 Resize.Begin(wap.Widget.get(), position);
+            }
+
+            if (result != Widget::MouseEventResult::NotHandled) {
+                PressedWidget = wap.Widget.get();
+                PressedWidgetPosition = wap.Position;
             }
 
             return Widget::MouseEventResult::Handled;
@@ -78,10 +85,9 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
 }
 
 void Panel::MouseLeftUp(Position position) {
-    for (const auto &wap : Widgets) {
-        if (PointInsideWidget(position, wap)) {
-            wap.Widget->MouseLeftUp(position - wap.Position);
-        }
+    if (PressedWidget != nullptr) {
+        PressedWidget->MouseLeftUp(position - PressedWidgetPosition);
+        PressedWidget = nullptr;
     }
 }
 

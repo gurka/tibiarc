@@ -120,6 +120,8 @@ void VerticalPanel::Render(Canvas &canvas, Position offset) {
 }
 
 Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
+    PressedWidget = nullptr;
+
     auto y = 0;
     for (const auto &widget : Widgets) {
         if (PointInsideArea(position,
@@ -133,6 +135,11 @@ Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
                 Resize.Begin(widget.get(), position);
             }
 
+            if (result != Widget::MouseEventResult::NotHandled) {
+                PressedWidget = widget.get();
+                PressedWidgetY = y;
+            }
+
             return Widget::MouseEventResult::Handled;
         }
 
@@ -143,12 +150,9 @@ Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
 }
 
 void VerticalPanel::MouseLeftUp(Position position) {
-    auto y = 0;
-    for (const auto &widget : Widgets) {
-        if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
-            widget->MouseLeftUp(position - Position(0, y));
-        }
-        y += widget->Height;
+    if (PressedWidget != nullptr) {
+        PressedWidget->MouseLeftUp(position - Position(0, PressedWidgetY));
+        PressedWidget = nullptr;
     }
 }
 

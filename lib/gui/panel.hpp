@@ -58,6 +58,9 @@ private:
     DragState Drag;
     ResizeState Resize;
 
+    Widget *PressedWidget = nullptr;
+    Position PressedWidgetPosition{0, 0};
+
     PlacedWidget *GetWidgetAndPosition(Widget *widget);
 };
 

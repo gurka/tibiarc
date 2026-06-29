@@ -31,10 +31,6 @@ namespace trc {
 namespace gui {
 
 void Button::Update(State &state, Position offset) {
-    if (!state.MouseLeftDown()) {
-        Pressed = false;
-    }
-
     RenderPressed =
             (Pressed &&
              PointInsideWidget(state.MousePosition(offset), *this)) ||
@@ -78,16 +74,15 @@ Widget::MouseEventResult Button::MouseLeftDown(Position position) {
 }
 
 void Button::MouseLeftUp(Position position) {
-    // Only trigger the click action if the mouse was both pressed and released
-    // on this button
     if (Pressed) {
-        if (Type == ButtonType::Toggle) {
-            Toggled = !Toggled;
+        Pressed = false;
+        if (PointInsideWidget(position, *this)) {
+            if (Type == ButtonType::Toggle) {
+                Toggled = !Toggled;
+            }
+            OnClick();
         }
-        OnClick();
     }
-
-    // Pressed is reset in Render()
 }
 
 } // namespace gui

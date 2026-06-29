@@ -55,20 +55,26 @@ void Border::Render(Canvas &canvas, Position offset) {
 }
 
 Border::MouseEventResult Border::MouseLeftDown(Position position) {
+    ChildPressed = false;
+
     if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
         position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
         return MouseEventResult::NotHandled;
     }
-    return Child->MouseLeftDown(position -
-                                Position(BorderWidth(), BorderWidth()));
+
+    const auto result = Child->MouseLeftDown(position -
+                                             Position(BorderWidth(), BorderWidth()));
+    if (result != MouseEventResult::NotHandled) {
+        ChildPressed = true;
+    }
+    return result;
 }
 
 void Border::MouseLeftUp(Position position) {
-    if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
-        position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-        return;
+    if (ChildPressed) {
+        ChildPressed = false;
+        Child->MouseLeftUp(position - Position(BorderWidth(), BorderWidth()));
     }
-    Child->MouseLeftUp(position - Position(BorderWidth(), BorderWidth()));
 }
 
 void Border::RenderSunkenBorder(Canvas &canvas, Position offset) {

@@ -51,6 +51,8 @@ struct Border : Widget {
     void MouseLeftUp(Position position) override;
 
 private:
+    bool ChildPressed = false;
+
     void RenderSunkenBorder(Canvas &canvas, Position offset);
     void RenderRaisedBorder(Canvas &canvas, Position offset);
 

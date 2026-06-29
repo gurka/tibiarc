@@ -166,6 +166,7 @@ struct SidebarResources : public gui::Widget {
 struct SidebarInventory : public gui::Widget {
     Gamestate *_Gamestate;
     gui::Button MinimizeButton;
+    bool MinimizeButtonPressed = false;
 
     SidebarInventory(Gamestate *gamestate)
         : Widget(172, 155),
@@ -331,17 +332,19 @@ struct SidebarInventory : public gui::Widget {
     }
 
     MouseEventResult MouseLeftDown(gui::Position position) override {
+        MinimizeButtonPressed = false;
         if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
             position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
             MinimizeButton.MouseLeftDown(position - gui::Position(8, 4));
+            MinimizeButtonPressed = true;
             return MouseEventResult::Handled;
         }
         return MouseEventResult::StartDrag;
     }
 
     void MouseLeftUp(gui::Position position) override {
-        if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
-            position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
+        if (MinimizeButtonPressed) {
+            MinimizeButtonPressed = false;
             MinimizeButton.MouseLeftUp(position - gui::Position(8, 4));
         }
     }

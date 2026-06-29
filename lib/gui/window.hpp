@@ -74,6 +74,8 @@ private:
     Button CloseButton;
     Position CloseButtonPosition;
 
+    Button *PressedButton = nullptr;
+
     void MinimizeOnClick();
 };
 

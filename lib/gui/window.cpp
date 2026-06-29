@@ -91,6 +91,10 @@ void Window::Update(State &state, Position offset) {
         state.MousePosition(offset).Y >= Height - 19) {
         state.RequestMouseCursor(State::MouseCursor::Resize);
     }
+
+    if (!MinimizeButton.Toggled) {
+        MaximizedHeight = Height;
+    }
 }
 
 void Window::Render(Canvas &canvas, Position offset) {
@@ -194,11 +198,15 @@ void Window::Render(Canvas &canvas, Position offset) {
 }
 
 Widget::MouseEventResult Window::MouseLeftDown(Position position) {
+    PressedButton = nullptr;
+
     if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
+        PressedButton = &MinimizeButton;
         return MinimizeButton.MouseLeftDown(position - MinimizeButtonPosition);
     }
 
     if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
+        PressedButton = &CloseButton;
         return CloseButton.MouseLeftDown(position - CloseButtonPosition);
     }
 
@@ -216,10 +224,11 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
 }
 
 void Window::MouseLeftUp(Position position) {
-    if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
-        MinimizeButton.MouseLeftUp(position - MinimizeButtonPosition);
-    } else if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
-        CloseButton.MouseLeftUp(position - CloseButtonPosition);
+    if (PressedButton != nullptr) {
+        const auto &pos = (PressedButton == &MinimizeButton) ? MinimizeButtonPosition
+                                                             : CloseButtonPosition;
+        PressedButton->MouseLeftUp(position - pos);
+        PressedButton = nullptr;
     }
 }
 
