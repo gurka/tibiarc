@@ -79,7 +79,7 @@ void handle_resize() {
                                        SDL_TEXTUREACCESS_STREAMING,
                                        width,
                                        height));
-    MainPanel = Builder::BuildGui(width, height, _Playback->Gamestate.get());
+    MainPanel = Builder::BuildGui(width, height, _Playback->Gamestate.get(), &State);
 }
 
 void handle_input() {

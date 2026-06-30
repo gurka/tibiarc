@@ -30,6 +30,10 @@ struct GuiState : public trc::gui::State {
     MouseCursor CurrentCursor = MouseCursor::Default;
     MouseCursor RequestedCursor = MouseCursor::Default;
 
+    bool SkillsWindowVisible = true;
+    bool BattleWindowVisible = true;
+    bool VIPWindowVisible = false;
+
     trc::gui::Position MousePosition(trc::gui::Position offset) const override {
         return trc::gui::Position(MouseX, MouseY) - offset;
     }

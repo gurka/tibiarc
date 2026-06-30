@@ -22,12 +22,13 @@
 
 #include <memory>
 
+#include "state.hpp"
 #include "gui/panel.hpp"
 #include "gamestate.hpp"
 
 namespace Builder {
 
-std::unique_ptr<trc::gui::Panel> BuildGui(int width, int height, trc::Gamestate *gamestate);
+std::unique_ptr<trc::gui::Panel> BuildGui(int width, int height, trc::Gamestate *gamestate, GuiState *guiState);
 
 } // namespace Builder
     

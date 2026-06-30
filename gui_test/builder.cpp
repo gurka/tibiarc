@@ -35,6 +35,8 @@
 #include "gui/window.hpp"
 #include "gui/state.hpp"
 
+#include "state.hpp"
+
 #include "canvas.hpp"
 #include "gamestate.hpp"
 #include "pixel.hpp"
@@ -352,9 +354,30 @@ struct SidebarInventory : public gui::Widget {
 
 struct SidebarButtons : public gui::Widget {
     Gamestate *_Gamestate;
+    GuiState *_GuiState;
 
-    SidebarButtons(Gamestate *gamestate)
-        : Widget(172, 26), _Gamestate(gamestate) {
+    gui::Button SkillsButton;
+
+    Widget *WidgetPressed;
+
+    SidebarButtons(Gamestate *gamestate, GuiState *guiState)
+        : Widget(172, 26), _Gamestate(gamestate), _GuiState(guiState),
+          SkillsButton(&gamestate->Version.Icons.Button34px,
+                       &gamestate->Version.Icons.Button34pxPressed,
+                       gui::Button::ButtonType::Toggle),
+          WidgetPressed(nullptr) {
+        SkillsButton.SetText("Skills",
+                             Pixel(0xFF, 0xFF, 0xFF),
+                             &gamestate->Version.Fonts.InterfaceSmall);
+        SkillsButton.SetOnClick([this]() {
+            _GuiState->SkillsWindowVisible = !_GuiState->SkillsWindowVisible;
+        });
+        SkillsButton.Toggled = _GuiState->SkillsWindowVisible;
+    }
+
+    void Update(gui::State &state, gui::Position offset) override {
+        SkillsButton.Toggled = _GuiState->SkillsWindowVisible;
+        SkillsButton.Update(state, offset + gui::Position(8, 3));
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -367,13 +390,7 @@ struct SidebarButtons : public gui::Widget {
                          offset.X + 172,
                          offset.Y + 26);
 
-        canvas.Draw(icons.Button34px, offset.X + 8, offset.Y + 3);
-        TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
-                                         Pixel(0xFF, 0xFF, 0xFF),
-                                         offset.X + 25,
-                                         offset.Y + 9,
-                                         "Skills",
-                                         canvas);
+        SkillsButton.Render(canvas, offset + gui::Position(8, 3));
 
         canvas.Draw(icons.Button34px, offset.X + 45, offset.Y + 3);
         TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
@@ -401,7 +418,22 @@ struct SidebarButtons : public gui::Widget {
     }
 
     MouseEventResult MouseLeftDown(gui::Position position) override {
+        if (position.X >= 8 && position.X < 8 + SkillsButton.Width &&
+            position.Y >= 3 && position.Y < 3 + SkillsButton.Height) {
+            const auto ret = SkillsButton.MouseLeftDown(position - gui::Position(8, 3));
+            WidgetPressed = &SkillsButton;
+            return ret;
+        }
         return MouseEventResult::StartDrag;
+    }
+
+    void MouseLeftUp(gui::Position position) override {
+        if (WidgetPressed) {
+           if (WidgetPressed == &SkillsButton) {
+               SkillsButton.MouseLeftUp(position - gui::Position(8, 3));
+           }
+           WidgetPressed = nullptr;
+       }
     }
 };
 
@@ -513,9 +545,45 @@ struct SidebarBottomFiller : public gui::Widget {
     }
 };
 
+struct SidebarBottom : public gui::VerticalPanel {
+    GuiState *_GuiState;
+    gui::Window *SkillsWindow;
+
+    SidebarBottom(Gamestate *gamestate, GuiState *guiState)
+        : VerticalPanel(176, 0), _GuiState(guiState) {
+        StretchLastChild = true;
+
+        // Windows
+        SkillsWindow = &Add(std::make_unique<gui::Window>(
+                176,
+                100,
+                &gamestate->Version,
+                gui::Window::Type::Sidebar,
+                &gamestate->Version.Icons.SkillsIcon,
+                "Skills",
+                [this]() { _GuiState->SkillsWindowVisible = false; }));
+        SkillsWindow->Content =
+                std::make_unique<SidebarSkillsContent>(gamestate);
+
+        // Containers ...
+
+        // Bottom (filler)
+        Add(std::make_unique<gui::Border>(
+                &gamestate->Version.Icons,
+                gui::Border::BorderType::Raised,
+                std::make_unique<SidebarBottomFiller>(gamestate)));
+    }
+
+    void Update(gui::State &state, gui::Position offset) override {
+        SkillsWindow->Visible = _GuiState->SkillsWindowVisible;
+        VerticalPanel::Update(state, offset);
+    }
+};
+
 std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
                                               int height,
-                                              trc::Gamestate *gamestate) {
+                                              trc::Gamestate *gamestate,
+                                              GuiState *guiState) {
     auto gui = std::make_unique<gui::Panel>(width, height);
 
     // The sidebar is built as:
@@ -546,7 +614,7 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     sidebarTop->Add(std::make_unique<SidebarMinimap>(gamestate));
     sidebarTop->Add(std::make_unique<SidebarResources>(gamestate));
     sidebarTop->Add(std::make_unique<SidebarInventory>(gamestate));
-    sidebarTop->Add(std::make_unique<SidebarButtons>(gamestate));
+    sidebarTop->Add(std::make_unique<SidebarButtons>(gamestate, guiState));
     sidebar->Add(std::make_unique<gui::Border>(&gamestate->Version.Icons,
                                                gui::Border::BorderType::Raised,
                                                std::move(sidebarTop)));
@@ -555,22 +623,7 @@ std::unique_ptr<gui::Panel> Builder::BuildGui(int width,
     // Dynamic size based on parent (Sidebar), it should fill the remaining
     // space And what should fill the remaining space is the bottom/last widget
     // in sidebarBottom
-    auto sidebarBottom = std::make_unique<gui::VerticalPanel>(176, 0);
-    sidebarBottom->StretchLastChild = true;
-    auto &skillsWindow = sidebarBottom->Add(
-            std::make_unique<gui::Window>(176,
-                                         100,
-                                         &gamestate->Version,
-                                         gui::Window::Type::Sidebar,
-                                         &gamestate->Version.Icons.SkillsIcon,
-                                         "Skills",
-                                         []() { /* TODO */ }));
-    skillsWindow.Content = std::make_unique<SidebarSkillsContent>(gamestate);
-    sidebarBottom->Add(std::make_unique<gui::Border>(
-            &gamestate->Version.Icons,
-            gui::Border::BorderType::Raised,
-            std::make_unique<SidebarBottomFiller>(gamestate)));
-    sidebar->Add(std::move(sidebarBottom));
+    sidebar->Add(std::make_unique<SidebarBottom>(gamestate, guiState));
 
     // Add sidebar to gui
     gui->Add(std::move(sidebar), gui::Position(width - 176, 0));
