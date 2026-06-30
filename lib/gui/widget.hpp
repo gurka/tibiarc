@@ -46,6 +46,8 @@ struct Widget {
     int MinHeight;
     int MaxHeight;
 
+    bool Visible = true;
+
     Widget(int width, int height)
         : Width(width), Height(height), MinHeight(height), MaxHeight(height) {
     }

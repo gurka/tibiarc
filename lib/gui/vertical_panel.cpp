@@ -52,6 +52,9 @@ void VerticalPanel::Update(State &state, Position offset) {
     auto y = 0;
     for (auto i = 0; i < static_cast<int>(Widgets.size()); ++i) {
         auto &widget = Widgets[i];
+        if (!widget->Visible) {
+            continue;
+        }
         if (StretchLastChild && i == static_cast<int>(Widgets.size()) - 1) {
             widget->SetHeight(Height - y);
         }
@@ -104,6 +107,9 @@ void VerticalPanel::Update(State &state, Position offset) {
 void VerticalPanel::Render(Canvas &canvas, Position offset) {
     auto y = 0;
     for (const auto &widget : Widgets) {
+        if (!widget->Visible) {
+            continue;
+        }
         if (widget.get() != Drag.Target) {
             widget->Render(canvas, offset + gui::Position(0, y));
         }
@@ -119,6 +125,9 @@ Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
 
     auto y = 0;
     for (const auto &widget : Widgets) {
+        if (!widget->Visible) {
+            continue;
+        }
         if (PointInsideArea(position,
                             Position(0, y),
                             widget->Width,
@@ -157,7 +166,9 @@ int VerticalPanel::GetWidgetY(const Widget *widget) const {
         if (w.get() == widget) {
             return y;
         }
-        y += w->Height;
+        if (w->Visible) {
+            y += w->Height;
+        }
     }
     std::terminate();
 }

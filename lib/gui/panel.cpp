@@ -49,6 +49,9 @@ void Panel::Update(State &state, Position offset) {
 
     for (const auto &wap : Widgets) {
         auto &[widget, position] = wap;
+        if (!widget->Visible) {
+            continue;
+        }
         widget->Update(state, offset + position);
     }
 }
@@ -56,6 +59,9 @@ void Panel::Update(State &state, Position offset) {
 void Panel::Render(Canvas &canvas, Position offset) {
     for (const auto &wap : Widgets) {
         auto &[widget, position] = wap;
+        if (!widget->Visible) {
+            continue;
+        }
         widget->Render(canvas, offset + position);
     }
 }
@@ -64,6 +70,9 @@ Widget::MouseEventResult Panel::MouseLeftDown(Position position) {
     PressedWidget = nullptr;
 
     for (const auto &wap : Widgets) {
+        if (!wap.Widget->Visible) {
+            continue;
+        }
         if (PointInsideWidget(position, wap)) {
             const auto result = wap.Widget->MouseLeftDown(position - wap.Position);
             if (result == Widget::MouseEventResult::StartDrag) {
