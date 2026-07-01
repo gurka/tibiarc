@@ -356,28 +356,64 @@ struct SidebarButtons : public gui::Widget {
     Gamestate *_Gamestate;
     GuiState *_GuiState;
 
-    gui::Button SkillsButton;
+    gui::PlacedWidget<gui::Button> SkillsButton;
+    gui::PlacedWidget<gui::Button> BattleButton;
+    gui::PlacedWidget<gui::Button> VIPButton;
 
-    Widget *WidgetPressed;
+    gui::PlacedWidget<gui::Button> *WidgetPressed;
 
     SidebarButtons(Gamestate *gamestate, GuiState *guiState)
-        : Widget(172, 26), _Gamestate(gamestate), _GuiState(guiState),
-          SkillsButton(&gamestate->Version.Icons.Button34px,
-                       &gamestate->Version.Icons.Button34pxPressed,
-                       gui::Button::ButtonType::Toggle),
-          WidgetPressed(nullptr) {
-        SkillsButton.SetText("Skills",
-                             Pixel(0xFF, 0xFF, 0xFF),
-                             &gamestate->Version.Fonts.InterfaceSmall);
-        SkillsButton.SetOnClick([this]() {
+        : Widget(172, 26), _Gamestate(gamestate), _GuiState(guiState), WidgetPressed(nullptr) {
+        auto skillsButton = std::make_unique<gui::Button>(
+                &gamestate->Version.Icons.Button34px,
+                &gamestate->Version.Icons.Button34pxPressed,
+                gui::Button::ButtonType::Toggle);
+        skillsButton->SetText("Skills",
+                              Pixel(0xFF, 0xFF, 0xFF),
+                              &gamestate->Version.Fonts.InterfaceSmall);
+        skillsButton->SetOnClick([this]() {
             _GuiState->SkillsWindowVisible = !_GuiState->SkillsWindowVisible;
         });
-        SkillsButton.Toggled = _GuiState->SkillsWindowVisible;
+        skillsButton->Toggled = _GuiState->SkillsWindowVisible;
+        SkillsButton.Widget = std::move(skillsButton);
+        SkillsButton.Position = gui::Position(8, 3);
+
+        auto battleButton = std::make_unique<gui::Button>(
+                &gamestate->Version.Icons.Button34px,
+                &gamestate->Version.Icons.Button34pxPressed,
+                gui::Button::ButtonType::Toggle);
+        battleButton->SetText("Battle",
+                              Pixel(0xFF, 0xFF, 0xFF),
+                              &gamestate->Version.Fonts.InterfaceSmall);
+        battleButton->SetOnClick([this]() {
+            _GuiState->BattleWindowVisible = !_GuiState->BattleWindowVisible;
+        });
+        BattleButton.Widget = std::move(battleButton);
+        BattleButton.Position = gui::Position(45, 3);
+
+        auto vipButton = std::make_unique<gui::Button>(
+                &gamestate->Version.Icons.Button34px,
+                &gamestate->Version.Icons.Button34pxPressed,
+                gui::Button::ButtonType::Toggle);
+        vipButton->SetText("VIP",
+                           Pixel(0xFF, 0xFF, 0xFF),
+                           &gamestate->Version.Fonts.InterfaceSmall);
+        vipButton->SetOnClick([this]() {
+            _GuiState->VIPWindowVisible = !_GuiState->VIPWindowVisible;
+        });
+        VIPButton.Widget = std::move(vipButton);
+        VIPButton.Position = gui::Position(82, 3);
     }
 
     void Update(gui::State &state, gui::Position offset) override {
-        SkillsButton.Toggled = _GuiState->SkillsWindowVisible;
-        SkillsButton.Update(state, offset + gui::Position(8, 3));
+        SkillsButton.Widget->Toggled = _GuiState->SkillsWindowVisible;
+        SkillsButton.Widget->Update(state, offset + SkillsButton.Position);
+
+        BattleButton.Widget->Toggled = _GuiState->BattleWindowVisible;
+        BattleButton.Widget->Update(state, offset + BattleButton.Position);
+
+        VIPButton.Widget->Toggled = _GuiState->VIPWindowVisible;
+        VIPButton.Widget->Update(state, offset + VIPButton.Position);
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -390,24 +426,11 @@ struct SidebarButtons : public gui::Widget {
                          offset.X + 172,
                          offset.Y + 26);
 
-        SkillsButton.Render(canvas, offset + gui::Position(8, 3));
+        SkillsButton.Widget->Render(canvas, offset + SkillsButton.Position);
+        BattleButton.Widget->Render(canvas, offset + BattleButton.Position);
+        VIPButton.Widget->Render(canvas, offset + VIPButton.Position);
 
-        canvas.Draw(icons.Button34px, offset.X + 45, offset.Y + 3);
-        TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
-                                         Pixel(0xFF, 0xFF, 0xFF),
-                                         offset.X + 62,
-                                         offset.Y + 9,
-                                         "Battle",
-                                         canvas);
-
-        canvas.Draw(icons.Button34px, offset.X + 82, offset.Y + 3);
-        TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
-                                         Pixel(0xFF, 0xFF, 0xFF),
-                                         offset.X + 99,
-                                         offset.Y + 9,
-                                         "VIP",
-                                         canvas);
-
+        // Logout button is non-functional
         canvas.Draw(icons.Button43px, offset.X + 124, offset.Y + 3);
         TextRenderer::DrawCenteredString(fonts.InterfaceSmall,
                                          Pixel(0xFF, 0xFF, 0xFF),
@@ -418,22 +441,27 @@ struct SidebarButtons : public gui::Widget {
     }
 
     MouseEventResult MouseLeftDown(gui::Position position) override {
-        if (position.X >= 8 && position.X < 8 + SkillsButton.Width &&
-            position.Y >= 3 && position.Y < 3 + SkillsButton.Height) {
-            const auto ret = SkillsButton.MouseLeftDown(position - gui::Position(8, 3));
-            WidgetPressed = &SkillsButton;
-            return ret;
+        for (auto *widget : {&SkillsButton, &BattleButton, &VIPButton}) {
+            if (position.X >= widget->Position.X &&
+                position.X < widget->Position.X + widget->Widget->Width &&
+                position.Y >= widget->Position.Y &&
+                position.Y < widget->Position.Y + widget->Widget->Height) {
+                if (widget->Widget->MouseLeftDown(position -
+                                                  widget->Position) ==
+                    gui::Widget::MouseEventResult::Handled) {
+                    WidgetPressed = widget;
+                    return gui::Widget::MouseEventResult::Handled;
+                }
+            }
         }
         return MouseEventResult::StartDrag;
     }
 
     void MouseLeftUp(gui::Position position) override {
-        if (WidgetPressed) {
-           if (WidgetPressed == &SkillsButton) {
-               SkillsButton.MouseLeftUp(position - gui::Position(8, 3));
-           }
-           WidgetPressed = nullptr;
-       }
+        if (WidgetPressed)
+            WidgetPressed->Widget->MouseLeftUp(position -
+                                               WidgetPressed->Position);
+        WidgetPressed = nullptr;
     }
 };
 
@@ -526,6 +554,25 @@ struct SidebarSkillsContent : public gui::Widget {
     }
 };
 
+struct SidebarBattleContent : public gui::Widget {
+
+    Gamestate *_Gamestate;
+
+    // Hardcode the size to perfectly fit the window (which is 172x100)
+    SidebarBattleContent(Gamestate *gamestate) : Widget(172 - 8, 100 - 19), _Gamestate(gamestate) {
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
+        const auto &icons = _Gamestate->Version.Icons;
+
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X,
+                         offset.Y,
+                         offset.X + Width,
+                         offset.Y + Height);
+    }
+};
+
 struct SidebarBottomFiller : public gui::Widget {
 
     Gamestate *_Gamestate;
@@ -548,6 +595,7 @@ struct SidebarBottomFiller : public gui::Widget {
 struct SidebarBottom : public gui::VerticalPanel {
     GuiState *_GuiState;
     gui::Window *SkillsWindow;
+    gui::Window *BattleWindow;
 
     SidebarBottom(Gamestate *gamestate, GuiState *guiState)
         : VerticalPanel(176, 0), _GuiState(guiState) {
@@ -565,6 +613,17 @@ struct SidebarBottom : public gui::VerticalPanel {
         SkillsWindow->Content =
                 std::make_unique<SidebarSkillsContent>(gamestate);
 
+        BattleWindow = &Add(std::make_unique<gui::Window>(
+                176,
+                100,
+                &gamestate->Version,
+                gui::Window::Type::Sidebar,
+                &gamestate->Version.Icons.BattleIcon,
+                "Battle",
+                [this]() { _GuiState->BattleWindowVisible = false; }));
+        BattleWindow->Content =
+                std::make_unique<SidebarBattleContent>(gamestate);
+
         // Containers ...
 
         // Bottom (filler)
@@ -576,6 +635,7 @@ struct SidebarBottom : public gui::VerticalPanel {
 
     void Update(gui::State &state, gui::Position offset) override {
         SkillsWindow->Visible = _GuiState->SkillsWindowVisible;
+        BattleWindow->Visible = _GuiState->BattleWindowVisible;
         VerticalPanel::Update(state, offset);
     }
 };

@@ -65,6 +65,7 @@ private:
     std::string Title;
     OnClickHandler CloseOnClick;
 
+    // Note: Content should be 8x19 pixels smaller than the window, to perfectly fit
     std::unique_ptr<Canvas> ContentCanvas;
     int ScrollOffset;
 

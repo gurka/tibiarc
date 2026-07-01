@@ -20,6 +20,10 @@
 #ifndef __TRC_GUI_PANEL_HPP__
 #define __TRC_GUI_PANEL_HPP__
 
+#include <algorithm>
+#include <concepts>
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "gui/common.hpp"
@@ -39,10 +43,10 @@ struct Panel : public Widget {
         : Widget(width, height) {
     }
 
-    template<typename T>
+    template<std::derived_from<Widget> T>
     T &Add(std::unique_ptr<T> widget, Position position) {
         T &ref = *widget;
-        Widgets.push_back({std::move(widget), position});
+        Widgets.emplace_back(std::move(widget), position);
         return ref;
     }
 
@@ -53,7 +57,7 @@ struct Panel : public Widget {
     void MouseLeftUp(Position position) override;
 
 private:
-    std::vector<PlacedWidget> Widgets;
+    std::vector<PlacedWidget<>> Widgets;
 
     DragState Drag;
     ResizeState Resize;
@@ -61,7 +65,7 @@ private:
     Widget *PressedWidget = nullptr;
     Position PressedWidgetPosition{0, 0};
 
-    PlacedWidget *GetWidgetAndPosition(Widget *widget);
+    PlacedWidget<> *GetWidgetAndPosition(Widget *widget);
 };
 
 } // namespace gui

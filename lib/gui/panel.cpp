@@ -100,7 +100,7 @@ void Panel::MouseLeftUp(Position position) {
     }
 }
 
-PlacedWidget *Panel::GetWidgetAndPosition(Widget *widget) {
+PlacedWidget<> *Panel::GetWidgetAndPosition(Widget *widget) {
     for (auto &wap : Widgets) {
         if (wap.Widget.get() == widget) {
             return &wap;

@@ -21,6 +21,7 @@
 #define __TRC_GUI_COMMON_HPP__
 
 #include <algorithm>
+#include <concepts>
 #include <memory>
 
 #include "gui/position.hpp"
@@ -29,8 +30,16 @@
 namespace trc {
 namespace gui {
 
+template <std::derived_from<Widget> T = Widget>
 struct PlacedWidget {
-    std::unique_ptr<Widget> Widget;
+    PlacedWidget() : PlacedWidget(nullptr, trc::gui::Position(0, 0)) {
+    }
+
+    PlacedWidget(std::unique_ptr<T> widget, Position position)
+        : Widget(std::move(widget)), Position(position) {
+    }
+
+    std::unique_ptr<T> Widget;
     Position Position;
 };
 
@@ -108,7 +117,7 @@ inline bool PointInsideWidget(Position position, const Widget &widget) {
            position.Y < widget.Height;
 }
 
-inline bool PointInsideWidget(Position position, const PlacedWidget &pw) {
+inline bool PointInsideWidget(Position position, const PlacedWidget<> &pw) {
     return position.X >= pw.Position.X &&
            position.X < pw.Position.X + pw.Widget->Width &&
            position.Y >= pw.Position.Y &&
@@ -131,7 +140,7 @@ inline bool WidgetsIntersect(const Widget &wa,
            pa.Y < pb.Y + wb.Height && pa.Y + wa.Height > pb.Y;
 }
 
-inline bool WidgetsIntersect(const PlacedWidget &pwa, const PlacedWidget &pwb) {
+inline bool WidgetsIntersect(const PlacedWidget<> &pwa, const PlacedWidget<> &pwb) {
     return WidgetsIntersect(*pwa.Widget, pwa.Position, *pwb.Widget, pwb.Position);
 }
 
