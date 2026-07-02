@@ -17,8 +17,7 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_TEST_GUI_BUILDER_HPP__
-#define __TRC_GUI_TEST_GUI_BUILDER_HPP__
+#include "builder_game.hpp"
 
 #include <memory>
 
@@ -27,10 +26,11 @@
 #include "gui/widget.hpp"
 #include "gamestate.hpp"
 
-namespace Builder {
+using namespace trc;
 
-std::unique_ptr<trc::gui::Widget> BuildGui(int width, int height, trc::Gamestate *gamestate, GuiState *guiState);
-
-} // namespace Builder
-    
-#endif // __TRC_GUI_TEST_GUI_BUILDER_HPP__
+std::unique_ptr<gui::Widget> Builder::BuildGame(int width,
+                                                int height,
+                                                trc::Gamestate *gamestate,
+                                                GuiState *guiState) {
+    return nullptr;
+}

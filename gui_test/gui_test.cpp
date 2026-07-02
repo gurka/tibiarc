@@ -49,7 +49,7 @@ std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> Renderer{
         &SDL_DestroyRenderer};
 
 std::unique_ptr<Canvas> MainCanvas;
-std::unique_ptr<gui::Panel> MainPanel;
+std::unique_ptr<gui::Widget> MainPanel;
 
 GuiState State;
 
