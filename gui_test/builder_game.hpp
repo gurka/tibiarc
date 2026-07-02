@@ -29,8 +29,8 @@
 
 namespace Builder {
 
-std::unique_ptr<trc::gui::Widget> BuildGame(int width, int height, trc::Gamestate *gamestate, GuiState *guiState);
+std::unique_ptr<trc::gui::Widget> BuildGame(int windowWidth, int windowHeight, trc::Gamestate *gamestate, GuiState *guiState);
 
 } // namespace Builder
-    
+
 #endif // __TRC_GUI_TEST_GUI_BUILDER_GAME_HPP__

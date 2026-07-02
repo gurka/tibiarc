@@ -31,14 +31,14 @@
 
 using namespace trc;
 
-std::unique_ptr<gui::Widget> Builder::BuildGui(int width,
-                                               int height,
+std::unique_ptr<gui::Widget> Builder::BuildGui(int windowWidth,
+                                               int windowHeight,
                                                trc::Gamestate *gamestate,
                                                GuiState *guiState) {
-    auto gui = std::make_unique<gui::Panel>(width, height);
+    auto gui = std::make_unique<gui::Panel>(windowWidth, windowHeight);
 
     // Add sidebar to gui
-    gui->Add(Builder::BuildSidebar(height, gamestate, guiState), gui::Position(width - 176, 0));
+    gui->Add(Builder::BuildSidebar(windowHeight, gamestate, guiState), gui::Position(windowWidth - 176, 0));
 
     return gui;
 }

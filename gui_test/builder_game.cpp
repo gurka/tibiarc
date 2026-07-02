@@ -28,8 +28,8 @@
 
 using namespace trc;
 
-std::unique_ptr<gui::Widget> Builder::BuildGame(int width,
-                                                int height,
+std::unique_ptr<gui::Widget> Builder::BuildGame(int windowWidth,
+                                                int windowHeight,
                                                 trc::Gamestate *gamestate,
                                                 GuiState *guiState) {
     return nullptr;

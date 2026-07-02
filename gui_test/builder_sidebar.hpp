@@ -29,8 +29,8 @@
 
 namespace Builder {
 
-std::unique_ptr<trc::gui::Widget> BuildSidebar(int height, trc::Gamestate *gamestate, GuiState *guiState);
+std::unique_ptr<trc::gui::Widget> BuildSidebar(int windowHeight, trc::Gamestate *gamestate, GuiState *guiState);
 
 } // namespace Builder
-    
+
 #endif // __TRC_GUI_TEST_GUI_BUILDER_SIDEBAR_HPP__
