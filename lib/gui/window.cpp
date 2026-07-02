@@ -19,7 +19,6 @@
 
 #include "gui/window.hpp"
 
-#include <iostream>
 #include <string>
 
 #include "gui/button.hpp"
@@ -63,7 +62,7 @@ Window::Window(int width,
                   Button::ButtonType::Normal),
       CloseButtonPosition(Position(width - 15, 2)) {
     MinHeight = 57;
-    MaxHeight = height;
+    MaxHeight = WindowType == Type::SidebarNoMaxHeight ? 65536 : height;
     MinimizeButton.SetOnClick([this]() { MinimizeOnClick(); });
     CloseButton.SetOnClick(CloseOnClick);
 }
@@ -79,8 +78,10 @@ void Window::Update(State &state, Position offset) {
                     std::make_unique<Canvas>(Content->Width, Content->Height);
         }
 
-        // Set MaxHeight based on content size
-        MaxHeight = Content->Height + 19;
+        if (WindowType == Type::Sidebar) {
+            // Set MaxHeight based on content size
+            MaxHeight = Content->Height + 19;
+        }
     }
 
     MinimizeButton.Update(state, offset + MinimizeButtonPosition);
@@ -135,21 +136,34 @@ void Window::Render(Canvas &canvas, Position offset) {
     }
 
     if (Content) {
-        // Render on content canvas first
-        ContentCanvas->Wipe();
-        Content->Render(*ContentCanvas, Position(0, 0));
+        if (Content->Visible && Content->Height > 0) {
+            // Render on content canvas first
+            ContentCanvas->Wipe();
+            Content->Render(*ContentCanvas, Position(0, 0));
 
-        // Then render content canvas to the given canvas
-        // with respect to the scrollbar
-        Canvas::Copy(canvas,
-                     *ContentCanvas,
-                     0,
-                     ScrollOffset,
-                     Width - 4 - 16,
-                     ScrollOffset + Height - 15 - 4,
-                     offset.X + 4,
-                     offset.Y + 15);
+            // Then render content canvas to the given canvas
+            // with respect to the scrollbar
+            Canvas::Copy(canvas,
+                         *ContentCanvas,
+                         0,
+                         ScrollOffset,
+                         Width - 4 - 16,
+                         ScrollOffset + Height - 15 - 4,
+                         offset.X + 4,
+                         offset.Y + 15);
+        }
 
+        if (WindowType == Type::SidebarNoMaxHeight && (!Content->Visible || Content->Height < Height - 15 - 4)) {
+            // If the content is smaller than the window, then fill the rest
+            // with background
+            // Note: this will only look good if the content uses the same background as the window
+            canvas.DrawTiled(icons.ClientBackground,
+                             offset.X + 4,
+                             offset.Y + 15 + (Content->Visible ? Content->Height : 0),
+                             offset.X + Width - 4,
+                             offset.Y + Height - 4);
+
+        }
     } else {
         canvas.DrawTiled(icons.ClientBackground,
                          offset.X + 4,

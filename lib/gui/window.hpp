@@ -42,7 +42,10 @@ struct Window : public Widget {
 
     using OnClickHandler = std::function<void()>;
 
-    enum class Type { Sidebar };
+    enum class Type {
+        Sidebar,             // Sidebar window where MaxHeight depends on content height
+        SidebarNoMaxHeight,  // Sidebar window where there is no MaxHeight limit
+    };
 
     Window(int width,
            int height,

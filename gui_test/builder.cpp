@@ -558,8 +558,11 @@ struct SidebarBattleContent : public gui::Widget {
 
     Gamestate *_Gamestate;
 
-    // Hardcode the size to perfectly fit the window (which is 172x100)
-    SidebarBattleContent(Gamestate *gamestate) : Widget(172 - 8, 100 - 19), _Gamestate(gamestate) {
+    SidebarBattleContent(Gamestate *gamestate) : Widget(172 - 8, 0), _Gamestate(gamestate) {
+    }
+
+    void Update(gui::State &state, gui::Position offset) override {
+        Height = 10 + (_Gamestate->Creatures.size() * 14);
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -570,6 +573,18 @@ struct SidebarBattleContent : public gui::Widget {
                          offset.Y,
                          offset.X + Width,
                          offset.Y + Height);
+
+        // TODO: Add healthbar, creature look, etc and fix positions/offsets
+        int y = offset.Y + 5;
+        for (const auto &[id, creature] : _Gamestate->Creatures) {
+            TextRenderer::DrawString(_Gamestate->Version.Fonts.InterfaceLarge,
+                                     Pixel(0xBF, 0xBF, 0xBF),
+                                     offset.X + 10,
+                                     y,
+                                     creature.Name,
+                                     canvas);
+            y += 14;
+        }
     }
 };
 
@@ -617,7 +632,7 @@ struct SidebarBottom : public gui::VerticalPanel {
                 176,
                 100,
                 &gamestate->Version,
-                gui::Window::Type::Sidebar,
+                gui::Window::Type::SidebarNoMaxHeight,
                 &gamestate->Version.Icons.BattleIcon,
                 "Battle",
                 [this]() { _GuiState->BattleWindowVisible = false; }));
@@ -634,6 +649,7 @@ struct SidebarBottom : public gui::VerticalPanel {
     }
 
     void Update(gui::State &state, gui::Position offset) override {
+        // TODO: when a window goes from hidden to visible it should be brought to the bottom of the visible windows
         SkillsWindow->Visible = _GuiState->SkillsWindowVisible;
         BattleWindow->Visible = _GuiState->BattleWindowVisible;
         VerticalPanel::Update(state, offset);
