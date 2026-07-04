@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <unordered_set>
 #include <utility>
 
 #include "state.hpp"
@@ -572,9 +573,35 @@ struct SidebarBattleContent : public gui::Widget {
                          offset.X + Width,
                          offset.Y + Height);
 
+        // Get all creatures to list
+        std::unordered_set<uint32_t> creatureIds;
+        for (auto x = 0; x < Map::TileBufferWidth; x++) {
+            for (auto y = 0; y < Map::TileBufferHeight; y++) {
+                auto position = Position(_Gamestate->Map.Position.X - 8 + x,
+                                         _Gamestate->Map.Position.Y - 6 + y,
+                                         _Gamestate->Map.Position.Z);
+                const auto &tile = _Gamestate->Map.Tile(position);
+                for (auto i = 0; i < tile.ObjectCount; i++) {
+                    const auto &object = tile.Objects[i];
+                    if (object.IsCreature() &&
+                        object.CreatureId != _Gamestate->Player.Id) {
+                        creatureIds.insert(object.CreatureId);
+                    }
+                }
+            }
+        }
+
+        // TODO: I _think_ that the battle list is sorted on when the creature
+        //       was first seen (oldest creature first)
+        //       Not sure if tibiarc currently has this information...
+        std::vector<uint32_t> sortedCreatureIds(creatureIds.begin(), creatureIds.end());
+        std::sort(sortedCreatureIds.begin(), sortedCreatureIds.end());
+
+        // Render list
         // TODO: Add healthbar, creature look, etc and fix positions/offsets
         int y = offset.Y + 5;
-        for (const auto &[id, creature] : _Gamestate->Creatures) {
+        for (auto creatureId : sortedCreatureIds) {
+            const auto &creature = _Gamestate->GetCreature(creatureId);
             TextRenderer::DrawString(_Gamestate->Version.Fonts.InterfaceLarge,
                                      Pixel(0xBF, 0xBF, 0xBF),
                                      offset.X + 10,
