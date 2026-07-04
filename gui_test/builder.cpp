@@ -22,23 +22,74 @@
 #include <memory>
 
 #include "builder_sidebar.hpp"
+#include "builder_game.hpp"
 #include "state.hpp"
 
 #include "gui/panel.hpp"
 #include "gui/position.hpp"
-#include "gui/widget.hpp"
 #include "gamestate.hpp"
+#include "renderer.hpp"
 
 using namespace trc;
 
-std::unique_ptr<gui::Widget> Builder::BuildGui(int windowWidth,
-                                               int windowHeight,
-                                               trc::Gamestate *gamestate,
-                                               GuiState *guiState) {
-    auto gui = std::make_unique<gui::Panel>(windowWidth, windowHeight);
+std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
+                                                int windowHeight,
+                                                trc::Gamestate *gamestate,
+                                                GuiState *guiState) {
+    // Calculate size of gui widgets
+    auto sidebarWidth = 176; // always 176
+    auto sidebarHeight = windowHeight;
+    auto chatWidth = windowWidth - sidebarWidth;
+    auto chatHeight = 174; // always 174, for now
+    auto gameWidth = windowWidth - sidebarWidth;
+    auto gameHeight = windowHeight - chatHeight;
 
-    // Add sidebar to gui
-    gui->Add(Builder::BuildSidebar(windowHeight, gamestate, guiState), gui::Position(windowWidth - 176, 0));
+    // Calculate size of gamestate
+    auto margin = 4;
+    auto border = 1;
+    auto maxWidth = gameWidth - ((margin + border) * 2);
+    auto maxHeight = gameHeight - ((margin + border) * 2);
+    auto scale = std::min(
+            maxWidth / static_cast<double>(Renderer::NativeResolutionX),
+            maxHeight / static_cast<double>(Renderer::NativeResolutionY));
 
-    return gui;
+    auto gamestateX = ((maxWidth -
+                        static_cast<int>(Renderer::NativeResolutionX * scale)) /
+                       2) +
+                      margin + border;
+    auto gamestateY = ((maxHeight -
+                        static_cast<int>(Renderer::NativeResolutionY * scale)) /
+                       2) +
+                      margin + border;
+    auto gamestateWidth = static_cast<int>(Renderer::NativeResolutionX * scale);
+    auto gamestateHeight =
+            static_cast<int>(Renderer::NativeResolutionY * scale);
+
+    // Build gui
+    auto panel = std::make_unique<gui::Panel>(windowWidth, windowHeight);
+    panel->Add(Builder::BuildSidebar(windowHeight, gamestate, guiState),
+               gui::Position(windowWidth - 176, 0));
+    /*
+    panel->Add(Builder::BuildChat(windowWidth - 176,
+                                174,
+                                gamestate,
+                                guiState),
+             gui::Position(0, windowHeight - 174));
+    */
+    panel->Add(Builder::BuildGame(windowWidth - 176,
+                                  windowHeight - 174,
+                                  gamestate,
+                                  guiState,
+                                  gamestateX,
+                                  gamestateY,
+                                  gamestateWidth,
+                                  gamestateHeight),
+               gui::Position(0, 0));
+
+    return std::make_unique<Builder::Gui>(Builder::Gui{std::move(panel),
+                                                       gamestateX,
+                                                       gamestateY,
+                                                       gamestateWidth,
+                                                       gamestateHeight});
+
 }

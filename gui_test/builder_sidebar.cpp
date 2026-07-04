@@ -654,7 +654,7 @@ struct SidebarBottom : public gui::VerticalPanel {
     }
 };
 
-std::unique_ptr<gui::Widget> Builder::BuildSidebar(int windowHeight,
+std::unique_ptr<gui::Widget> Builder::BuildSidebar(int height,
                                                    trc::Gamestate *gamestate,
                                                    GuiState *guiState) {
     // The sidebar is built as:
@@ -674,7 +674,7 @@ std::unique_ptr<gui::Widget> Builder::BuildSidebar(int windowHeight,
 
     // Sidebar
     // Always the same height (window/gui height)
-    auto sidebar = std::make_unique<gui::VerticalPanel>(176, windowHeight);
+    auto sidebar = std::make_unique<gui::VerticalPanel>(176, height);
     sidebar->StretchLastChild = true;
 
     // Sidebar top

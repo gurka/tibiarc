@@ -19,18 +19,49 @@
 
 #include "builder_game.hpp"
 
+#include <algorithm>
 #include <memory>
 
 #include "state.hpp"
 
+#include "gui/border.hpp"
+#include "gui/panel.hpp"
 #include "gui/widget.hpp"
+#include "canvas.hpp"
 #include "gamestate.hpp"
+#include "renderer.hpp"
+#include "versions.hpp"
 
 using namespace trc;
 
-std::unique_ptr<gui::Widget> Builder::BuildGame(int windowWidth,
-                                                int windowHeight,
+// This is just a dummy widget
+// Rendering the game happens in gui_test.cpp
+struct GamestateWidget : public gui::Widget {
+    GamestateWidget(int width, int height) : Widget(width, height) {
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
+    }
+};
+
+std::unique_ptr<gui::Widget> Builder::BuildGame(int width,
+                                                int height,
                                                 trc::Gamestate *gamestate,
-                                                GuiState *guiState) {
-    return nullptr;
+                                                GuiState *guiState,
+                                                int gamestateX,
+                                                int gamestateY,
+                                                int gamestateWidth,
+                                                int gamestateHeight) {
+
+    auto panel = std::make_unique<gui::Panel>(width, height);
+    panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
+    auto gameWidget = std::make_unique<GamestateWidget>(gamestateWidth, gamestateHeight);
+    auto borderWidget =
+            std::make_unique<gui::Border>(&gamestate->Version.Icons,
+                                          gui::Border::BorderType::Sunken,
+                                          std::move(gameWidget));
+    panel->Add(std::move(borderWidget),
+               gui::Position(gamestateX - 1, gamestateY - 1));
+
+    return panel;
 }

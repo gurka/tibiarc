@@ -29,6 +29,7 @@
 #include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/widget.hpp"
+#include "sprites.hpp"
 
 namespace trc {
 
@@ -41,6 +42,10 @@ struct State;
 struct Panel : public Widget {
     Panel(int width, int height)
         : Widget(width, height) {
+    }
+
+    void SetBackground(Sprite const *background) {
+        Background = background;
     }
 
     template<std::derived_from<Widget> T>
@@ -57,6 +62,8 @@ struct Panel : public Widget {
     void MouseLeftUp(Position position) override;
 
 private:
+    Sprite const *Background = nullptr;
+
     std::vector<PlacedWidget<>> Widgets;
 
     DragState Drag;

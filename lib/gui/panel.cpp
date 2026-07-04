@@ -57,6 +57,13 @@ void Panel::Update(State &state, Position offset) {
 }
 
 void Panel::Render(Canvas &canvas, Position offset) {
+    if (Background) {
+        canvas.DrawTiled(*Background,
+                         offset.X,
+                         offset.Y,
+                         offset.X + Width,
+                         offset.Y + Height);
+    }
     for (const auto &wap : Widgets) {
         auto &[widget, position] = wap;
         if (!widget->Visible) {

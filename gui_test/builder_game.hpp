@@ -29,7 +29,14 @@
 
 namespace Builder {
 
-std::unique_ptr<trc::gui::Widget> BuildGame(int windowWidth, int windowHeight, trc::Gamestate *gamestate, GuiState *guiState);
+std::unique_ptr<trc::gui::Widget> BuildGame(int width,
+                                            int height,
+                                            trc::Gamestate *gamestate,
+                                            GuiState *guiState,
+                                            int gamestateX,
+                                            int gamestateY,
+                                            int gamestateWidth,
+                                            int gamestateHeight);
 
 } // namespace Builder
 
