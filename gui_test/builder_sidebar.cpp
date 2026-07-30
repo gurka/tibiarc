@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -613,6 +614,55 @@ struct SidebarBattleContent : public gui::Widget {
     }
 };
 
+struct SidebarContainerContent : public gui::Widget {
+    static constexpr int SlotsPerRow = 4;
+    static constexpr int SlotSize = 36;
+
+    Gamestate *_Gamestate;
+    uint32_t ContainerId;
+
+    SidebarContainerContent(Gamestate *gamestate, uint32_t containerId)
+        : Widget(172 - 8, 0), _Gamestate(gamestate), ContainerId(containerId) {
+    }
+
+    void Update(gui::State &state, gui::Position offset) override {
+        const auto containerIt = _Gamestate->Containers.find(ContainerId);
+        if (containerIt == _Gamestate->Containers.end()) {
+            Height = 0;
+            return;
+        }
+
+        const auto &container = containerIt->second;
+        Height = ((container.SlotsPerPage + (SlotsPerRow - 1)) / SlotsPerRow) * SlotSize;
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
+        const auto &icons = _Gamestate->Version.Icons;
+        const auto containerIt = _Gamestate->Containers.find(ContainerId);
+        if (containerIt == _Gamestate->Containers.end()) {
+            return;
+        }
+
+        const auto &container = containerIt->second;
+
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X,
+                         offset.Y,
+                         offset.X + Width,
+                         offset.Y + Height);
+
+        for (auto slot = 0u; slot < container.SlotsPerPage; ++slot) {
+            const auto slotX = offset.X + (static_cast<int>(slot) % SlotsPerRow) * SlotSize;
+            const auto slotY = offset.Y + (static_cast<int>(slot) / SlotsPerRow) * SlotSize;
+            canvas.Draw(icons.InventoryBackground,
+                        slotX,
+                        slotY,
+                        icons.InventoryBackground.Width,
+                        icons.InventoryBackground.Height);
+        }
+    }
+};
+
 struct SidebarBottomFiller : public gui::Widget {
 
     Gamestate *_Gamestate;
@@ -633,16 +683,26 @@ struct SidebarBottomFiller : public gui::Widget {
 };
 
 struct SidebarBottom : public gui::VerticalPanel {
+    Gamestate *_Gamestate;
     GuiState *_GuiState;
+    gui::VerticalPanel *WindowsPanel;
     gui::Window *SkillsWindow;
     gui::Window *BattleWindow;
+    std::unordered_map<uint32_t, gui::Window *> ContainerWindows;
 
     SidebarBottom(Gamestate *gamestate, GuiState *guiState)
-        : VerticalPanel(176, 0), _GuiState(guiState) {
+        : VerticalPanel(176, 0),
+          _Gamestate(gamestate),
+          _GuiState(guiState),
+          WindowsPanel(nullptr) {
         StretchLastChild = true;
 
+        auto windowsPanel = std::make_unique<gui::VerticalPanel>(176, 0);
+        windowsPanel->DynamicHeight = true;
+        WindowsPanel = windowsPanel.get();
+
         // Windows
-        SkillsWindow = &Add(std::make_unique<gui::Window>(
+        SkillsWindow = &WindowsPanel->Add(std::make_unique<gui::Window>(
                 176,
                 100,
                 &gamestate->Version,
@@ -653,7 +713,7 @@ struct SidebarBottom : public gui::VerticalPanel {
         SkillsWindow->Content =
                 std::make_unique<SidebarSkillsContent>(gamestate);
 
-        BattleWindow = &Add(std::make_unique<gui::Window>(
+        BattleWindow = &WindowsPanel->Add(std::make_unique<gui::Window>(
                 176,
                 100,
                 &gamestate->Version,
@@ -664,7 +724,7 @@ struct SidebarBottom : public gui::VerticalPanel {
         BattleWindow->Content =
                 std::make_unique<SidebarBattleContent>(gamestate);
 
-        // Containers ...
+        Add(std::move(windowsPanel));
 
         // Bottom (filler)
         Add(std::make_unique<gui::Border>(
@@ -673,10 +733,35 @@ struct SidebarBottom : public gui::VerticalPanel {
                 std::make_unique<SidebarBottomFiller>(gamestate)));
     }
 
+    void UpdateContainers() {
+        for (const auto &[containerId, container] : _Gamestate->Containers) {
+            if (!ContainerWindows.contains(containerId)) {
+                auto window = std::make_unique<gui::Window>(
+                        176,
+                        100,
+                        &_Gamestate->Version,
+                        gui::Window::Type::SidebarNoMaxHeight,
+                        &_Gamestate->Version.Icons.SkillsIcon,
+                        container.Name,
+                        []() {});
+                window->Content =
+                        std::make_unique<SidebarContainerContent>(_Gamestate, containerId);
+                auto *windowPtr = window.get();
+                WindowsPanel->Add(std::move(window));
+                ContainerWindows[containerId] = windowPtr;
+            }
+        }
+
+        for (auto &[containerId, window] : ContainerWindows) {
+            window->Visible = _Gamestate->Containers.contains(containerId);
+        }
+    }
+
     void Update(gui::State &state, gui::Position offset) override {
         // TODO: when a window goes from hidden to visible it should be brought to the bottom of the visible windows
         SkillsWindow->Visible = _GuiState->SkillsWindowVisible;
         BattleWindow->Visible = _GuiState->BattleWindowVisible;
+        UpdateContainers();
         VerticalPanel::Update(state, offset);
     }
 };

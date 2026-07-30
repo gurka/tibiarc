@@ -44,8 +44,14 @@ void VerticalPanel::Update(State &state, Position offset) {
 
     // Handle resize action
     if (Resize.Active()) {
-        const auto maxHeightPanel = Height - GetWidgetY(Resize.Target);
-        Resize.Update(state.MouseLeftDown(), state.MousePosition(offset), maxHeightPanel);
+        const auto widgetIndex = GetWidgetIndex(Resize.Target);
+        if (DynamicHeight) {
+            Resize.Update(state.MouseLeftDown(),
+                          state.MousePosition(offset),
+                          65535);
+        } else {
+            Resize.Update(state.MouseLeftDown(), state.MousePosition(offset), Height - GetWidgetY(Resize.Target));
+        }
     }
 
     // Update widgets

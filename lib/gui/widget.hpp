@@ -52,6 +52,8 @@ struct Widget {
         : Width(width), Height(height), MinHeight(height), MaxHeight(height) {
     }
 
+    virtual ~Widget() = default; 
+
     // Called by a parent container to assign this widget a specific height.
     // Wrapper widgets (e.g. Border) should override this to propagate the
     // assignment to their child.
