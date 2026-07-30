@@ -616,7 +616,7 @@ struct SidebarBattleContent : public gui::Widget {
 
 struct SidebarContainerContent : public gui::Widget {
     static constexpr int SlotsPerRow = 4;
-    static constexpr int SlotSize = 36;
+    static constexpr int SlotSize = 37;
 
     Gamestate *_Gamestate;
     uint32_t ContainerId;
@@ -633,7 +633,7 @@ struct SidebarContainerContent : public gui::Widget {
         }
 
         const auto &container = containerIt->second;
-        Height = ((container.SlotsPerPage + (SlotsPerRow - 1)) / SlotsPerRow) * SlotSize;
+        Height = ((container.SlotsPerPage / SlotsPerRow) * SlotSize) + 7;
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -652,8 +652,8 @@ struct SidebarContainerContent : public gui::Widget {
                          offset.Y + Height);
 
         for (auto slot = 0u; slot < container.SlotsPerPage; ++slot) {
-            const auto slotX = offset.X + (static_cast<int>(slot) % SlotsPerRow) * SlotSize;
-            const auto slotY = offset.Y + (static_cast<int>(slot) / SlotsPerRow) * SlotSize;
+            const auto slotX = offset.X + 7 + (static_cast<int>(slot) % SlotsPerRow) * SlotSize;
+            const auto slotY = offset.Y + 4 + (static_cast<int>(slot) / SlotsPerRow) * SlotSize;
             canvas.Draw(icons.InventoryBackground,
                         slotX,
                         slotY,
@@ -738,9 +738,9 @@ struct SidebarBottom : public gui::VerticalPanel {
             if (!ContainerWindows.contains(containerId)) {
                 auto window = std::make_unique<gui::Window>(
                         176,
-                        100,
+                        64,
                         &_Gamestate->Version,
-                        gui::Window::Type::SidebarNoMaxHeight,
+                        gui::Window::Type::Sidebar,
                         &_Gamestate->Version.Icons.SkillsIcon,
                         container.Name,
                         []() {});
