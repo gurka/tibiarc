@@ -23,6 +23,7 @@
 
 #include "builder_sidebar.hpp"
 #include "builder_game.hpp"
+#include "builder_chat.hpp"
 #include "state.hpp"
 
 #include "gui/panel.hpp"
@@ -69,13 +70,11 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
     auto panel = std::make_unique<gui::Panel>(windowWidth, windowHeight);
     panel->Add(Builder::BuildSidebar(windowHeight, gamestate, guiState),
                gui::Position(windowWidth - 176, 0));
-    /*
     panel->Add(Builder::BuildChat(windowWidth - 176,
-                                174,
-                                gamestate,
-                                guiState),
-             gui::Position(0, windowHeight - 174));
-    */
+                                  174,
+                                  gamestate,
+                                  guiState),
+               gui::Position(0, windowHeight - 174));
     panel->Add(Builder::BuildGame(windowWidth - 176,
                                   windowHeight - 174,
                                   gamestate,

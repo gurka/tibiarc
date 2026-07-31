@@ -448,6 +448,8 @@ if(SDL2_FOUND)
   add_executable(gui_test
     "gui_test/builder.cpp"
     "gui_test/builder.hpp"
+    "gui_test/builder_chat.cpp"
+    "gui_test/builder_chat.hpp"
     "gui_test/builder_game.cpp"
     "gui_test/builder_game.hpp"
     "gui_test/builder_sidebar.cpp"

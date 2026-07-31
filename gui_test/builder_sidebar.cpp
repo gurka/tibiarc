@@ -801,11 +801,11 @@ std::unique_ptr<gui::Widget> Builder::BuildSidebar(int height,
     //       - SidebarInventory
     //       - SidebarButtons
     //   - VerticalPanel (SidebarBottom) that contains:
-    //     - SidebarSkills
-    //     - SidebarBattle
-    //     - SidebarVIP
-    //     - Open container 1..n
-    //     - SidebarEmpty (remaining space, can be invisible/Height=0)
+    //     - VerticalPanel (WindowsPanel) that contains:
+    //       - Skills window
+    //       - Battle window
+    //       - Open container 1..n
+    //     - Border that contains SidebarBottomFiller
 
     // Sidebar
     // Always the same height (window/gui height)
