@@ -36,7 +36,9 @@ std::unique_ptr<trc::gui::Widget> BuildGame(int width,
                                             int gamestateX,
                                             int gamestateY,
                                             int gamestateWidth,
-                                            int gamestateHeight);
+                                            int gamestateHeight,
+                                            trc::gui::Widget **gameBorderOut,
+                                            trc::gui::Widget **gamestateWidgetOut);
 
 } // namespace Builder
 

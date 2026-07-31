@@ -27,6 +27,11 @@
 namespace trc {
 namespace gui {
 
+void Border::SetWidth(int w) {
+    Width = w;
+    Child->SetWidth(w - BorderWidth() * 2);
+}
+
 void Border::SetHeight(int h) {
     Height = h;
     Child->SetHeight(h - BorderWidth() * 2);

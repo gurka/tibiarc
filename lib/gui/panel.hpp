@@ -55,6 +55,8 @@ struct Panel : public Widget {
         return ref;
     }
 
+    bool SetChildPosition(Widget *widget, Position position);
+
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 

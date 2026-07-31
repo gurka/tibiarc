@@ -54,11 +54,23 @@ struct Widget {
 
     virtual ~Widget() = default; 
 
-    // Called by a parent container to assign this widget a specific height.
+    // Called by a parent/container to assign this widget a specific width.
+    // Wrapper widgets (e.g. Border) should override this to propagate the
+    // assignment to their child.
+    virtual void SetWidth(int w) {
+        Width = w;
+    }
+
+    // Called by a parent/container to assign this widget a specific height.
     // Wrapper widgets (e.g. Border) should override this to propagate the
     // assignment to their child.
     virtual void SetHeight(int h) {
         Height = h;
+    }
+
+    virtual void SetSize(int w, int h) {
+        SetWidth(w);
+        SetHeight(h);
     }
 
     virtual void Update(State &state, Position offset) {

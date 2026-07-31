@@ -51,17 +51,31 @@ std::unique_ptr<gui::Widget> Builder::BuildGame(int width,
                                                 int gamestateX,
                                                 int gamestateY,
                                                 int gamestateWidth,
-                                                int gamestateHeight) {
+                                                int gamestateHeight,
+                                                trc::gui::Widget **gameBorderOut,
+                                                trc::gui::Widget **gamestateWidgetOut) {
 
     auto panel = std::make_unique<gui::Panel>(width, height);
     panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
+
     auto gameWidget = std::make_unique<GamestateWidget>(gamestateWidth, gamestateHeight);
+    auto *gameWidgetPtr = gameWidget.get();
+
     auto borderWidget =
             std::make_unique<gui::Border>(&gamestate->Version.Icons,
                                           gui::Border::BorderType::Sunken,
                                           std::move(gameWidget));
+    auto *borderWidgetPtr = borderWidget.get();
+
     panel->Add(std::move(borderWidget),
                gui::Position(gamestateX - 1, gamestateY - 1));
+
+    if (gameBorderOut != nullptr) {
+        *gameBorderOut = borderWidgetPtr;
+    }
+    if (gamestateWidgetOut != nullptr) {
+        *gamestateWidgetOut = gameWidgetPtr;
+    }
 
     return panel;
 }

@@ -29,6 +29,15 @@
 namespace trc {
 namespace gui {
 
+bool Panel::SetChildPosition(Widget *widget, Position position) {
+    auto *pw = GetWidgetAndPosition(widget);
+    if (pw == nullptr) {
+        return false;
+    }
+    pw->Position = position;
+    return true;
+}
+
 void Panel::Update(State &state, Position offset) {
     // Handle drag action
     if (Drag.Active()) {

@@ -36,6 +36,13 @@ VerticalPanel::VerticalPanel(int width, int height)
       StretchLastChild(false) {
 }
 
+void VerticalPanel::SetWidth(int w) {
+    Width = w;
+    for (auto &widget : Widgets) {
+        widget->SetWidth(w);
+    }
+}
+
 bool VerticalPanel::Remove(Widget *widget) {
     if (Drag.Target == widget) {
         Drag.Target = nullptr;

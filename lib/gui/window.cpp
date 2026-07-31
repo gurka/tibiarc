@@ -19,6 +19,7 @@
 
 #include "gui/window.hpp"
 
+#include <algorithm>
 #include <string>
 
 #include "gui/button.hpp"
@@ -62,6 +63,16 @@ Window::Window(int width,
     MaxHeight = WindowType == Type::SidebarNoMaxHeight ? 65536 : height;
     MinimizeButton.SetOnClick([this]() { MinimizeOnClick(); });
     CloseButton.SetOnClick(CloseOnClick);
+}
+
+void Window::SetWidth(int w) {
+    Width = w;
+    MinimizeButtonPosition = Position(Width - 28, 2);
+    CloseButtonPosition = Position(Width - 15, 2);
+
+    if (Content) {
+        Content->SetWidth(std::max(0, Width - 8));
+    }
 }
 
 void Window::Update(State &state, Position offset) {

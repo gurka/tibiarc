@@ -31,10 +31,20 @@ namespace Builder {
 
 struct Gui {
     std::unique_ptr<trc::gui::Widget> Root;
+
+    trc::gui::Widget *Sidebar = nullptr;
+    trc::gui::Widget *Chat = nullptr;
+    trc::gui::Widget *ChatContent = nullptr;
+    trc::gui::Widget *Game = nullptr;
+    trc::gui::Widget *GameBorder = nullptr;
+    trc::gui::Widget *GamestateWidget = nullptr;
+
     int GamestateX;
     int GamestateY;
     int GamestateWidth;
     int GamestateHeight;
+
+    void Relayout(int windowWidth, int windowHeight);
 };
 
 std::unique_ptr<Gui> BuildGui(int windowWidth,

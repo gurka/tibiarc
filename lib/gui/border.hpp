@@ -44,6 +44,7 @@ struct Border : Widget {
           Child(std::move(child)) {
     }
 
+    void SetWidth(int w) override;
     void SetHeight(int h) override;
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;

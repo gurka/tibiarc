@@ -29,7 +29,11 @@
 
 namespace Builder {
 
-std::unique_ptr<trc::gui::Widget> BuildChat(int width, int height, trc::Gamestate *gamestate, GuiState *guiState);
+std::unique_ptr<trc::gui::Widget> BuildChat(int width,
+                                            int height,
+                                            trc::Gamestate *gamestate,
+                                            GuiState *guiState,
+                                            trc::gui::Widget **chatContentOut);
 
 } // namespace Builder
 

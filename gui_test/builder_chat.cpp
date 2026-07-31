@@ -44,12 +44,18 @@ struct ChatPlaceholder : public gui::Widget {
 std::unique_ptr<gui::Widget> Builder::BuildChat(int width,
                                                 int height,
                                                 trc::Gamestate *gamestate,
-                                                GuiState *guiState) {
+                                                GuiState *guiState,
+                                                trc::gui::Widget **chatContentOut) {
 
     auto panel = std::make_unique<gui::Panel>(width, height);
     panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
     auto chatWidget = std::make_unique<ChatPlaceholder>(width, height);
+    auto *chatWidgetPtr = chatWidget.get();
     panel->Add(std::move(chatWidget), gui::Position(0, 0));
+
+    if (chatContentOut != nullptr) {
+        *chatContentOut = chatWidgetPtr;
+    }
 
     return panel;
 }

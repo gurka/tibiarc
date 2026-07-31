@@ -55,6 +55,8 @@ struct Window : public Widget {
            const std::string &title,
            const OnClickHandler &closeOnClick);
 
+    void SetWidth(int w) override;
+
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 

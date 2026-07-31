@@ -97,7 +97,11 @@ void handle_resize() {
                                        height));
     SDL_SetTextureBlendMode(GuiTexture.get(), SDL_BLENDMODE_BLEND);
 
-    Gui = Builder::BuildGui(width, height, _Playback->Gamestate.get(), &State);
+    if (!Gui) {
+        Gui = Builder::BuildGui(width, height, _Playback->Gamestate.get(), &State);
+    } else {
+        Gui->Relayout(width, height);
+    }
 
     // We don't need to re-create game canvas and texture, as they are always the same size
     if (!GameCanvas || !GameTexture) {
