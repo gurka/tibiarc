@@ -42,9 +42,9 @@ struct ChatPlaceholder : public gui::Widget {
 };
 
 std::unique_ptr<gui::Widget> Builder::BuildChat(int width,
-                                                 int height,
-                                                 trc::Gamestate *gamestate,
-                                                 GuiState *guiState) {
+                                                int height,
+                                                trc::Gamestate *gamestate,
+                                                GuiState *guiState) {
 
     auto panel = std::make_unique<gui::Panel>(width, height);
     panel->SetBackground(&gamestate->Version.Icons.ClientBackground);

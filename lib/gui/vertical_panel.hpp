@@ -53,6 +53,8 @@ struct VerticalPanel : public Widget {
         return ref;
     }
 
+    bool Remove(Widget *widget);
+
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 

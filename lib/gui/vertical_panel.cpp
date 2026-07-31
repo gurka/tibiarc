@@ -36,6 +36,24 @@ VerticalPanel::VerticalPanel(int width, int height)
       StretchLastChild(false) {
 }
 
+bool VerticalPanel::Remove(Widget *widget) {
+    if (Drag.Target == widget) {
+        Drag.Target = nullptr;
+    }
+    if (Resize.Target == widget) {
+        Resize.Target = nullptr;
+    }
+    if (PressedWidget == widget) {
+        PressedWidget = nullptr;
+    }
+
+    const auto before = Widgets.size();
+    std::erase_if(Widgets, [widget](const auto &candidate) {
+        return candidate.get() == widget;
+    });
+    return Widgets.size() != before;
+}
+
 void VerticalPanel::Update(State &state, Position offset) {
     // Handle drag action
     if (Drag.Active()) {

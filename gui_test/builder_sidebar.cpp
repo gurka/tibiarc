@@ -765,7 +765,7 @@ struct SidebarBottom : public gui::VerticalPanel {
                         gui::Window::Type::Sidebar,
                         &_Gamestate->Version.Icons.SkillsIcon,
                         trc::Capitalize(container.Name),
-                        []() {});
+                        [this, containerId]() { HideContainerWindow(containerId); });
                 window->Content =
                         std::make_unique<SidebarContainerContent>(_Gamestate, containerId);
                 auto *windowPtr = window.get();
@@ -774,9 +774,13 @@ struct SidebarBottom : public gui::VerticalPanel {
             }
         }
 
-        for (auto &[containerId, window] : ContainerWindows) {
-            // TODO: Hide or delete...?
-            window->Visible = _Gamestate->Containers.contains(containerId);
+        for (auto it = ContainerWindows.begin(); it != ContainerWindows.end();) {
+            if (!_Gamestate->Containers.contains(it->first)) {
+                WindowsPanel->Remove(it->second);
+                it = ContainerWindows.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 
@@ -786,6 +790,12 @@ struct SidebarBottom : public gui::VerticalPanel {
         BattleWindow->Visible = _GuiState->BattleWindowVisible;
         UpdateContainers();
         VerticalPanel::Update(state, offset);
+    }
+
+    void HideContainerWindow(uint32_t containerId) {
+        if (ContainerWindows.contains(containerId)) {
+            ContainerWindows[containerId]->Visible = false;
+        }
     }
 };
 
