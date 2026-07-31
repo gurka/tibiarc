@@ -92,7 +92,9 @@ public:
 
     // Scrollbar
     Sprite ScrollbarUp;
+    Sprite ScrollbarUpPressed;
     Sprite ScrollbarDown;
+    Sprite ScrollbarDownPressed;
     Sprite ScrollbarButton;
     Sprite ScrollbarBackground;
 

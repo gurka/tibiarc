@@ -104,10 +104,10 @@ struct ResizeState {
             Target = nullptr;
             return;
         }
-        Target->Height = std::clamp(
-                InitialHeight + mousePos.Y - MouseInitialPosition.Y,
-                Target->MinHeight,
-                std::min(Target->MaxHeight, maxHeightFromPanel));
+        Target->SetHeight(
+                std::clamp(InitialHeight + mousePos.Y - MouseInitialPosition.Y,
+                           Target->MinHeight,
+                           std::min(Target->MaxHeight, maxHeightFromPanel)));
     }
 };
 

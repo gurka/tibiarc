@@ -164,7 +164,9 @@ Icons::Icons(const Version &version)
       WindowResize(Canvas, 258, 101, 13, 13),
 
       ScrollbarUp(Canvas, 232, 64, 12, 12),
+      ScrollbarUpPressed(Canvas, 234, 122, 12, 12),
       ScrollbarDown(Canvas, 244, 64, 12, 12),
+      ScrollbarDownPressed(Canvas, 246, 122, 12, 12),
       ScrollbarButton(Canvas, 220, 64, 12, 12),
       ScrollbarBackground(Canvas, 264, 0, 12, 96),
 

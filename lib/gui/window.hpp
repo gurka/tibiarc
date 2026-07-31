@@ -56,6 +56,7 @@ struct Window : public Widget {
            const OnClickHandler &closeOnClick);
 
     void SetWidth(int w) override;
+    void SetHeight(int h) override;
 
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
@@ -73,6 +74,10 @@ private:
     // Note: Content should be 8x19 pixels smaller than the window, to perfectly fit
     std::unique_ptr<Canvas> ContentCanvas;
     int ScrollOffset;
+    Button ScrollUpButton;
+    Position ScrollUpButtonPosition;
+    Button ScrollDownButton;
+    Position ScrollDownButtonPosition;
 
     int MaximizedHeight;
     ToggleButton MinimizeButton;

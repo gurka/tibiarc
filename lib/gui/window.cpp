@@ -53,6 +53,12 @@ Window::Window(int width,
       Content(nullptr),
       ContentCanvas(nullptr),
       ScrollOffset(0),
+      ScrollUpButton(&version->Icons.ScrollbarUp,
+                     &version->Icons.ScrollbarUpPressed),
+      ScrollUpButtonPosition(Position(Width - 16, 15)),
+      ScrollDownButton(&version->Icons.ScrollbarDown,
+                       &version->Icons.ScrollbarDownPressed),
+      ScrollDownButtonPosition(Position(Width - 16, Height - 16)),
       MaximizedHeight(height),
       MinimizeButton(&version->Icons.Minimize,
                      &version->Icons.MinimizePressed),
@@ -66,13 +72,26 @@ Window::Window(int width,
 }
 
 void Window::SetWidth(int w) {
-    Width = w;
+    Widget::SetWidth(w);
+
     MinimizeButtonPosition = Position(Width - 28, 2);
     CloseButtonPosition = Position(Width - 15, 2);
+    ScrollUpButtonPosition = Position(Width - 16, 15);
+    ScrollDownButtonPosition = Position(Width - 16, Height - 16);
 
     if (Content) {
         Content->SetWidth(std::max(0, Width - 8));
     }
+}
+
+void Window::SetHeight(int h) {
+    Widget::SetHeight(h);
+
+    ScrollDownButtonPosition = Position(Width - 16, Height - 16);
+
+    // We do NOT want to propagate the new height to content
+    // as the content height is determined by its own content, not the window
+    // size
 }
 
 void Window::Update(State &state, Position offset) {
@@ -92,17 +111,15 @@ void Window::Update(State &state, Position offset) {
         }
     }
 
+    ScrollUpButton.Update(state, offset + ScrollUpButtonPosition);
+    ScrollDownButton.Update(state, offset + ScrollDownButtonPosition);
     MinimizeButton.Update(state, offset + MinimizeButtonPosition);
     CloseButton.Update(state, offset + CloseButtonPosition);
 
     if (!MinimizeButton.Toggled &&
         PointInsideWidget(state.MousePosition(offset), *this) &&
-        state.MousePosition(offset).Y >= Height - 19) {
+        state.MousePosition(offset).Y >= Height - 4) {
         state.RequestMouseCursor(State::MouseCursor::Resize);
-    }
-
-    if (!MinimizeButton.Toggled) {
-        MaximizedHeight = Height;
     }
 }
 
@@ -193,16 +210,14 @@ void Window::Render(Canvas &canvas, Position offset) {
                      offset.Y + 15 + Height - 19);
 
     // Scrollbar
-    canvas.Draw(icons.ScrollbarUp, offset.X + Width - 16, offset.Y + 15);
+    ScrollUpButton.Render(canvas, offset + ScrollUpButtonPosition);
     canvas.DrawTiled(icons.ScrollbarBackground,
                      offset.X + Width - 16,
                      offset.Y + 27,
                      offset.X + Width - 16 + 12,
                      offset.Y + 27 + Height - 43);
     canvas.Draw(icons.ScrollbarButton, offset.X + Width - 16, offset.Y + 27);
-    canvas.Draw(icons.ScrollbarDown,
-                offset.X + Width - 16,
-                offset.Y + Height - 16);
+    ScrollDownButton.Render(canvas, offset + ScrollDownButtonPosition);
 
     // Bottom
     canvas.Draw(icons.WindowBottomLeft, offset.X, offset.Y + 15 + Height - 19);
@@ -222,6 +237,18 @@ void Window::Render(Canvas &canvas, Position offset) {
 Widget::MouseEventResult Window::MouseLeftDown(Position position) {
     PressedButton = nullptr;
 
+    if (PointInsideWidget(position - ScrollUpButtonPosition, ScrollUpButton)) {
+        PressedButton = &ScrollUpButton;
+        return ScrollUpButton.MouseLeftDown(position - ScrollUpButtonPosition);
+    }
+
+    if (PointInsideWidget(position - ScrollDownButtonPosition,
+                          ScrollDownButton)) {
+        PressedButton = &ScrollDownButton;
+        return ScrollDownButton.MouseLeftDown(position -
+                                              ScrollDownButtonPosition);
+    }
+
     if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
         PressedButton = &MinimizeButton;
         return MinimizeButton.MouseLeftDown(position - MinimizeButtonPosition);
@@ -238,7 +265,7 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
     }
 
     // If click is on the bottom, then start resize action
-    if (!MinimizeButton.Toggled && position.Y >= Height - 19) {
+    if (!MinimizeButton.Toggled && position.Y >= Height - 4) {
         return Widget::MouseEventResult::Resize;
     }
 
@@ -256,6 +283,7 @@ void Window::MouseLeftUp(Position position) {
 
 void Window::MinimizeOnClick() {
     if (MinimizeButton.Toggled) {
+        MaximizedHeight = Height;
         Height = 19;
     } else {
         Height = MaximizedHeight;
