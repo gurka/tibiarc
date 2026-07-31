@@ -91,48 +91,30 @@ LayoutMetrics CalculateLayout(int windowWidth, int windowHeight) {
 } // namespace
 
 void Builder::Gui::Relayout(int windowWidth, int windowHeight) {
-    auto *rootPanel = dynamic_cast<gui::Panel *>(Root.get());
-    if (rootPanel == nullptr) {
-        return;
-    }
-
     const auto layout = CalculateLayout(windowWidth, windowHeight);
 
     Root->SetSize(windowWidth, windowHeight);
 
-    if (Sidebar != nullptr) {
-        Sidebar->SetSize(layout.SidebarWidth, layout.SidebarHeight);
-        rootPanel->SetChildPosition(Sidebar,
-                                    gui::Position(windowWidth - layout.SidebarWidth,
-                                                  0));
+    if (Root->Sidebar != nullptr) {
+        Root->Sidebar->SetSize(layout.SidebarWidth, layout.SidebarHeight);
+        Root->SetChildPosition(Root->Sidebar,
+                               gui::Position(windowWidth - layout.SidebarWidth,
+                                             0));
     }
 
-    if (Chat != nullptr) {
-        Chat->SetSize(layout.ChatWidth, layout.ChatHeight);
-        rootPanel->SetChildPosition(Chat,
-                                    gui::Position(0,
-                                                  windowHeight - layout.ChatHeight));
+    if (Root->Chat != nullptr) {
+        Root->Chat->SetSize(layout.ChatWidth, layout.ChatHeight);
+        Root->SetChildPosition(Root->Chat,
+                               gui::Position(0,
+                                             windowHeight - layout.ChatHeight));
     }
 
-    if (ChatContent != nullptr) {
-        ChatContent->SetSize(layout.ChatWidth, layout.ChatHeight);
-    }
-
-    if (Game != nullptr) {
-        Game->SetSize(layout.GameWidth, layout.GameHeight);
-    }
-
-    if (GamestateWidget != nullptr) {
-        GamestateWidget->SetSize(layout.GamestateWidth, layout.GamestateHeight);
-    }
-
-    if (GameBorder != nullptr) {
-        auto *gamePanel = dynamic_cast<gui::Panel *>(Game);
-        if (gamePanel != nullptr) {
-            gamePanel->SetChildPosition(GameBorder,
-                                        gui::Position(layout.GamestateX - 1,
-                                                      layout.GamestateY - 1));
-        }
+    if (Root->Game != nullptr) {
+        Root->Game->SetSize(layout.GameWidth, layout.GameHeight);
+        Root->Game->SetGamestateBounds(layout.GamestateX,
+                                       layout.GamestateY,
+                                       layout.GamestateWidth,
+                                       layout.GamestateHeight);
     }
 
     GamestateX = layout.GamestateX;
@@ -147,25 +129,21 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
                                                 GuiState *guiState) {
     const auto layout = CalculateLayout(windowWidth, windowHeight);
 
-    auto panel = std::make_unique<gui::Panel>(windowWidth, windowHeight);
+    auto root = std::make_unique<Builder::RootPanel>(windowWidth, windowHeight);
 
     auto sidebar = Builder::BuildSidebar(layout.SidebarHeight, gamestate, guiState);
-    auto *sidebarPtr = sidebar.get();
-    panel->Add(std::move(sidebar),
-               gui::Position(windowWidth - layout.SidebarWidth, 0));
+    root->Sidebar = sidebar.get();
+    root->Add(std::move(sidebar),
+              gui::Position(windowWidth - layout.SidebarWidth, 0));
 
-    gui::Widget *chatContent = nullptr;
     auto chat = Builder::BuildChat(layout.ChatWidth,
                                    layout.ChatHeight,
                                    gamestate,
-                                   guiState,
-                                   &chatContent);
-    auto *chatPtr = chat.get();
-    panel->Add(std::move(chat),
-               gui::Position(0, windowHeight - layout.ChatHeight));
+                                   guiState);
+    root->Chat = chat.get();
+    root->Add(std::move(chat),
+              gui::Position(0, windowHeight - layout.ChatHeight));
 
-    gui::Widget *gameBorder = nullptr;
-    gui::Widget *gamestateWidget = nullptr;
     auto game = Builder::BuildGame(layout.GameWidth,
                                    layout.GameHeight,
                                    gamestate,
@@ -173,19 +151,11 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
                                    layout.GamestateX,
                                    layout.GamestateY,
                                    layout.GamestateWidth,
-                                   layout.GamestateHeight,
-                                   &gameBorder,
-                                   &gamestateWidget);
-    auto *gamePtr = game.get();
-    panel->Add(std::move(game), gui::Position(0, 0));
+                                   layout.GamestateHeight);
+    root->Game = game.get();
+    root->Add(std::move(game), gui::Position(0, 0));
 
-    auto gui = std::make_unique<Builder::Gui>(Builder::Gui{std::move(panel),
-                                                           sidebarPtr,
-                                                           chatPtr,
-                                                           chatContent,
-                                                           gamePtr,
-                                                           gameBorder,
-                                                           gamestateWidget,
+    auto gui = std::make_unique<Builder::Gui>(Builder::Gui{std::move(root),
                                                            layout.GamestateX,
                                                            layout.GamestateY,
                                                            layout.GamestateWidth,

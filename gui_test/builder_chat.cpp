@@ -41,21 +41,23 @@ struct ChatPlaceholder : public gui::Widget {
     }
 };
 
-std::unique_ptr<gui::Widget> Builder::BuildChat(int width,
-                                                int height,
-                                                trc::Gamestate *gamestate,
-                                                GuiState *guiState,
-                                                trc::gui::Widget **chatContentOut) {
-
-    auto panel = std::make_unique<gui::Panel>(width, height);
-    panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
-    auto chatWidget = std::make_unique<ChatPlaceholder>(width, height);
-    auto *chatWidgetPtr = chatWidget.get();
-    panel->Add(std::move(chatWidget), gui::Position(0, 0));
-
-    if (chatContentOut != nullptr) {
-        *chatContentOut = chatWidgetPtr;
+void Builder::ChatPanel::SetSize(int width, int height) {
+    Panel::SetSize(width, height);
+    if (Content != nullptr) {
+        Content->SetSize(width, height);
     }
+}
+
+std::unique_ptr<Builder::ChatPanel> Builder::BuildChat(int width,
+                                                       int height,
+                                                       trc::Gamestate *gamestate,
+                                                       GuiState *guiState) {
+    auto panel = std::make_unique<Builder::ChatPanel>(width, height);
+    panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
+
+    auto chatWidget = std::make_unique<ChatPlaceholder>(width, height);
+    panel->Content = chatWidget.get();
+    panel->Add(std::move(chatWidget), gui::Position(0, 0));
 
     return panel;
 }

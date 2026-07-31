@@ -24,21 +24,31 @@
 
 #include "state.hpp"
 
+#include "gui/panel.hpp"
 #include "gui/widget.hpp"
 #include "gamestate.hpp"
 
 namespace Builder {
 
-std::unique_ptr<trc::gui::Widget> BuildGame(int width,
-                                            int height,
-                                            trc::Gamestate *gamestate,
-                                            GuiState *guiState,
-                                            int gamestateX,
-                                            int gamestateY,
-                                            int gamestateWidth,
-                                            int gamestateHeight,
-                                            trc::gui::Widget **gameBorderOut,
-                                            trc::gui::Widget **gamestateWidgetOut);
+struct GamePanel : public trc::gui::Panel {
+    trc::gui::Widget *GamestateBorder = nullptr;
+    trc::gui::Widget *GamestateWidget = nullptr;
+
+    GamePanel(int width, int height)
+        : Panel(width, height) {
+    }
+
+    void SetGamestateBounds(int x, int y, int width, int height);
+};
+
+std::unique_ptr<GamePanel> BuildGame(int width,
+                                     int height,
+                                     trc::Gamestate *gamestate,
+                                     GuiState *guiState,
+                                     int gamestateX,
+                                     int gamestateY,
+                                     int gamestateWidth,
+                                     int gamestateHeight);
 
 } // namespace Builder
 

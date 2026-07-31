@@ -24,20 +24,27 @@
 
 #include "state.hpp"
 
+#include "gui/panel.hpp"
 #include "gui/widget.hpp"
 #include "gamestate.hpp"
 
 namespace Builder {
 
-struct Gui {
-    std::unique_ptr<trc::gui::Widget> Root;
+struct ChatPanel;
+struct GamePanel;
 
+struct RootPanel : public trc::gui::Panel {
     trc::gui::Widget *Sidebar = nullptr;
-    trc::gui::Widget *Chat = nullptr;
-    trc::gui::Widget *ChatContent = nullptr;
-    trc::gui::Widget *Game = nullptr;
-    trc::gui::Widget *GameBorder = nullptr;
-    trc::gui::Widget *GamestateWidget = nullptr;
+    ChatPanel *Chat = nullptr;
+    GamePanel *Game = nullptr;
+
+    RootPanel(int width, int height)
+        : Panel(width, height) {
+    }
+};
+
+struct Gui {
+    std::unique_ptr<RootPanel> Root;
 
     int GamestateX;
     int GamestateY;

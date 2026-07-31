@@ -44,38 +44,41 @@ struct GamestateWidget : public gui::Widget {
     }
 };
 
-std::unique_ptr<gui::Widget> Builder::BuildGame(int width,
-                                                int height,
-                                                trc::Gamestate *gamestate,
-                                                GuiState *guiState,
-                                                int gamestateX,
-                                                int gamestateY,
-                                                int gamestateWidth,
-                                                int gamestateHeight,
-                                                trc::gui::Widget **gameBorderOut,
-                                                trc::gui::Widget **gamestateWidgetOut) {
+void Builder::GamePanel::SetGamestateBounds(int x,
+                                          int y,
+                                          int width,
+                                          int height) {
+    if (GamestateWidget != nullptr) {
+        GamestateWidget->SetSize(width, height);
+    }
+    if (GamestateBorder != nullptr) {
+        SetChildPosition(GamestateBorder, gui::Position(x - 1, y - 1));
+    }
+}
 
-    auto panel = std::make_unique<gui::Panel>(width, height);
+std::unique_ptr<Builder::GamePanel> Builder::BuildGame(int width,
+                                                       int height,
+                                                       trc::Gamestate *gamestate,
+                                                       GuiState *guiState,
+                                                       int gamestateX,
+                                                       int gamestateY,
+                                                       int gamestateWidth,
+                                                       int gamestateHeight) {
+
+    auto panel = std::make_unique<Builder::GamePanel>(width, height);
     panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
 
     auto gameWidget = std::make_unique<GamestateWidget>(gamestateWidth, gamestateHeight);
-    auto *gameWidgetPtr = gameWidget.get();
+    panel->GamestateWidget = gameWidget.get();
 
     auto borderWidget =
             std::make_unique<gui::Border>(&gamestate->Version.Icons,
                                           gui::Border::BorderType::Sunken,
                                           std::move(gameWidget));
-    auto *borderWidgetPtr = borderWidget.get();
+    panel->GamestateBorder = borderWidget.get();
 
     panel->Add(std::move(borderWidget),
                gui::Position(gamestateX - 1, gamestateY - 1));
-
-    if (gameBorderOut != nullptr) {
-        *gameBorderOut = borderWidgetPtr;
-    }
-    if (gamestateWidgetOut != nullptr) {
-        *gamestateWidgetOut = gameWidgetPtr;
-    }
 
     return panel;
 }
