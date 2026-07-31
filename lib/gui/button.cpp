@@ -32,36 +32,19 @@ namespace gui {
 
 void Button::Update(State &state, Position offset) {
     RenderPressed =
-            (Pressed &&
-             PointInsideWidget(state.MousePosition(offset), *this)) ||
-            (Type == ButtonType::Toggle && Toggled && SpriteToggledPressed == nullptr);
+            IsPressed && PointInsideWidget(state.MousePosition(offset), *this);
 }
 
 void Button::Render(Canvas &canvas, Position offset) {
-    int textOffset = 0;
-    if (RenderPressed) {
-        if (Type == ButtonType::Toggle && Toggled &&
-            SpriteToggledPressed != nullptr) {
-            canvas.Draw(*SpriteToggledPressed, offset.X, offset.Y);
-        } else {
-            canvas.Draw(*SpritePressed, offset.X, offset.Y);
-        }
-        textOffset = 1;
-    } else {
-        if (Type == ButtonType::Toggle && Toggled &&
-            SpriteToggledNormal != nullptr) {
-            canvas.Draw(*SpriteToggledNormal, offset.X, offset.Y);
-        } else {
-            canvas.Draw(*SpriteNormal, offset.X, offset.Y);
-        }
-    }
+    int textOffset = RenderPressed ? 1 : 0;
+    canvas.Draw(*(RenderPressed ? Pressed : Normal), offset.X, offset.Y);
 
     if (TextFont != nullptr) {
         TextRenderer::DrawCenteredString(
                 *TextFont,
                 TextColor,
-                offset.X + (SpriteNormal->Width / 2) + textOffset,
-                offset.Y + (SpriteNormal->Height / 2) - (TextFont->Height / 2) +
+                offset.X + (Normal->Width / 2) + textOffset,
+                offset.Y + (Normal->Height / 2) - (TextFont->Height / 2) +
                         textOffset,
                 Text,
                 canvas);
@@ -69,20 +52,62 @@ void Button::Render(Canvas &canvas, Position offset) {
 }
 
 Widget::MouseEventResult Button::MouseLeftDown(Position position) {
-    Pressed = true;
+    IsPressed = true;
     return Widget::MouseEventResult::Handled;
 }
 
 void Button::MouseLeftUp(Position position) {
-    if (Pressed) {
-        Pressed = false;
+    if (IsPressed) {
+        IsPressed = false;
         if (PointInsideWidget(position, *this)) {
-            if (Type == ButtonType::Toggle) {
-                Toggled = !Toggled;
-            }
-            OnClick();
+            HandleClick();
         }
     }
+}
+
+void Button::HandleClick() {
+    if (OnClick) {
+        OnClick();
+    }
+}
+
+void ToggleButton::Update(State &state, Position offset) {
+    Button::Update(state, offset);
+    RenderPressed = RenderPressed || (Toggled && ToggledPressed == nullptr);
+}
+
+void ToggleButton::Render(Canvas &canvas, Position offset) {
+    const Sprite *sprite = nullptr;
+    if (Toggled) {
+        if (RenderPressed && ToggledPressed != nullptr) {
+            sprite = ToggledPressed;
+        } else if (!RenderPressed && ToggledNormal != nullptr) {
+            sprite = ToggledNormal;
+        }
+    }
+
+    if (sprite == nullptr) {
+        sprite = RenderPressed ? Pressed : Normal;
+    }
+
+    int textOffset = RenderPressed ? 1 : 0;
+    canvas.Draw(*sprite, offset.X, offset.Y);
+
+    if (TextFont != nullptr) {
+        TextRenderer::DrawCenteredString(
+                *TextFont,
+                TextColor,
+                offset.X + (Normal->Width / 2) + textOffset,
+                offset.Y + (Normal->Height / 2) - (TextFont->Height / 2) +
+                        textOffset,
+                Text,
+                canvas);
+    }
+}
+
+void ToggleButton::HandleClick() {
+    Toggled = !Toggled;
+    Button::HandleClick();
 }
 
 } // namespace gui

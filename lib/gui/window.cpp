@@ -54,12 +54,9 @@ Window::Window(int width,
       ScrollOffset(0),
       MaximizedHeight(height),
       MinimizeButton(&version->Icons.Minimize,
-                     &version->Icons.MinimizePressed,
-                     Button::ButtonType::Toggle),
+                     &version->Icons.MinimizePressed),
       MinimizeButtonPosition(Position(width - 28, 2)),
-      CloseButton(&version->Icons.Close,
-                  &version->Icons.ClosePressed,
-                  Button::ButtonType::Normal),
+      CloseButton(&version->Icons.Close, &version->Icons.ClosePressed),
       CloseButtonPosition(Position(width - 15, 2)) {
     MinHeight = 57;
     MaxHeight = WindowType == Type::SidebarNoMaxHeight ? 65536 : height;

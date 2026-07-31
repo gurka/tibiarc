@@ -167,7 +167,7 @@ struct SidebarResources : public gui::Widget {
 
 struct SidebarInventory : public gui::Widget {
     Gamestate *_Gamestate;
-    gui::Button MinimizeButton;
+    gui::ToggleButton MinimizeButton;
     bool MinimizeButtonPressed = false;
 
     SidebarInventory(Gamestate *gamestate)
@@ -356,18 +356,17 @@ struct SidebarButtons : public gui::Widget {
     Gamestate *_Gamestate;
     GuiState *_GuiState;
 
-    gui::PlacedWidget<gui::Button> SkillsButton;
-    gui::PlacedWidget<gui::Button> BattleButton;
-    gui::PlacedWidget<gui::Button> VIPButton;
+    gui::PlacedWidget<gui::ToggleButton> SkillsButton;
+    gui::PlacedWidget<gui::ToggleButton> BattleButton;
+    gui::PlacedWidget<gui::ToggleButton> VIPButton;
 
-    gui::PlacedWidget<gui::Button> *WidgetPressed;
+    gui::PlacedWidget<gui::ToggleButton> *WidgetPressed;
 
     SidebarButtons(Gamestate *gamestate, GuiState *guiState)
         : Widget(172, 26), _Gamestate(gamestate), _GuiState(guiState), WidgetPressed(nullptr) {
-        auto skillsButton = std::make_unique<gui::Button>(
+        auto skillsButton = std::make_unique<gui::ToggleButton>(
                 &gamestate->Version.Icons.Button34px,
-                &gamestate->Version.Icons.Button34pxPressed,
-                gui::Button::ButtonType::Toggle);
+                &gamestate->Version.Icons.Button34pxPressed);
         skillsButton->SetText("Skills",
                               Pixel(0xFF, 0xFF, 0xFF),
                               &gamestate->Version.Fonts.InterfaceSmall);
@@ -378,10 +377,9 @@ struct SidebarButtons : public gui::Widget {
         SkillsButton.Widget = std::move(skillsButton);
         SkillsButton.Position = gui::Position(8, 3);
 
-        auto battleButton = std::make_unique<gui::Button>(
+        auto battleButton = std::make_unique<gui::ToggleButton>(
                 &gamestate->Version.Icons.Button34px,
-                &gamestate->Version.Icons.Button34pxPressed,
-                gui::Button::ButtonType::Toggle);
+                &gamestate->Version.Icons.Button34pxPressed);
         battleButton->SetText("Battle",
                               Pixel(0xFF, 0xFF, 0xFF),
                               &gamestate->Version.Fonts.InterfaceSmall);
@@ -391,10 +389,9 @@ struct SidebarButtons : public gui::Widget {
         BattleButton.Widget = std::move(battleButton);
         BattleButton.Position = gui::Position(45, 3);
 
-        auto vipButton = std::make_unique<gui::Button>(
+        auto vipButton = std::make_unique<gui::ToggleButton>(
                 &gamestate->Version.Icons.Button34px,
-                &gamestate->Version.Icons.Button34pxPressed,
-                gui::Button::ButtonType::Toggle);
+                &gamestate->Version.Icons.Button34pxPressed);
         vipButton->SetText("VIP",
                            Pixel(0xFF, 0xFF, 0xFF),
                            &gamestate->Version.Fonts.InterfaceSmall);

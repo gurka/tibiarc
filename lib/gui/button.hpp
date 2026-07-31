@@ -41,11 +41,9 @@ struct State;
 struct Button : public Widget {
     using OnClickHandler = std::function<void()>;
 
-    const Sprite *SpriteNormal;
-    const Sprite *SpritePressed;
-    const Sprite *SpriteToggledNormal;
-    const Sprite *SpriteToggledPressed;
-    enum class ButtonType { Normal, Toggle } Type;
+    const Sprite *Normal;
+    const Sprite *Pressed;
+
     std::string Text;
     Pixel TextColor;
     const Font *TextFont;
@@ -55,36 +53,18 @@ struct Button : public Widget {
     bool RenderPressed;
 
     // Left mouse has been pressed on the button, but not released yet
-    bool Pressed;
+    bool IsPressed;
 
-    // Only used when Type is Toggle
-    bool Toggled;
-
-    Button(const Sprite *spriteNormal,
-           const Sprite *spritePressed,
-           ButtonType type)
+    Button(const Sprite *spriteNormal, const Sprite *spritePressed)
         : Widget(spriteNormal->Width, spriteNormal->Height),
-          SpriteNormal(spriteNormal),
-          SpritePressed(spritePressed),
-          SpriteToggledNormal(nullptr),
-          SpriteToggledPressed(nullptr),
-          Type(type),
+          Normal(spriteNormal),
+          Pressed(spritePressed),
           Text(""),
           TextColor(Pixel(0, 0, 0)),
           TextFont(nullptr),
           OnClick(nullptr),
           RenderPressed(false),
-          Pressed(false),
-          Toggled(false) {
-    }
-
-    Button(const Sprite *spriteNormal,
-           const Sprite *spritePressed,
-           const Sprite *spriteToggledNormal,
-           const Sprite *spriteToggledPressed)
-        : Button(spriteNormal, spritePressed, ButtonType::Toggle) {
-        SpriteToggledNormal = spriteToggledNormal;
-        SpriteToggledPressed = spriteToggledPressed;
+          IsPressed(false) {
     }
 
     void SetOnClick(const OnClickHandler &onClick) {
@@ -102,6 +82,32 @@ struct Button : public Widget {
 
     MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;
+
+protected:
+    virtual void HandleClick();
+};
+
+struct ToggleButton : public Button {
+    const Sprite *ToggledNormal;
+    const Sprite *ToggledPressed;
+
+    bool Toggled;
+
+    ToggleButton(const Sprite *spriteNormal,
+                 const Sprite *spritePressed,
+                 const Sprite *spriteToggledNormal = nullptr,
+                 const Sprite *spriteToggledPressed = nullptr)
+        : Button(spriteNormal, spritePressed),
+          ToggledNormal(spriteToggledNormal),
+          ToggledPressed(spriteToggledPressed),
+          Toggled(false) {
+    }
+
+    void Update(State &state, Position offset) override;
+    void Render(Canvas &canvas, Position offset) override;
+
+protected:
+    void HandleClick() override;
 };
 
 } // namespace gui

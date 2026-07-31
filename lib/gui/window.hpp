@@ -73,7 +73,7 @@ private:
     int ScrollOffset;
 
     int MaximizedHeight;
-    Button MinimizeButton;
+    ToggleButton MinimizeButton;
     Position MinimizeButtonPosition;
     Button CloseButton;
     Position CloseButtonPosition;
