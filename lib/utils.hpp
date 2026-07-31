@@ -100,6 +100,15 @@ std::string ThousandSeparators(T value) {
     return str;
 }
 
+std::string Capitalize(const auto &str) {
+    if (str.empty()) {
+        return str;
+    }
+    std::string result = str;
+    result[0] = static_cast<char>(std::toupper(result[0]));
+    return result;
+}
+
 } // namespace trc
 
 /* Compatibility shim for the lack of std::format under MinGW, using the

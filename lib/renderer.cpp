@@ -461,17 +461,17 @@ static bool DrawOutfit(const Creature &creature,
     return true;
 }
 
-static void DrawItem(const Version &version,
-                     const Object &item,
-                     const EntityType &type,
-                     int rightX,
-                     int bottomY,
-                     uint32_t tick,
-                     const Position &position,
-                     int horizontal,
-                     int vertical,
-                     int isInInventory,
-                     Canvas &canvas) {
+void Renderer::DrawItem(const Version &version,
+                        const Object &item,
+                        const EntityType &type,
+                        int rightX,
+                        int bottomY,
+                        uint32_t tick,
+                        const Position &position,
+                        int horizontal,
+                        int vertical,
+                        int isInInventory,
+                        Canvas &canvas) {
     int frame, xMod, yMod, zMod;
 
     const auto &frameGroup =

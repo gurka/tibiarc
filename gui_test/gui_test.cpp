@@ -306,8 +306,8 @@ int main(int argc, char *argv[]) {
     Window.reset(SDL_CreateWindow("tibiarc GUI test",
                                   SDL_WINDOWPOS_UNDEFINED,
                                   SDL_WINDOWPOS_UNDEFINED,
-                                  800,
-                                  600,
+                                  1600,
+                                  1200,
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
     if (!Window) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;

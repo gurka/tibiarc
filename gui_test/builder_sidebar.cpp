@@ -659,6 +659,31 @@ struct SidebarContainerContent : public gui::Widget {
                         slotY,
                         icons.InventoryBackground.Width,
                         icons.InventoryBackground.Height);
+
+            if (container.Items.size() > slot) {
+                const auto &item = container.Items[slot];
+                const auto &type = _Gamestate->Version.GetItem(item.Id);
+                Renderer::DrawItem(_Gamestate->Version,
+                                   item,
+                                   type,
+                                   slotX + 33,
+                                   slotY + 33,
+                                   _Gamestate->CurrentTick,
+                                   Position{},
+                                   0,
+                                   0,
+                                   1,
+                                   canvas);
+                if ((type.Properties.Stackable || type.Properties.Rune) &&
+                    item.ExtraByte > 1) {
+                    TextRenderer::DrawRightAlignedString(_Gamestate->Version.Fonts.Game,
+                                                         Pixel(0xBF, 0xBF, 0xBF),
+                                                         slotX + 32,
+                                                         slotY + 22,
+                                                         Format("{}", item.ExtraByte),
+                                                         canvas);
+                }
+            }
         }
     }
 };
@@ -742,7 +767,7 @@ struct SidebarBottom : public gui::VerticalPanel {
                         &_Gamestate->Version,
                         gui::Window::Type::Sidebar,
                         &_Gamestate->Version.Icons.SkillsIcon,
-                        container.Name,
+                        trc::Capitalize(container.Name),
                         []() {});
                 window->Content =
                         std::make_unique<SidebarContainerContent>(_Gamestate, containerId);
@@ -753,6 +778,7 @@ struct SidebarBottom : public gui::VerticalPanel {
         }
 
         for (auto &[containerId, window] : ContainerWindows) {
+            // TODO: Hide or delete...?
             window->Visible = _Gamestate->Containers.contains(containerId);
         }
     }
