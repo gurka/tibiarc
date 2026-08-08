@@ -67,6 +67,10 @@ Window::Window(int width,
       CloseButtonPosition(Position(width - 15, 2)) {
     MinHeight = 57;
     MaxHeight = WindowType == Type::SidebarNoMaxHeight ? 65536 : height;
+    ScrollUpButton.SetOnClick(
+            [this]() { ScrollOffset = std::max(0, ScrollOffset - 10); });
+    ScrollDownButton.SetOnClick(
+            [this]() { ScrollOffset = std::max(0, std::min(Content->Height - Height, ScrollOffset + 10)); });
     MinimizeButton.SetOnClick([this]() { MinimizeOnClick(); });
     CloseButton.SetOnClick(CloseOnClick);
 }
@@ -216,6 +220,38 @@ void Window::Render(Canvas &canvas, Position offset) {
                      offset.Y + 27,
                      offset.X + Width - 16 + 12,
                      offset.Y + 27 + Height - 43);
+
+    /*
+    // Scrollbar: calculate how much of the content is visible in the window
+    int contentHeight = Height - 15 - 4;
+    float visibleContentHeight = static_cast<float>(contentHeight) / std::min(Content->Height, contentHeight);
+    int scrollbarHeight = Height - 43;
+    int scrollbarButtonHeight =
+            static_cast<int>(scrollbarHeight * visibleContentHeight);
+    int scrollbarButtonOffset = static_cast<int>(
+            scrollbarHeight * (static_cast<float>(ScrollOffset) /
+                               std::max(1, Content->Height - contentHeight)));
+    canvas.Draw(icons.ScrollbarButton,
+                offset.X + Width - 16,
+                offset.Y + 27 + scrollbarButtonOffset,
+                12,
+                4,
+                0,
+                0,
+                0,
+                0);
+    canvas.Draw(icons.ScrollbarButton,
+                offset.X + Width - 16,
+                offset.Y + 27 + scrollbarButtonOffset + 4,
+                12,
+                scrollbarButtonHeight - 8,
+                0,
+                4,
+                0,
+                4);
+    */
+
+
     canvas.Draw(icons.ScrollbarButton, offset.X + Width - 16, offset.Y + 27);
     ScrollDownButton.Render(canvas, offset + ScrollDownButtonPosition);
 
@@ -274,8 +310,16 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
 
 void Window::MouseLeftUp(Position position) {
     if (PressedButton != nullptr) {
-        const auto &pos = (PressedButton == &MinimizeButton) ? MinimizeButtonPosition
-                                                             : CloseButtonPosition;
+        const auto &pos = [this]() {
+            if (PressedButton == &ScrollUpButton)
+                return ScrollUpButtonPosition;
+            if (PressedButton == &ScrollDownButton)
+                return ScrollDownButtonPosition;
+            if (PressedButton == &MinimizeButton)
+                return MinimizeButtonPosition;
+            else // CloseButton
+                return CloseButtonPosition;
+        }();
         PressedButton->MouseLeftUp(position - pos);
         PressedButton = nullptr;
     }
