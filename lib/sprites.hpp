@@ -31,12 +31,13 @@ namespace trc {
 
 /* Forward-declare Canvas to break a circular dependency. */
 class Canvas;
+class Pixel;
 
 struct Sprite {
     int Width;
     int Height;
     size_t Size;
-    const uint8_t *Buffer;
+    const Pixel *Buffer;
 
     enum class Trim { None, Right };
 

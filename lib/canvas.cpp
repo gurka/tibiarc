@@ -163,81 +163,27 @@ void Canvas::DrawCharacter(const Sprite &sprite,
         return;
     }
 
-    while (byteIdx < sprite.Size) {
-        int pixelCount;
+    for (auto i = 0; i < sprite.Size; ++i) {
+        const Pixel &tintKey = sprite.Buffer[i];
+        if (tintKey.Alpha == 0) {
+            continue;
+        }
 
-        /* Skipping over transparent pixels. */
-        pixelIdx += ((uint16_t)sprite.Buffer[byteIdx + 0] << 0x00) |
-                    ((uint16_t)sprite.Buffer[byteIdx + 1] << 0x08);
-        byteIdx += 2;
+        int fromX = i % sprite.Width;
+        int fromY = i / sprite.Width;
 
-        /* How many colored pixels follow? */
-        pixelCount = ((uint16_t)sprite.Buffer[byteIdx + 0] << 0x00) |
-                     ((uint16_t)sprite.Buffer[byteIdx + 1] << 0x08);
-        byteIdx += 2;
+        int targetX = x + fromX;
+        int targetY = y + fromY;
 
-        while (pixelCount > 0) {
-            /* Where are we currently at in the sprite? */
-            int fromX = pixelIdx % sprite.Width;
-            int fromY = pixelIdx / sprite.Width;
+        if (targetX > 0 && targetX < Width && targetY >= 0 &&
+            targetY < Height) {
+            int targetIdx = (targetX * sizeof(Pixel)) + (targetY * Stride);
+            Pixel &targetPixel = *(Pixel *)&Buffer[targetIdx];
 
-            /* And where on the destination canvas? */
-            int targetX = x + fromX;
-            int targetY = y + fromY;
-
-            if (targetY >= Height) {
-                /* Outside the bottom of the canvas. Nothing to do but
-                 * return. */
-                return;
-            } else if (targetY < 0) {
-                /* Above canvas. Skip what pixels are left in block or until
-                 * we get on canvas. */
-                int skipCount = std::min(sprite.Width - fromX -
-                                                 (1 + targetY) * sprite.Width,
-                                         pixelCount);
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else if (targetX >= Width) {
-                /* Right of canvas. Skip what pixels are left in block or
-                 * sprite row. */
-                int skipCount = std::min(sprite.Width - fromX, pixelCount);
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else if (targetX < 0) {
-                /* Left of canvas. Skip what pixels are left in block or
-                 * until we get on canvas. */
-                int skipCount = std::min(-targetX, pixelCount);
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else {
-                /* On the canvas. Tint with what pixels are left in block or
-                 * until edge of sprite or canvas. */
-                int tintCount =
-                        std::min(std::min(sprite.Width - fromX, pixelCount),
-                                 Width - targetX);
-                int targetIdx = (targetX * sizeof(Pixel)) + (targetY * Stride);
-                unsigned stopIdx = byteIdx + tintCount * sizeof(Pixel);
-
-                while (byteIdx < stopIdx) {
-                    const Pixel &tintKey =
-                            *(Pixel *)&sprite.Buffer[byteIdx + 0];
-                    Pixel &targetPixel = *(Pixel *)&Buffer[targetIdx];
-
-                    targetPixel.Red = (tintKey.Red * fontColor.Red) >> 8;
-                    targetPixel.Green = (tintKey.Green * fontColor.Green) >> 8;
-                    targetPixel.Blue = (tintKey.Blue * fontColor.Blue) >> 8;
-                    targetPixel.Alpha = fontColor.Alpha;
-
-                    targetIdx += sizeof(Pixel);
-                    byteIdx += sizeof(Pixel);
-                }
-
-                pixelCount -= tintCount;
-                pixelIdx += tintCount;
-            }
+            targetPixel.Red = (tintKey.Red * fontColor.Red) >> 8;
+            targetPixel.Green = (tintKey.Green * fontColor.Green) >> 8;
+            targetPixel.Blue = (tintKey.Blue * fontColor.Blue) >> 8;
+            targetPixel.Alpha = fontColor.Alpha;
         }
     }
 }
@@ -293,109 +239,59 @@ void Canvas::Tint(const Sprite &sprite,
     const unsigned detailG = colorMap[detail] >> 8 & 255;
     const unsigned detailR = colorMap[detail] >> 16 & 255;
 
-    unsigned pixelIdx = 0, byteIdx = 0;
-
+    // Initial bounds check
     if (!((x < Width) && (y < Height) && (x + sprite.Width >= 0) &&
           (y + sprite.Height >= 0))) {
         return;
     }
 
-    while (byteIdx < sprite.Size) {
-        int pixelCount;
+    for (size_t i = 0; i < sprite.Size; ++i) {
+        int fromX = i % sprite.Width;
+        int fromY = i / sprite.Width;
 
-        /* Skipping over transparent pixels. */
-        pixelIdx += ((uint16_t)sprite.Buffer[byteIdx + 0] << 0x00) |
-                    ((uint16_t)sprite.Buffer[byteIdx + 1] << 0x08);
-        byteIdx += 2;
+        if (fromY >= height) {
+            break;
+        }
+        if (fromX >= width) {
+            continue;
+        }
 
-        /* How many colored pixels follow? */
-        pixelCount = ((uint16_t)sprite.Buffer[byteIdx + 0] << 0x00) |
-                     ((uint16_t)sprite.Buffer[byteIdx + 1] << 0x08);
-        byteIdx += 2;
+        // Boundary check for the specific pixel
+        int targetX = x + fromX;
+        int targetY = y + fromY;
 
-        while (pixelCount > 0) {
-            /* Where are we currently at in the sprite? */
-            int fromX = pixelIdx % sprite.Width;
-            int fromY = pixelIdx / sprite.Width;
+        if (targetX >= 0 && targetX < Width && targetY >= 0 &&
+            targetY < Height) {
+            const Pixel &tintKey = sprite.Buffer[i];
 
-            /* And where on the destination canvas? */
-            int targetX = x + fromX;
-            int targetY = y + fromY;
+            // Skip transparent pixels
+            if (tintKey.Alpha == 0)
+                continue;
 
-            if (targetY >= Height || fromY >= height) {
-                /* Outside the bottom of the canvas. Nothing to do but
-                 * return. */
-                return;
-            } else if (targetY < 0) {
-                /* Above canvas. Skip what pixels are left in block or until
-                 * we get on canvas. */
-                int skipCount = std::min(sprite.Width - fromX -
-                                                 (1 + targetY) * sprite.Width,
-                                         pixelCount);
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else if (targetX >= Width || fromX >= width) {
-                /* Right of canvas. Skip what pixels are left in block or
-                 * sprite row.
-                 */
-                int skipCount = std::min(sprite.Width - fromX, pixelCount);
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else if (targetX < 0) {
-                /* Left of canvas. Skip what pixels are left in block or
-                 * until we get on canvas. */
-                int skipCount = std::min(-targetX, pixelCount);
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else {
-                /* On the canvas. Tint with what pixels are left in block or
-                 * until edge of sprite or canvas. */
-                int tintCount =
-                        std::min(std::min(sprite.Width - fromX, pixelCount),
-                                 Width - targetX);
-                int targetIdx = (targetX * sizeof(Pixel)) + (targetY * Stride);
-                unsigned stopIdx =
-                        byteIdx + std::min(width, tintCount) * sizeof(Pixel);
+            Pixel *targetPixel = (Pixel *)&Buffer[(targetX * sizeof(Pixel)) +
+                                                  (targetY * Stride)];
 
-                while (byteIdx < stopIdx) {
-                    const Pixel &tintKey = *(Pixel *)&sprite.Buffer[byteIdx];
-                    Pixel *targetPixel = (Pixel *)&Buffer[targetIdx];
-
-                    if (tintKey.Red == 0 && tintKey.Green == 0 &&
-                        tintKey.Blue == 0xFF) {
-                        targetPixel->Red = targetPixel->Red * detailR >> 8;
-                        targetPixel->Green = targetPixel->Green * detailG >> 8;
-                        targetPixel->Blue = targetPixel->Blue * detailB >> 8;
-                    } else if (tintKey.Red == 0xFF && tintKey.Green == 0xFF &&
-                               tintKey.Blue == 0) {
-                        targetPixel->Red = targetPixel->Red * headR >> 8;
-                        targetPixel->Green = targetPixel->Green * headG >> 8;
-                        targetPixel->Blue = targetPixel->Blue * headB >> 8;
-                    } else if (tintKey.Red == 0 && tintKey.Green == 0xFF &&
-                               tintKey.Blue == 0) {
-                        targetPixel->Red = targetPixel->Red * secondaryR >> 8;
-                        targetPixel->Green =
-                                targetPixel->Green * secondaryG >> 8;
-                        targetPixel->Blue = targetPixel->Blue * secondaryB >> 8;
-                    } else if (tintKey.Red == 0xFF && tintKey.Green == 0 &&
-                               tintKey.Blue == 0) {
-                        targetPixel->Red = targetPixel->Red * primaryR >> 8;
-                        targetPixel->Green = targetPixel->Green * primaryG >> 8;
-                        targetPixel->Blue = targetPixel->Blue * primaryB >> 8;
-                    }
-
-                    targetIdx += sizeof(Pixel);
-                    byteIdx += sizeof(Pixel);
-                }
-
-                byteIdx += (tintCount - std::min(width, tintCount)) *
-                           sizeof(Pixel);
-
-                pixelCount -= tintCount;
-                pixelIdx += tintCount;
+            // Color key logic
+            if (tintKey.Red == 0 && tintKey.Green == 0 &&
+                tintKey.Blue == 0xFF) {
+                targetPixel->Red = targetPixel->Red * detailR >> 8;
+                targetPixel->Green = targetPixel->Green * detailG >> 8;
+                targetPixel->Blue = targetPixel->Blue * detailB >> 8;
+            } else if (tintKey.Red == 0xFF && tintKey.Green == 0xFF &&
+                       tintKey.Blue == 0) {
+                targetPixel->Red = targetPixel->Red * headR >> 8;
+                targetPixel->Green = targetPixel->Green * headG >> 8;
+                targetPixel->Blue = targetPixel->Blue * headB >> 8;
+            } else if (tintKey.Red == 0 && tintKey.Green == 0xFF &&
+                       tintKey.Blue == 0) {
+                targetPixel->Red = targetPixel->Red * secondaryR >> 8;
+                targetPixel->Green = targetPixel->Green * secondaryG >> 8;
+                targetPixel->Blue = targetPixel->Blue * secondaryB >> 8;
+            } else if (tintKey.Red == 0xFF && tintKey.Green == 0 &&
+                       tintKey.Blue == 0) {
+                targetPixel->Red = targetPixel->Red * primaryR >> 8;
+                targetPixel->Green = targetPixel->Green * primaryG >> 8;
+                targetPixel->Blue = targetPixel->Blue * primaryB >> 8;
             }
         }
     }
@@ -410,84 +306,37 @@ void Canvas::Draw(const Sprite &sprite,
                   const int y,
                   const int width,
                   const int height) {
-    unsigned pixelIdx = 0, byteIdx = 0;
-
     if (!((x < Width) && (y < Height) && (x + sprite.Width >= 0) &&
           (y + sprite.Height >= 0))) {
         return;
     }
 
-    while (byteIdx < sprite.Size) {
-        int pixelCount;
+    for (size_t i = 0; i < sprite.Size; ++i) {
+        const Pixel &tintKey = sprite.Buffer[i];
 
-        /* Skipping over transparent pixels. */
-        pixelIdx += ((uint16_t)sprite.Buffer[byteIdx + 0] << 0x00) |
-                    ((uint16_t)sprite.Buffer[byteIdx + 1] << 0x08);
-        byteIdx += 2;
+        if (tintKey.Alpha == 0) {
+            continue;
+        }
 
-        /* How many colored pixels follow? */
-        pixelCount = ((uint16_t)sprite.Buffer[byteIdx + 0] << 0x00) |
-                     ((uint16_t)sprite.Buffer[byteIdx + 1] << 0x08);
-        byteIdx += 2;
+        int fromX = i % sprite.Width;
+        int fromY = i / sprite.Width;
 
-        while (pixelCount > 0) {
-            /* Where are we currently at in the sprite? */
-            int fromX = pixelIdx % sprite.Width;
-            int fromY = pixelIdx / sprite.Width;
+        if (fromY >= height) {
+            break;
+        }
+        if (fromX >= width) {
+            continue;
+        }
 
-            /* And where on the destination canvas? */
-            int targetX = x + fromX;
-            int targetY = y + fromY;
+        int targetX = x + fromX;
+        int targetY = y + fromY;
 
-            if (targetY >= Height || fromY >= height) {
-                /* Outside the bottom of the canvas. Nothing to do but
-                 * return. */
-                return;
-            } else if (targetY < 0) {
-                /* Above canvas. Skip what pixels are left in block or until
-                 * we get on canvas. */
-                int skipCount = std::min(sprite.Width - fromX -
-                                                 (1 + targetY) * sprite.Width,
-                                         pixelCount);
+        if (targetX >= 0 && targetX < Width && targetY >= 0 &&
+            targetY < Height) {
 
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else if (targetX >= Width || fromX >= width) {
-                /* Right of canvas. Skip what pixels are left in block or
-                 * sprite row.
-                 */
-                int skipCount = std::min(sprite.Width - fromX, pixelCount);
-
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else if (targetX < 0) {
-                /* Left of canvas. Skip what pixels are left in block or
-                 * until we get on canvas. */
-                int skipCount = std::min(-targetX, pixelCount);
-
-                byteIdx += skipCount * sizeof(Pixel);
-                pixelCount -= skipCount;
-                pixelIdx += skipCount;
-            } else {
-                /* On the canvas. Copy what pixels are left in block or
-                 * until edge of sprite or canvas. */
-                unsigned destIdx, copyCount;
-
-                copyCount = std::min(std::min(sprite.Width - fromX, pixelCount),
-                                     Width - targetX);
-                destIdx = (targetX * sizeof(Pixel)) + (targetY * Stride);
-
-                Assert(width > 0);
-                memcpy(&Buffer[destIdx],
-                       &sprite.Buffer[byteIdx],
-                       std::min(copyCount, (unsigned)width) * sizeof(Pixel));
-
-                byteIdx += copyCount * sizeof(Pixel);
-                pixelCount -= copyCount;
-                pixelIdx += copyCount;
-            }
+            int targetIdx = (targetX * sizeof(Pixel)) + (targetY * Stride);
+            Pixel *targetPixel = (Pixel *)&Buffer[targetIdx];
+            *targetPixel = tintKey;
         }
     }
 }
