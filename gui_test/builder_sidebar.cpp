@@ -763,7 +763,8 @@ struct SidebarBottom : public gui::VerticalPanel {
                         64,
                         &_Gamestate->Version,
                         gui::Window::Type::Sidebar,
-                        &_Gamestate->Version.Icons.SkillsIcon,
+                        _Gamestate->Version.GetItem(container.ItemId)
+                                .FrameGroups->Sprites[0],
                         trc::Capitalize(container.Name),
                         [this, containerId]() { HideContainerWindow(containerId); });
                 window->Content =

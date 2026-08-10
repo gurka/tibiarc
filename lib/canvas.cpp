@@ -301,6 +301,7 @@ void Canvas::Draw(const Sprite &sprite,
                   const int x, const int y) {
     Draw(sprite, x, y, sprite.Width, sprite.Height);
 }
+
 void Canvas::Draw(const Sprite &sprite,
                   const int x,
                   const int y,
@@ -337,6 +338,63 @@ void Canvas::Draw(const Sprite &sprite,
             int targetIdx = (targetX * sizeof(Pixel)) + (targetY * Stride);
             Pixel *targetPixel = (Pixel *)&Buffer[targetIdx];
             *targetPixel = tintKey;
+        }
+    }
+}
+
+void Canvas::DrawScaled(const Sprite &sprite,
+                        const int x,
+                        const int y,
+                        const int targetWidth,
+                        const int targetHeight) {
+    if (!((x < Width) && (y < Height) && (x + targetWidth >= 0) &&
+          (y + targetHeight >= 0))) {
+        return;
+    }
+
+    float scaleX = (float)sprite.Width / targetWidth;
+    float scaleY = (float)sprite.Height / targetHeight;
+
+    for (int ty = 0; ty < targetHeight; ++ty) {
+        for (int tx = 0; tx < targetWidth; ++tx) {
+
+            int canvasX = x + tx;
+            int canvasY = y + ty;
+            if (canvasX < 0 || canvasX >= Width || canvasY < 0 || canvasY >= Height) {
+                continue;
+            }
+
+            int srcXStart = (int)(tx * scaleX);
+            int srcXEnd   = (int)((tx + 1) * scaleX);
+            int srcYStart = (int)(ty * scaleY);
+            int srcYEnd   = (int)((ty + 1) * scaleY);
+
+            srcXEnd = std::min(srcXEnd, sprite.Width);
+            srcYEnd = std::min(srcYEnd, sprite.Height);
+
+            unsigned int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+            int count = 0;
+            for (int sy = srcYStart; sy < srcYEnd; ++sy) {
+                for (int sx = srcXStart; sx < srcXEnd; ++sx) {
+                    const Pixel &p = sprite.Buffer[sy * sprite.Width + sx];
+
+                    if (p.Alpha > 0) {
+                        sumR += p.Red;
+                        sumG += p.Green;
+                        sumB += p.Blue;
+                        sumA += p.Alpha;
+                        count++;
+                    }
+                }
+            }
+            if (count > 0) {
+                int targetIdx = (canvasX * sizeof(Pixel)) + (canvasY * Stride);
+                Pixel *targetPixel = (Pixel *)&Buffer[targetIdx];
+                targetPixel->Red = sumR / count;
+                targetPixel->Green = sumG / count;
+                targetPixel->Blue = sumB / count;
+                targetPixel->Alpha = sumA / count;
+            }
         }
     }
 }

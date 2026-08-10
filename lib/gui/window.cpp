@@ -139,7 +139,11 @@ void Window::Render(Canvas &canvas, Position offset) {
                      offset.X + Width - 4,
                      offset.Y + 15);
     canvas.Draw(icons.WindowHeaderRight, offset.X + Width - 4, offset.Y);
-    canvas.Draw(*Icon, offset.X + 4, offset.Y + 2);
+    if (Icon->Width != 12 || Icon->Height != 12) {
+        canvas.DrawScaled(*Icon, offset.X + 4, offset.Y + 2, 12, 12);
+    } else {
+        canvas.Draw(*Icon, offset.X + 4, offset.Y + 2);
+    }
     TextRenderer::DrawString(fonts.InterfaceLarge,
                              Pixel(0x8F, 0x8F, 0x8F),
                              offset.X + 20,

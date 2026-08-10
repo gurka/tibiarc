@@ -80,6 +80,12 @@ public:
     void Draw(const Sprite &sprite, int x, int y);
     void Draw(const Sprite &sprite, int x, int y, int width, int height);
 
+    void DrawScaled(const Sprite &sprite,
+                    const int x,
+                    const int y,
+                    const int targetWidth,
+                    const int targetHeight);
+
     void DrawTiled(const Sprite &sprite,
                    int leftX,
                    int topY,
