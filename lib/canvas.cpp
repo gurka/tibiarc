@@ -466,6 +466,80 @@ void Canvas::Copy(Canvas &dest,
     }
 }
 
+void Canvas::CopyScaled(Canvas &dest,
+                        const Canvas &source,
+                        int sourceLeftX,
+                        int sourceTopY,
+                        int sourceRightX,
+                        int sourceBottomY,
+                        int destLeftX,
+                        int destTopY,
+                        int targetWidth,
+                        int targetHeight) {
+    const int sourceWidth = sourceRightX - sourceLeftX;
+    const int sourceHeight = sourceBottomY - sourceTopY;
+
+    if (!(targetWidth > 0 && targetHeight > 0 && sourceWidth > 0 &&
+          sourceHeight > 0)) {
+        return;
+    }
+
+    float scaleX = (float)sourceWidth / targetWidth;
+    float scaleY = (float)sourceHeight / targetHeight;
+
+    for (int ty = 0; ty < targetHeight; ++ty) {
+        for (int tx = 0; tx < targetWidth; ++tx) {
+            int canvasX = destLeftX + tx;
+            int canvasY = destTopY + ty;
+            if (canvasX < 0 || canvasX >= dest.Width || canvasY < 0 ||
+                canvasY >= dest.Height) {
+                continue;
+            }
+
+            int srcXStart = sourceLeftX + (int)(tx * scaleX);
+            int srcXEnd = sourceLeftX + (int)((tx + 1) * scaleX);
+            int srcYStart = sourceTopY + (int)(ty * scaleY);
+            int srcYEnd = sourceTopY + (int)((ty + 1) * scaleY);
+
+            srcXStart = std::max(srcXStart, sourceLeftX);
+            srcYStart = std::max(srcYStart, sourceTopY);
+            srcXEnd = std::min(srcXEnd, sourceRightX);
+            srcYEnd = std::min(srcYEnd, sourceBottomY);
+
+            unsigned int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+            int count = 0;
+            for (int sy = srcYStart; sy < srcYEnd; ++sy) {
+                if (sy < 0 || sy >= source.Height) {
+                    continue;
+                }
+
+                for (int sx = srcXStart; sx < srcXEnd; ++sx) {
+                    if (sx < 0 || sx >= source.Width) {
+                        continue;
+                    }
+
+                    const Pixel &p = source.GetPixel(sx, sy);
+                    if (p.Alpha > 0) {
+                        sumR += p.Red;
+                        sumG += p.Green;
+                        sumB += p.Blue;
+                        sumA += p.Alpha;
+                        count++;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                Pixel &targetPixel = dest.GetPixel(canvasX, canvasY);
+                targetPixel.Red = sumR / count;
+                targetPixel.Green = sumG / count;
+                targetPixel.Blue = sumB / count;
+                targetPixel.Alpha = sumA / count;
+            }
+        }
+    }
+}
+
 void Canvas::Wipe() {
     DrawRectangle(Pixel(0, 0, 0, 0), 0, 0, Width, Height);
 }

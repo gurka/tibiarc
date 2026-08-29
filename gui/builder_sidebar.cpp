@@ -552,6 +552,17 @@ struct SidebarSkillsContent : public gui::Widget {
 };
 
 struct SidebarBattleContent : public gui::Widget {
+    static constexpr int EntryHeight = 24;
+    static constexpr int ContentPaddingY = 3;
+    static constexpr int OutfitOffsetX = 3;
+    static constexpr int OutfitOffsetY = 3;
+    static constexpr int OutfitScaledSize = 18;
+    static constexpr int OutfitRenderSize = 36;
+    static constexpr int TextOffsetX = 23;
+    static constexpr int HealthBarOffsetX = 23;
+    static constexpr int HealthBarOffsetY = 13;
+    static constexpr int HealthBarWidth = 122;
+    static constexpr int HealthBarHeight = 5;
 
     Gamestate *_Gamestate;
 
@@ -559,7 +570,7 @@ struct SidebarBattleContent : public gui::Widget {
     }
 
     void Update(gui::State &state, gui::Position offset) override {
-        Height = 10 + (_Gamestate->Creatures.size() * 14);
+        Height = (ContentPaddingY * 2) + (_Gamestate->Creatures.size() * EntryHeight);
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -572,6 +583,7 @@ struct SidebarBattleContent : public gui::Widget {
                          offset.Y + Height);
 
         // Get all creatures to list
+        // TODO: only get creatures visible in the viewport
         std::unordered_set<uint32_t> creatureIds;
         for (auto x = 0; x < Map::TileBufferWidth; x++) {
             for (auto y = 0; y < Map::TileBufferHeight; y++) {
@@ -596,17 +608,49 @@ struct SidebarBattleContent : public gui::Widget {
         std::sort(sortedCreatureIds.begin(), sortedCreatureIds.end());
 
         // Render list
-        // TODO: Add healthbar, creature look, etc and fix positions/offsets
-        int y = offset.Y + 5;
+        int y = offset.Y;//        +ContentPaddingY;
         for (auto creatureId : sortedCreatureIds) {
             const auto &creature = _Gamestate->GetCreature(creatureId);
+
+            if (creature.Outfit.Id > 0) {
+                const auto &outfit = _Gamestate->Version.GetOutfit(creature.Outfit.Id);
+
+                Renderer::DrawOutfitStaticSouth(creature,
+                                                outfit,
+                                                offset.X + OutfitOffsetX,
+                                                y + OutfitOffsetY,
+                                                OutfitScaledSize,
+                                                OutfitScaledSize,
+                                                canvas);
+            }
+
             TextRenderer::DrawString(_Gamestate->Version.Fonts.InterfaceLarge,
                                      Pixel(0xBF, 0xBF, 0xBF),
-                                     offset.X + 10,
-                                     y,
+                                     offset.X + TextOffsetX,
+                                     y + OutfitOffsetY,
                                      creature.Name,
                                      canvas);
-            y += 14;
+
+            // Health bar: black border, color fill based on health percentage
+            const int barX = offset.X + HealthBarOffsetX;
+            const int barY = y + HealthBarOffsetY;
+            canvas.DrawRectangle(Pixel(0, 0, 0),
+                                 barX,
+                                 barY,
+                                 HealthBarWidth,
+                                 HealthBarHeight);
+            const int fillWidth = (HealthBarWidth - 2) * creature.Health / 100;
+            if (fillWidth > 0) {
+                const auto healthColor = Renderer::GetCreatureInfoColor(
+                        creature.Health, 0);
+                canvas.DrawRectangle(healthColor,
+                                     barX + 1,
+                                     barY + 1,
+                                     fillWidth,
+                                     HealthBarHeight - 2);
+            }
+
+            y += EntryHeight;
         }
     }
 };

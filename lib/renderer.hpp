@@ -81,6 +81,16 @@ void DrawItem(const Version &version,
               int isInInventory,
               Canvas &canvas);
 
+Pixel GetCreatureInfoColor(int healthPercentage, int isObscured);
+
+bool DrawOutfitStaticSouth(const Creature &creature,
+                           const EntityType &type,
+                           int leftX,
+                           int topY,
+                           int targetWidth,
+                           int targetHeight,
+                           Canvas &canvas);
+
 /* FIXME: C++ migration, `noexcept` specifiers are there as a shorthand to
  * std::terminate() on data errors, which should've been caught by the
  * parser. */

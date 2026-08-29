@@ -106,6 +106,17 @@ public:
                      int destLeftX,
                      int destTopY);
 
+    static void CopyScaled(Canvas &dest,
+                           const Canvas &source,
+                           int sourceLeftX,
+                           int sourceTopY,
+                           int sourceRightX,
+                           int sourceBottomY,
+                           int destLeftX,
+                           int destTopY,
+                           int targetWidth,
+                           int targetHeight);
+
     void Tint(const Sprite &sprite,
               int x,
               int y,
