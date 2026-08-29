@@ -37,6 +37,10 @@ std::pair<size_t, size_t> MeasureBounds(const Font &font,
                                         const size_t lineMaxLength,
                                         const std::string &text);
 
+size_t CountFittingCharacters(const Font &font,
+                              const size_t maxWidth,
+                              const std::string &text);
+
 void Render(const Font &font,
             const TextAlignment alignment,
             const TextTransform transform,

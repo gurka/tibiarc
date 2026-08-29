@@ -471,9 +471,6 @@ static bool DrawOutfitStaticSouth(const Creature &creature,
     const auto &frameGroup =
             type.FrameGroups[std::to_underlying(FrameGroupIndex::Idle)];
 
-    rightX -= type.Properties.DisplacementX;
-    bottomY -= type.Properties.DisplacementY;
-
     for (int addonIdx = 0; addonIdx < frameGroup.YDiv; addonIdx++) {
         if ((addonIdx == 0) ||
             (creature.Outfit.Addons & (1 << (addonIdx - 1)))) {
@@ -515,7 +512,7 @@ bool DrawOutfitStaticSouth(const Creature &creature,
                            int targetWidth,
                            int targetHeight,
                            Canvas &canvas) {
-    static constexpr int nativeSize = 36;
+    static constexpr int nativeSize = 32;
 
     static thread_local Canvas source(nativeSize, nativeSize);
     source.Wipe();
