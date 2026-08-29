@@ -168,6 +168,9 @@ Icons::Icons(const Version &version)
       ScrollbarDown(Canvas, 244, 64, 12, 12),
       ScrollbarDownPressed(Canvas, 246, 122, 12, 12),
       ScrollbarThumb(Canvas, 220, 64, 12, 12),
+      ScrollbarThumbTopPart(Canvas, 220, 64, 12, 5),
+      ScrollbarThumbMiddlePart(Canvas, 220, 69, 12, 1),
+      ScrollbarThumbBottomPart(Canvas, 220, 70, 12, 6),
       ScrollbarBackground(Canvas, 264, 0, 12, 96),
 
       BorderCornerLight(Canvas, 98, 197, 2, 2),

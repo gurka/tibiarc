@@ -313,11 +313,24 @@ void Window::Render(Canvas &canvas, Position offset) {
                         scrollbarX,
                         scrollbarY + scrollbarThumbOffset);
         } else {
-            canvas.DrawScaled(icons.ScrollbarThumb,
-                              scrollbarX,
-                              scrollbarY + scrollbarThumbOffset,
-                              icons.ScrollbarThumb.Width,
-                              scrollbarThumbHeight);
+            const int scrollbarThumbTopY = scrollbarY + scrollbarThumbOffset;
+            const int scrollbarThumbMiddleY =
+                    scrollbarThumbTopY + icons.ScrollbarThumbTopPart.Height;
+            const int scrollbarThumbBottomY =
+                    scrollbarThumbTopY + scrollbarThumbHeight -
+                    icons.ScrollbarThumbBottomPart.Height;
+
+            canvas.Draw(icons.ScrollbarThumbTopPart,
+                        scrollbarX,
+                        scrollbarThumbTopY);
+            canvas.DrawTiled(icons.ScrollbarThumbMiddlePart,
+                             scrollbarX,
+                             scrollbarThumbMiddleY,
+                             scrollbarX + icons.ScrollbarThumbMiddlePart.Width,
+                             scrollbarThumbBottomY);
+            canvas.Draw(icons.ScrollbarThumbBottomPart,
+                        scrollbarX,
+                        scrollbarThumbBottomY);
         }
     }
 
