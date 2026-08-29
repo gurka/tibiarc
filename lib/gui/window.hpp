@@ -87,6 +87,10 @@ private:
 
     Button *PressedButton = nullptr;
 
+    int ContentViewportHeight() const;
+    int MaxScrollOffset() const;
+    void ClampScrollOffset();
+
     void MinimizeOnClick();
 };
 

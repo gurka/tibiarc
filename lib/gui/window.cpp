@@ -67,12 +67,31 @@ Window::Window(int width,
       CloseButtonPosition(Position(width - 15, 2)) {
     MinHeight = 57;
     MaxHeight = WindowType == Type::SidebarNoMaxHeight ? 65536 : height;
-    ScrollUpButton.SetOnClick(
-            [this]() { ScrollOffset = std::max(0, ScrollOffset - 10); });
-    ScrollDownButton.SetOnClick(
-            [this]() { ScrollOffset = std::max(0, std::min(Content->Height - Height, ScrollOffset + 10)); });
+    ScrollUpButton.SetOnClick([this]() {
+        ScrollOffset -= 10;
+        ClampScrollOffset();
+    });
+    ScrollDownButton.SetOnClick([this]() {
+        ScrollOffset += 10;
+        ClampScrollOffset();
+    });
     MinimizeButton.SetOnClick([this]() { MinimizeOnClick(); });
     CloseButton.SetOnClick(CloseOnClick);
+}
+
+int Window::ContentViewportHeight() const {
+    return std::max(0, Height - 15 - 4);
+}
+
+int Window::MaxScrollOffset() const {
+    if (!Content) {
+        return 0;
+    }
+    return std::max(0, Content->Height - ContentViewportHeight());
+}
+
+void Window::ClampScrollOffset() {
+    ScrollOffset = std::clamp(ScrollOffset, 0, MaxScrollOffset());
 }
 
 void Window::SetWidth(int w) {
@@ -86,12 +105,15 @@ void Window::SetWidth(int w) {
     if (Content) {
         Content->SetWidth(std::max(0, Width - 8));
     }
+
+    ClampScrollOffset();
 }
 
 void Window::SetHeight(int h) {
     Widget::SetHeight(h);
 
     ScrollDownButtonPosition = Position(Width - 16, Height - 16);
+    ClampScrollOffset();
 
     // We do NOT want to propagate the new height to content
     // as the content height is determined by its own content, not the window
@@ -114,6 +136,8 @@ void Window::Update(State &state, Position offset) {
             MaxHeight = Content->Height + 19;
         }
     }
+
+    ClampScrollOffset();
 
     ScrollUpButton.Update(state, offset + ScrollUpButtonPosition);
     ScrollDownButton.Update(state, offset + ScrollDownButtonPosition);
@@ -225,38 +249,40 @@ void Window::Render(Canvas &canvas, Position offset) {
                      offset.X + Width - 16 + 12,
                      offset.Y + 27 + Height - 43);
 
-    /*
-    // Scrollbar: calculate how much of the content is visible in the window
-    int contentHeight = Height - 15 - 4;
-    float visibleContentHeight = static_cast<float>(contentHeight) / std::min(Content->Height, contentHeight);
-    int scrollbarHeight = Height - 43;
-    int scrollbarButtonHeight =
-            static_cast<int>(scrollbarHeight * visibleContentHeight);
-    int scrollbarButtonOffset = static_cast<int>(
-            scrollbarHeight * (static_cast<float>(ScrollOffset) /
-                               std::max(1, Content->Height - contentHeight)));
-    canvas.Draw(icons.ScrollbarButton,
-                offset.X + Width - 16,
-                offset.Y + 27 + scrollbarButtonOffset,
-                12,
-                4,
-                0,
-                0,
-                0,
-                0);
-    canvas.Draw(icons.ScrollbarButton,
-                offset.X + Width - 16,
-                offset.Y + 27 + scrollbarButtonOffset + 4,
-                12,
-                scrollbarButtonHeight - 8,
-                0,
-                4,
-                0,
-                4);
-    */
+    const int scrollbarHeight = std::max(0, Height - 43);
+    const int scrollbarX = offset.X + Width - 16;
+    const int scrollbarY = offset.Y + 27;
 
+    const bool canScroll = Content && Content->Visible &&
+                           ContentViewportHeight() > 0 && MaxScrollOffset() > 0;
 
-    canvas.Draw(icons.ScrollbarButton, offset.X + Width - 16, offset.Y + 27);
+    if (scrollbarHeight > 0 && canScroll) {
+        const int scrollbarButtonHeight = std::clamp(
+                (scrollbarHeight * ContentViewportHeight()) / Content->Height,
+                icons.ScrollbarButton.Height,
+                scrollbarHeight);
+
+        int scrollbarButtonOffset = 0;
+        const int scrollbarButtonRange = scrollbarHeight - scrollbarButtonHeight;
+        const int maxScrollOffset = MaxScrollOffset();
+        if (scrollbarButtonRange > 0 && maxScrollOffset > 0) {
+            scrollbarButtonOffset =
+                    (ScrollOffset * scrollbarButtonRange) / maxScrollOffset;
+        }
+
+        if (scrollbarButtonHeight == icons.ScrollbarButton.Height) {
+            canvas.Draw(icons.ScrollbarButton,
+                        scrollbarX,
+                        scrollbarY + scrollbarButtonOffset);
+        } else {
+            canvas.DrawScaled(icons.ScrollbarButton,
+                              scrollbarX,
+                              scrollbarY + scrollbarButtonOffset,
+                              icons.ScrollbarButton.Width,
+                              scrollbarButtonHeight);
+        }
+    }
+
     ScrollDownButton.Render(canvas, offset + ScrollDownButtonPosition);
 
     // Bottom
