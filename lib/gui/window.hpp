@@ -87,9 +87,14 @@ private:
 
     Button *PressedButton = nullptr;
 
+    bool ScrollbarThumbPressed = false;
+    int ScrollbarThumbDragOffsetY = 0;
+
     int ContentViewportHeight() const;
     int MaxScrollOffset() const;
     void ClampScrollOffset();
+    bool CanScroll() const;
+    bool GetScrollbarThumbMetrics(int &thumbOffset, int &thumbHeight) const;
 
     void MinimizeOnClick();
 };

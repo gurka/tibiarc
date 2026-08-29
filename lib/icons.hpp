@@ -95,7 +95,7 @@ public:
     Sprite ScrollbarUpPressed;
     Sprite ScrollbarDown;
     Sprite ScrollbarDownPressed;
-    Sprite ScrollbarButton;
+    Sprite ScrollbarThumb;
     Sprite ScrollbarBackground;
 
     // Border (raised = left and top light, right and bottom dark)

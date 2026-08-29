@@ -94,6 +94,32 @@ void Window::ClampScrollOffset() {
     ScrollOffset = std::clamp(ScrollOffset, 0, MaxScrollOffset());
 }
 
+bool Window::CanScroll() const {
+    return Content && Content->Visible && ContentViewportHeight() > 0 &&
+           MaxScrollOffset() > 0;
+}
+
+bool Window::GetScrollbarThumbMetrics(int &thumbOffset, int &thumbHeight) const {
+    const int scrollbarHeight = std::max(0, Height - 43);
+    if (scrollbarHeight <= 0 || !CanScroll()) {
+        return false;
+    }
+
+    thumbHeight = std::clamp(
+            (scrollbarHeight * ContentViewportHeight()) / Content->Height,
+            _Version->Icons.ScrollbarThumb.Height,
+            scrollbarHeight);
+
+    thumbOffset = 0;
+    const int scrollbarThumbRange = scrollbarHeight - thumbHeight;
+    const int maxScrollOffset = MaxScrollOffset();
+    if (scrollbarThumbRange > 0 && maxScrollOffset > 0) {
+        thumbOffset = (ScrollOffset * scrollbarThumbRange) / maxScrollOffset;
+    }
+
+    return true;
+}
+
 void Window::SetWidth(int w) {
     Widget::SetWidth(w);
 
@@ -138,6 +164,33 @@ void Window::Update(State &state, Position offset) {
     }
 
     ClampScrollOffset();
+
+    if (ScrollbarThumbPressed) {
+        if (!state.MouseLeftDown()) {
+            ScrollbarThumbPressed = false;
+        } else {
+            int scrollbarThumbOffset = 0;
+            int scrollbarThumbHeight = 0;
+            if (GetScrollbarThumbMetrics(scrollbarThumbOffset,
+                                         scrollbarThumbHeight)) {
+                const int scrollbarHeight = std::max(0, Height - 43);
+                const int scrollbarThumbRange = scrollbarHeight - scrollbarThumbHeight;
+                if (scrollbarThumbRange > 0) {
+                    const int mouseY = state.MousePosition(offset).Y;
+                    const int scrollbarThumbTop =
+                            std::clamp(mouseY - ScrollbarThumbDragOffsetY,
+                                       27,
+                                       27 + scrollbarThumbRange);
+                    const int thumbOffset = scrollbarThumbTop - 27;
+                    ScrollOffset =
+                            (thumbOffset * MaxScrollOffset()) / scrollbarThumbRange;
+                    ClampScrollOffset();
+                }
+            } else {
+                ScrollbarThumbPressed = false;
+            }
+        }
+    }
 
     ScrollUpButton.Update(state, offset + ScrollUpButtonPosition);
     ScrollDownButton.Update(state, offset + ScrollDownButtonPosition);
@@ -249,37 +302,22 @@ void Window::Render(Canvas &canvas, Position offset) {
                      offset.X + Width - 16 + 12,
                      offset.Y + 27 + Height - 43);
 
-    const int scrollbarHeight = std::max(0, Height - 43);
     const int scrollbarX = offset.X + Width - 16;
     const int scrollbarY = offset.Y + 27;
 
-    const bool canScroll = Content && Content->Visible &&
-                           ContentViewportHeight() > 0 && MaxScrollOffset() > 0;
-
-    if (scrollbarHeight > 0 && canScroll) {
-        const int scrollbarButtonHeight = std::clamp(
-                (scrollbarHeight * ContentViewportHeight()) / Content->Height,
-                icons.ScrollbarButton.Height,
-                scrollbarHeight);
-
-        int scrollbarButtonOffset = 0;
-        const int scrollbarButtonRange = scrollbarHeight - scrollbarButtonHeight;
-        const int maxScrollOffset = MaxScrollOffset();
-        if (scrollbarButtonRange > 0 && maxScrollOffset > 0) {
-            scrollbarButtonOffset =
-                    (ScrollOffset * scrollbarButtonRange) / maxScrollOffset;
-        }
-
-        if (scrollbarButtonHeight == icons.ScrollbarButton.Height) {
-            canvas.Draw(icons.ScrollbarButton,
+    int scrollbarThumbOffset = 0;
+    int scrollbarThumbHeight = 0;
+    if (GetScrollbarThumbMetrics(scrollbarThumbOffset, scrollbarThumbHeight)) {
+        if (scrollbarThumbHeight == icons.ScrollbarThumb.Height) {
+            canvas.Draw(icons.ScrollbarThumb,
                         scrollbarX,
-                        scrollbarY + scrollbarButtonOffset);
+                        scrollbarY + scrollbarThumbOffset);
         } else {
-            canvas.DrawScaled(icons.ScrollbarButton,
+            canvas.DrawScaled(icons.ScrollbarThumb,
                               scrollbarX,
-                              scrollbarY + scrollbarButtonOffset,
-                              icons.ScrollbarButton.Width,
-                              scrollbarButtonHeight);
+                              scrollbarY + scrollbarThumbOffset,
+                              icons.ScrollbarThumb.Width,
+                              scrollbarThumbHeight);
         }
     }
 
@@ -302,6 +340,7 @@ void Window::Render(Canvas &canvas, Position offset) {
 
 Widget::MouseEventResult Window::MouseLeftDown(Position position) {
     PressedButton = nullptr;
+    ScrollbarThumbPressed = false;
 
     if (PointInsideWidget(position - ScrollUpButtonPosition, ScrollUpButton)) {
         PressedButton = &ScrollUpButton;
@@ -313,6 +352,17 @@ Widget::MouseEventResult Window::MouseLeftDown(Position position) {
         PressedButton = &ScrollDownButton;
         return ScrollDownButton.MouseLeftDown(position -
                                               ScrollDownButtonPosition);
+    }
+
+    int scrollbarThumbOffset = 0;
+    int scrollbarThumbHeight = 0;
+    if (GetScrollbarThumbMetrics(scrollbarThumbOffset, scrollbarThumbHeight) &&
+        position.X >= Width - 16 && position.X < Width - 4 &&
+        position.Y >= 27 + scrollbarThumbOffset &&
+        position.Y < 27 + scrollbarThumbOffset + scrollbarThumbHeight) {
+        ScrollbarThumbPressed = true;
+        ScrollbarThumbDragOffsetY = position.Y - (27 + scrollbarThumbOffset);
+        return Widget::MouseEventResult::Handled;
     }
 
     if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
@@ -353,15 +403,21 @@ void Window::MouseLeftUp(Position position) {
         PressedButton->MouseLeftUp(position - pos);
         PressedButton = nullptr;
     }
+
+    ScrollbarThumbPressed = false;
 }
 
 void Window::MinimizeOnClick() {
+    ScrollbarThumbPressed = false;
+
     if (MinimizeButton.Toggled) {
         MaximizedHeight = Height;
         Height = 19;
     } else {
         Height = MaximizedHeight;
     }
+
+    ClampScrollOffset();
 }
 
 } // namespace gui
