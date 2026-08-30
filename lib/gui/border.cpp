@@ -80,6 +80,22 @@ void Border::MouseLeftUp(Position position) {
     }
 }
 
+bool Border::MouseWheelUp(Position position) {
+    if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
+        position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
+        return false;
+    }
+    return Child->MouseWheelUp(position - Position(BorderWidth(), BorderWidth()));
+}
+
+bool Border::MouseWheelDown(Position position) {
+    if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
+        position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
+        return false;
+    }
+    return Child->MouseWheelDown(position - Position(BorderWidth(), BorderWidth()));
+}
+
 void Border::RenderSunkenBorder(Canvas &canvas, Position offset) {
     canvas.DrawTiled(_Icons->BorderHorizontalDark,
                      offset.X,

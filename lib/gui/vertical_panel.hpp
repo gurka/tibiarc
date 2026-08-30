@@ -62,6 +62,8 @@ struct VerticalPanel : public Widget {
 
     MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;
+    bool MouseWheelUp(Position position) override;
+    bool MouseWheelDown(Position position) override;
 
 private:
     std::vector<std::unique_ptr<Widget>> Widgets;

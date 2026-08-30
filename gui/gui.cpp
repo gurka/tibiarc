@@ -148,6 +148,17 @@ void handle_input() {
                 Gui->Root->MouseLeftUp(gui::Position(event.button.x, event.button.y));
             }
             break;
+        case SDL_MOUSEWHEEL: {
+            int mouseX = 0;
+            int mouseY = 0;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            if (event.wheel.y > 0) {
+                Gui->Root->MouseWheelUp(gui::Position(mouseX, mouseY));
+            } else if (event.wheel.y < 0) {
+                Gui->Root->MouseWheelDown(gui::Position(mouseX, mouseY));
+            }
+            break;
+        }
         case SDL_QUIT:
             exit(0);
         default:

@@ -116,6 +116,30 @@ void Panel::MouseLeftUp(Position position) {
     }
 }
 
+bool Panel::MouseWheelUp(Position position) {
+    for (const auto &wap : Widgets) {
+        if (!wap.Widget->Visible) {
+            continue;
+        }
+        if (PointInsideWidget(position, wap)) {
+            return wap.Widget->MouseWheelUp(position - wap.Position);
+        }
+    }
+    return false;
+}
+
+bool Panel::MouseWheelDown(Position position) {
+    for (const auto &wap : Widgets) {
+        if (!wap.Widget->Visible) {
+            continue;
+        }
+        if (PointInsideWidget(position, wap)) {
+            return wap.Widget->MouseWheelDown(position - wap.Position);
+        }
+    }
+    return false;
+}
+
 PlacedWidget<> *Panel::GetWidgetAndPosition(Widget *widget) {
     for (auto &wap : Widgets) {
         if (wap.Widget.get() == widget) {

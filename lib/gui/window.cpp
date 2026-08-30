@@ -420,6 +420,24 @@ void Window::MouseLeftUp(Position position) {
     ScrollbarThumbPressed = false;
 }
 
+bool Window::MouseWheelUp(Position position) {
+    if (!CanScroll()) {
+        return false;
+    }
+    ScrollOffset -= 10;
+    ClampScrollOffset();
+    return true;
+}
+
+bool Window::MouseWheelDown(Position position) {
+    if (!CanScroll()) {
+        return false;
+    }
+    ScrollOffset += 10;
+    ClampScrollOffset();
+    return true;
+}
+
 void Window::MinimizeOnClick() {
     ScrollbarThumbPressed = false;
 

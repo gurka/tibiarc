@@ -191,6 +191,34 @@ void VerticalPanel::MouseLeftUp(Position position) {
     }
 }
 
+bool VerticalPanel::MouseWheelUp(Position position) {
+    auto y = 0;
+    for (const auto &widget : Widgets) {
+        if (!widget->Visible) {
+            continue;
+        }
+        if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
+            return widget->MouseWheelUp(position - Position(0, y));
+        }
+        y += widget->Height;
+    }
+    return false;
+}
+
+bool VerticalPanel::MouseWheelDown(Position position) {
+    auto y = 0;
+    for (const auto &widget : Widgets) {
+        if (!widget->Visible) {
+            continue;
+        }
+        if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
+            return widget->MouseWheelDown(position - Position(0, y));
+        }
+        y += widget->Height;
+    }
+    return false;
+}
+
 int VerticalPanel::GetWidgetY(const Widget *widget) const {
     int y = 0;
     for (const auto &w : Widgets) {

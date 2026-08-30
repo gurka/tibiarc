@@ -62,6 +62,8 @@ struct Panel : public Widget {
 
     MouseEventResult MouseLeftDown(Position position) override;
     void MouseLeftUp(Position position) override;
+    bool MouseWheelUp(Position position) override;
+    bool MouseWheelDown(Position position) override;
 
 private:
     Sprite const *Background = nullptr;

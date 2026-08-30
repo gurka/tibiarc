@@ -82,6 +82,12 @@ struct Widget {
     }
     virtual void MouseLeftUp(Position position) {
     }
+    virtual bool MouseWheelUp(Position position) {
+        return false;
+    }
+    virtual bool MouseWheelDown(Position position) {
+        return false;
+    }
 };
 
 } // namespace gui
