@@ -23,6 +23,7 @@
 
 #include "state.hpp"
 
+#include <gui/border.hpp>
 #include "gui/panel.hpp"
 #include "gui/widget.hpp"
 #include "canvas.hpp"
@@ -31,33 +32,82 @@
 
 using namespace trc;
 
-// Placeholder widget for chat area
-struct ChatPlaceholder : public gui::Widget {
-    ChatPlaceholder(int width, int height) : Widget(width, height) {
+struct ChatTop : public gui::Widget {
+
+    Gamestate *gamestate;
+  
+    ChatTop(int width, int height, Gamestate *gamestate)
+        : Widget(width, height), gamestate(gamestate) {
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
-        // TODO: Implement chat rendering
+        const auto &icons = gamestate->Version.Icons;
+        // Top border
+        canvas.DrawTiled(icons.BorderHorizontalLight,
+                         offset.X,
+                         offset.Y,
+                         offset.X + Width,
+                         offset.Y + 1);
+        canvas.DrawTiled(icons.BorderHorizontalDark,
+                         offset.X,
+                         offset.Y + 4,
+                         offset.X + Width,
+                         offset.Y + 5);
+
+        // Channels background
+        canvas.Draw(icons.ChatBackgroundDarkLeft, offset.X, offset.Y + 5);
+        canvas.DrawTiled(icons.ChatBackgroundDark,
+                         offset.X + 2,
+                         offset.Y + 5,
+                         offset.X + Width,
+                         offset.Y + 5 + icons.ChatBackgroundDark.Height);
+
+        // Buttons
+        canvas.Draw(icons.ChatChannelButton,
+                    offset.X + Width - 32,
+                    offset.Y + 5);
+        canvas.Draw(icons.ChatIgnoreButton,
+                    offset.X + Width - 16,
+                    offset.Y + 5);
+    }
+};
+
+struct ChatBottom : public gui::Widget {
+
+    ChatBottom(int width, int height) : Widget(width, height) {
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
     }
 };
 
 void Builder::ChatPanel::SetSize(int width, int height) {
     Panel::SetSize(width, height);
-    if (Content != nullptr) {
-        Content->SetSize(width, height);
-    }
+    Top->SetSize(width, 21);
+    Bottom->Child->SetSize(width - 4, height - 21 - 4);
 }
 
 std::unique_ptr<Builder::ChatPanel> Builder::BuildChat(int width,
                                                        int height,
-                                                       trc::Gamestate *gamestate,
+                                                       Gamestate *gamestate,
                                                        GuiState *guiState) {
-    auto panel = std::make_unique<Builder::ChatPanel>(width, height);
-    panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
+    // Chat consists of:
+    // - ChatPanel, Panel (root)
+    //   - ChatTop, Widget (top part with channels and buttons)
+    //   - Border
+    //     - ChatBottom, Widget (bottom part with chat and input box)
+    auto chatTop = std::make_unique<ChatTop>(width, 21, gamestate);
+    auto chatBottom = std::make_unique<gui::Border>(
+            &gamestate->Version.Icons,
+            gui::Border::BorderType::Raised,
+            std::move(
+                    std::make_unique<ChatBottom>(width - 4, height - 21 - 4)));
 
-    auto chatWidget = std::make_unique<ChatPlaceholder>(width, height);
-    panel->Content = chatWidget.get();
-    panel->Add(std::move(chatWidget), gui::Position(0, 0));
+    auto panel = std::make_unique<Builder::ChatPanel>(width,
+                                                      height,
+                                                      std::move(chatTop),
+                                                      std::move(chatBottom));
+    panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
 
     return panel;
 }
