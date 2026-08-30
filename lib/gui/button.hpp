@@ -80,8 +80,7 @@ struct Button : public Widget {
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 
-    MouseEventResult MouseLeftDown(Position position) override;
-    void MouseLeftUp(Position position) override;
+    MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
 protected:
     virtual void HandleClick();

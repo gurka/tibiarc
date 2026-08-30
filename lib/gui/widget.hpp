@@ -38,6 +38,13 @@ struct Widget {
         Resize,     // Event was handled and started a resize action
     };
 
+    enum class MouseEvent {
+        LeftDown,
+        LeftUp,
+        WheelUp,
+        WheelDown,
+    };
+
     int Width;
     int Height;
 
@@ -77,16 +84,8 @@ struct Widget {
     }
     virtual void Render(Canvas &canvas, Position offset) = 0;
 
-    virtual MouseEventResult MouseLeftDown(Position position) {
+    virtual MouseEventResult OnMouseEvent(MouseEvent event, Position position) {
         return MouseEventResult::NotHandled;
-    }
-    virtual void MouseLeftUp(Position position) {
-    }
-    virtual bool MouseWheelUp(Position position) {
-        return false;
-    }
-    virtual bool MouseWheelDown(Position position) {
-        return false;
     }
 };
 

@@ -151,72 +151,58 @@ void VerticalPanel::Render(Canvas &canvas, Position offset) {
     }
 }
 
-Widget::MouseEventResult VerticalPanel::MouseLeftDown(Position position) {
-    PressedWidget = nullptr;
-
-    auto y = 0;
-    for (const auto &widget : Widgets) {
-        if (!widget->Visible) {
-            continue;
-        }
-        if (PointInsideArea(position,
-                            Position(0, y),
-                            widget->Width,
-                            widget->Height)) {
-            const auto result = widget->MouseLeftDown(position - Position(0, y));
-            if (result == Widget::MouseEventResult::StartDrag) {
-                Drag.Begin(widget.get(), Position(0, y), position);
-            } else if (result == Widget::MouseEventResult::Resize) {
-                Resize.Begin(widget.get(), position);
-            }
-
-            if (result != Widget::MouseEventResult::NotHandled) {
-                PressedWidget = widget.get();
-                PressedWidgetY = y;
-            }
-
-            return Widget::MouseEventResult::Handled;
-        }
-
-        y += widget->Height;
-    }
-
-    return Widget::MouseEventResult::NotHandled;
-}
-
-void VerticalPanel::MouseLeftUp(Position position) {
-    if (PressedWidget != nullptr) {
-        PressedWidget->MouseLeftUp(position - Position(0, PressedWidgetY));
+Widget::MouseEventResult VerticalPanel::OnMouseEvent(MouseEvent event, Position position) {
+    if (event == MouseEvent::LeftDown) {
         PressedWidget = nullptr;
-    }
-}
 
-bool VerticalPanel::MouseWheelUp(Position position) {
-    auto y = 0;
-    for (const auto &widget : Widgets) {
-        if (!widget->Visible) {
-            continue;
-        }
-        if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
-            return widget->MouseWheelUp(position - Position(0, y));
-        }
-        y += widget->Height;
-    }
-    return false;
-}
+        auto y = 0;
+        for (const auto &widget : Widgets) {
+            if (!widget->Visible) {
+                continue;
+            }
+            if (PointInsideArea(position,
+                                Position(0, y),
+                                widget->Width,
+                                widget->Height)) {
+                const auto result = widget->OnMouseEvent(event, position - Position(0, y));
+                if (result == Widget::MouseEventResult::StartDrag) {
+                    Drag.Begin(widget.get(), Position(0, y), position);
+                } else if (result == Widget::MouseEventResult::Resize) {
+                    Resize.Begin(widget.get(), position);
+                }
 
-bool VerticalPanel::MouseWheelDown(Position position) {
-    auto y = 0;
-    for (const auto &widget : Widgets) {
-        if (!widget->Visible) {
-            continue;
+                if (result != Widget::MouseEventResult::NotHandled) {
+                    PressedWidget = widget.get();
+                    PressedWidgetY = y;
+                }
+
+                return Widget::MouseEventResult::Handled;
+            }
+
+            y += widget->Height;
         }
-        if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
-            return widget->MouseWheelDown(position - Position(0, y));
+
+        return Widget::MouseEventResult::NotHandled;
+    } else if (event == MouseEvent::LeftUp) {
+        if (PressedWidget != nullptr) {
+            PressedWidget->OnMouseEvent(event, position - Position(0, PressedWidgetY));
+            PressedWidget = nullptr;
         }
-        y += widget->Height;
+        return Widget::MouseEventResult::Handled;
+    } else {
+        // WheelUp / WheelDown
+        auto y = 0;
+        for (const auto &widget : Widgets) {
+            if (!widget->Visible) {
+                continue;
+            }
+            if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
+                return widget->OnMouseEvent(event, position - Position(0, y));
+            }
+            y += widget->Height;
+        }
+        return Widget::MouseEventResult::NotHandled;
     }
-    return false;
 }
 
 int VerticalPanel::GetWidgetY(const Widget *widget) const {

@@ -57,43 +57,34 @@ void Border::Render(Canvas &canvas, Position offset) {
     Child->Render(canvas, offset + Position(BorderWidth(), BorderWidth()));
 }
 
-Border::MouseEventResult Border::MouseLeftDown(Position position) {
-    ChildPressed = false;
+Border::MouseEventResult Border::OnMouseEvent(MouseEvent event, Position position) {
+    const auto childPos = Position(BorderWidth(), BorderWidth());
 
-    if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
-        position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-        return MouseEventResult::NotHandled;
-    }
-
-    const auto result = Child->MouseLeftDown(position -
-                                             Position(BorderWidth(), BorderWidth()));
-    if (result != MouseEventResult::NotHandled) {
-        ChildPressed = true;
-    }
-    return result;
-}
-
-void Border::MouseLeftUp(Position position) {
-    if (ChildPressed) {
+    if (event == MouseEvent::LeftDown) {
         ChildPressed = false;
-        Child->MouseLeftUp(position - Position(BorderWidth(), BorderWidth()));
+        if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
+            position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
+            return MouseEventResult::NotHandled;
+        }
+        const auto result = Child->OnMouseEvent(event, position - childPos);
+        if (result != MouseEventResult::NotHandled) {
+            ChildPressed = true;
+        }
+        return result;
+    } else if (event == MouseEvent::LeftUp) {
+        if (ChildPressed) {
+            ChildPressed = false;
+            Child->OnMouseEvent(event, position - childPos);
+        }
+        return MouseEventResult::Handled;
+    } else {
+        // WheelUp / WheelDown
+        if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
+            position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
+            return MouseEventResult::NotHandled;
+        }
+        return Child->OnMouseEvent(event, position - childPos);
     }
-}
-
-bool Border::MouseWheelUp(Position position) {
-    if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
-        position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-        return false;
-    }
-    return Child->MouseWheelUp(position - Position(BorderWidth(), BorderWidth()));
-}
-
-bool Border::MouseWheelDown(Position position) {
-    if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
-        position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-        return false;
-    }
-    return Child->MouseWheelDown(position - Position(BorderWidth(), BorderWidth()));
 }
 
 void Border::RenderSunkenBorder(Canvas &canvas, Position offset) {

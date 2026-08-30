@@ -139,13 +139,15 @@ void handle_input() {
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 State._MouseLeftDown = true;
-                Gui->Root->MouseLeftDown(gui::Position(event.button.x, event.button.y));
+                Gui->Root->OnMouseEvent(gui::Widget::MouseEvent::LeftDown,
+                                        gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_MOUSEBUTTONUP:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 State._MouseLeftDown = false;
-                Gui->Root->MouseLeftUp(gui::Position(event.button.x, event.button.y));
+                Gui->Root->OnMouseEvent(gui::Widget::MouseEvent::LeftUp,
+                                        gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_MOUSEWHEEL: {
@@ -153,9 +155,11 @@ void handle_input() {
             int mouseY = 0;
             SDL_GetMouseState(&mouseX, &mouseY);
             if (event.wheel.y > 0) {
-                Gui->Root->MouseWheelUp(gui::Position(mouseX, mouseY));
+                Gui->Root->OnMouseEvent(gui::Widget::MouseEvent::WheelUp,
+                                        gui::Position(mouseX, mouseY));
             } else if (event.wheel.y < 0) {
-                Gui->Root->MouseWheelDown(gui::Position(mouseX, mouseY));
+                Gui->Root->OnMouseEvent(gui::Widget::MouseEvent::WheelDown,
+                                        gui::Position(mouseX, mouseY));
             }
             break;
         }

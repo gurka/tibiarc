@@ -96,8 +96,11 @@ struct SidebarMinimap : public gui::Widget {
                                          canvas);
     }
 
-    MouseEventResult MouseLeftDown(gui::Position position) override {
-        return MouseEventResult::StartDrag;
+    MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
+        if (event == gui::Widget::MouseEvent::LeftDown) {
+            return MouseEventResult::StartDrag;
+        }
+        return MouseEventResult::NotHandled;
     }
 };
 
@@ -160,8 +163,11 @@ struct SidebarResources : public gui::Widget {
                                  canvas);
     }
 
-    MouseEventResult MouseLeftDown(gui::Position position) override {
-        return MouseEventResult::StartDrag;
+    MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
+        if (event == gui::Widget::MouseEvent::LeftDown) {
+            return MouseEventResult::StartDrag;
+        }
+        return MouseEventResult::NotHandled;
     }
 };
 
@@ -333,22 +339,24 @@ struct SidebarInventory : public gui::Widget {
         }
     }
 
-    MouseEventResult MouseLeftDown(gui::Position position) override {
-        MinimizeButtonPressed = false;
-        if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
-            position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
-            MinimizeButton.MouseLeftDown(position - gui::Position(8, 4));
-            MinimizeButtonPressed = true;
+    MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
+        if (event == gui::Widget::MouseEvent::LeftDown) {
+            MinimizeButtonPressed = false;
+            if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
+                position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
+                MinimizeButton.OnMouseEvent(event, position - gui::Position(8, 4));
+                MinimizeButtonPressed = true;
+                return MouseEventResult::Handled;
+            }
+            return MouseEventResult::StartDrag;
+        } else if (event == gui::Widget::MouseEvent::LeftUp) {
+            if (MinimizeButtonPressed) {
+                MinimizeButtonPressed = false;
+                MinimizeButton.OnMouseEvent(event, position - gui::Position(8, 4));
+            }
             return MouseEventResult::Handled;
         }
-        return MouseEventResult::StartDrag;
-    }
-
-    void MouseLeftUp(gui::Position position) override {
-        if (MinimizeButtonPressed) {
-            MinimizeButtonPressed = false;
-            MinimizeButton.MouseLeftUp(position - gui::Position(8, 4));
-        }
+        return MouseEventResult::NotHandled;
     }
 };
 
@@ -437,28 +445,28 @@ struct SidebarButtons : public gui::Widget {
                                          canvas);
     }
 
-    MouseEventResult MouseLeftDown(gui::Position position) override {
-        for (auto *widget : {&SkillsButton, &BattleButton, &VIPButton}) {
-            if (position.X >= widget->Position.X &&
-                position.X < widget->Position.X + widget->Widget->Width &&
-                position.Y >= widget->Position.Y &&
-                position.Y < widget->Position.Y + widget->Widget->Height) {
-                if (widget->Widget->MouseLeftDown(position -
-                                                  widget->Position) ==
-                    gui::Widget::MouseEventResult::Handled) {
-                    WidgetPressed = widget;
-                    return gui::Widget::MouseEventResult::Handled;
+    MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
+        if (event == gui::Widget::MouseEvent::LeftDown) {
+            for (auto *widget : {&SkillsButton, &BattleButton, &VIPButton}) {
+                if (position.X >= widget->Position.X &&
+                    position.X < widget->Position.X + widget->Widget->Width &&
+                    position.Y >= widget->Position.Y &&
+                    position.Y < widget->Position.Y + widget->Widget->Height) {
+                    if (widget->Widget->OnMouseEvent(event, position - widget->Position) ==
+                        gui::Widget::MouseEventResult::Handled) {
+                        WidgetPressed = widget;
+                        return gui::Widget::MouseEventResult::Handled;
+                    }
                 }
             }
+            return MouseEventResult::StartDrag;
+        } else if (event == gui::Widget::MouseEvent::LeftUp) {
+            if (WidgetPressed)
+                WidgetPressed->Widget->OnMouseEvent(event, position - WidgetPressed->Position);
+            WidgetPressed = nullptr;
+            return MouseEventResult::Handled;
         }
-        return MouseEventResult::StartDrag;
-    }
-
-    void MouseLeftUp(gui::Position position) override {
-        if (WidgetPressed)
-            WidgetPressed->Widget->MouseLeftUp(position -
-                                               WidgetPressed->Position);
-        WidgetPressed = nullptr;
+        return MouseEventResult::NotHandled;
     }
 };
 

@@ -51,18 +51,20 @@ void Button::Render(Canvas &canvas, Position offset) {
     }
 }
 
-Widget::MouseEventResult Button::MouseLeftDown(Position position) {
-    IsPressed = true;
-    return Widget::MouseEventResult::Handled;
-}
-
-void Button::MouseLeftUp(Position position) {
-    if (IsPressed) {
-        IsPressed = false;
-        if (PointInsideWidget(position, *this)) {
-            HandleClick();
+Widget::MouseEventResult Button::OnMouseEvent(MouseEvent event, Position position) {
+    if (event == MouseEvent::LeftDown) {
+        IsPressed = true;
+        return Widget::MouseEventResult::Handled;
+    } else if (event == MouseEvent::LeftUp) {
+        if (IsPressed) {
+            IsPressed = false;
+            if (PointInsideWidget(position, *this)) {
+                HandleClick();
+            }
         }
+        return Widget::MouseEventResult::Handled;
     }
+    return Widget::MouseEventResult::NotHandled;
 }
 
 void Button::HandleClick() {

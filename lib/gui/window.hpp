@@ -61,10 +61,7 @@ struct Window : public Widget {
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 
-    MouseEventResult MouseLeftDown(Position position) override;
-    void MouseLeftUp(Position position) override;
-    bool MouseWheelUp(Position position) override;
-    bool MouseWheelDown(Position position) override;
+    MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
 private:
     const Version *_Version;
