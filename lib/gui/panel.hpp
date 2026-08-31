@@ -65,7 +65,7 @@ struct Panel : public Widget {
 
     MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
-    void SetSize(int width, int height) override;
+    void SetLayoutSize(int width, int height) override;
 
 private:
     Sprite const *Background = nullptr;

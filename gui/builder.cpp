@@ -93,24 +93,24 @@ LayoutMetrics CalculateLayout(int windowWidth, int windowHeight) {
 void Builder::Gui::Relayout(int windowWidth, int windowHeight) {
     const auto layout = CalculateLayout(windowWidth, windowHeight);
 
-    Root->SetSize(windowWidth, windowHeight);
+    Root->SetLayoutSize(windowWidth, windowHeight);
 
     if (Root->Sidebar != nullptr) {
-        Root->Sidebar->SetSize(layout.SidebarWidth, layout.SidebarHeight);
+        Root->Sidebar->SetLayoutSize(layout.SidebarWidth, layout.SidebarHeight);
         Root->SetChildPosition(Root->Sidebar,
                                gui::Position(windowWidth - layout.SidebarWidth,
                                              0));
     }
 
     if (Root->Chat != nullptr) {
-        Root->Chat->SetSize(layout.ChatWidth, layout.ChatHeight);
+        Root->Chat->SetLayoutSize(layout.ChatWidth, layout.ChatHeight);
         Root->SetChildPosition(Root->Chat,
                                gui::Position(0,
                                              windowHeight - layout.ChatHeight));
     }
 
     if (Root->Game != nullptr) {
-        Root->Game->SetSize(layout.GameWidth, layout.GameHeight);
+        Root->Game->SetLayoutSize(layout.GameWidth, layout.GameHeight);
         Root->Game->SetGamestateBounds(layout.GamestateX,
                                        layout.GamestateY,
                                        layout.GamestateWidth,

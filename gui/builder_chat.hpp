@@ -42,7 +42,7 @@ public:
         Add(std::move(bottom), trc::gui::Position(0, Top->Height));
     }
 
-    void SetSize(int width, int height) override;
+    void SetLayoutSize(int width, int height) override;
 
 private:
     trc::gui::Widget *Top;

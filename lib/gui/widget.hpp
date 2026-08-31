@@ -75,7 +75,8 @@ struct Widget {
         Height = h;
     }
 
-    virtual void SetSize(int w, int h) {
+    // Called on window resize events
+    virtual void SetLayoutSize(int w, int h) {
         SetWidth(w);
         SetHeight(h);
     }

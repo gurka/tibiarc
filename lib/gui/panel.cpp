@@ -151,8 +151,8 @@ PlacedWidget<> *Panel::GetWidgetAndPosition(Widget *widget) {
     return nullptr;
 }
 
-void Panel::SetSize(int width, int height) {
-    Widget::SetSize(width, height);
+void Panel::SetLayoutSize(int width, int height) {
+    Widget::SetLayoutSize(width, height);
     CachedBackground.reset();
 }
 

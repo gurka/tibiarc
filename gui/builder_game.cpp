@@ -49,7 +49,7 @@ void Builder::GamePanel::SetGamestateBounds(int x,
                                           int width,
                                           int height) {
     if (GamestateWidget != nullptr) {
-        GamestateWidget->SetSize(width, height);
+        GamestateWidget->SetLayoutSize(width, height);
     }
     if (GamestateBorder != nullptr) {
         SetChildPosition(GamestateBorder, gui::Position(x - 1, y - 1));
