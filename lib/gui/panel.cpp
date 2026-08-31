@@ -29,6 +29,8 @@
 namespace trc {
 namespace gui {
 
+Panel::~Panel() = default;
+
 bool Panel::SetChildPosition(Widget *widget, Position position) {
     auto *pw = GetWidgetAndPosition(widget);
     if (pw == nullptr) {
@@ -67,11 +69,23 @@ void Panel::Update(State &state, Position offset) {
 
 void Panel::Render(Canvas &canvas, Position offset) {
     if (Background) {
-        canvas.DrawTiled(*Background,
-                         offset.X,
-                         offset.Y,
-                         offset.X + Width,
-                         offset.Y + Height);
+        if (!CachedBackground) {
+            CachedBackground = std::make_unique<Canvas>(Width, Height);
+            CachedBackground->DrawTiled(*Background,
+                                        0,
+                                        0,
+                                        Width,
+                                        Height);
+        }
+
+        Canvas::Copy(canvas,
+                     *CachedBackground,
+                     0,
+                     0,
+                     CachedBackground->Width,
+                     CachedBackground->Height,
+                     offset.X,
+                     offset.Y);
     }
     for (const auto &wap : Widgets) {
         auto &[widget, position] = wap;
@@ -135,6 +149,11 @@ PlacedWidget<> *Panel::GetWidgetAndPosition(Widget *widget) {
         }
     }
     return nullptr;
+}
+
+void Panel::SetSize(int width, int height) {
+    Widget::SetSize(width, height);
+    CachedBackground.reset();
 }
 
 } // namespace gui

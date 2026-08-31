@@ -44,8 +44,11 @@ struct Panel : public Widget {
         : Widget(width, height) {
     }
 
+    ~Panel() override;
+
     void SetBackground(Sprite const *background) {
         Background = background;
+        CachedBackground.reset();
     }
 
     template<std::derived_from<Widget> T>
@@ -62,8 +65,11 @@ struct Panel : public Widget {
 
     MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
+    void SetSize(int width, int height) override;
+
 private:
     Sprite const *Background = nullptr;
+    std::unique_ptr<Canvas> CachedBackground;
 
     std::vector<PlacedWidget<>> Widgets;
 
