@@ -25,7 +25,7 @@
 #include "builder_sidebar.hpp"
 #include "builder_game.hpp"
 #include "builder_chat.hpp"
-#include "state.hpp"
+#include "player_state.hpp"
 
 #include "gui/panel.hpp"
 #include "gui/position.hpp"

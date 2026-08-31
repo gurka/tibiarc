@@ -17,11 +17,13 @@
  * along with tibiarc. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __TRC_GUI_TEST_GUI_STATE_HPP__
-#define __TRC_GUI_TEST_GUI_STATE_HPP__
+#ifndef __TRC_PLAYER_STATE_HPP__
+#define __TRC_PLAYER_STATE_HPP__
 
 #include "gui/state.hpp"
 #include "gui/position.hpp"
+
+using MouseCursor = trc::gui::State::MouseCursor;
 
 struct GuiState : public trc::gui::State {
     int MouseX = 0;
@@ -46,5 +48,5 @@ struct GuiState : public trc::gui::State {
         RequestedCursor = cursor;
     }
 };
-    
-#endif // __TRC_GUI_TEST_GUI_STATE_HPP__
+
+#endif // __TRC_PLAYER_STATE_HPP__

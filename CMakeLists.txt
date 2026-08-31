@@ -165,20 +165,6 @@ add_library(tibiarc
   "lib/formats/yatc.cpp"
   "lib/gamestate.cpp"
   "lib/gamestate.hpp"
-  "lib/gui/border.cpp"
-  "lib/gui/border.hpp"
-  "lib/gui/button.cpp"
-  "lib/gui/button.hpp"
-  "lib/gui/common.hpp"
-  "lib/gui/panel.cpp"
-  "lib/gui/panel.hpp"
-  "lib/gui/position.hpp"
-  "lib/gui/state.hpp"
-  "lib/gui/vertical_panel.cpp"
-  "lib/gui/vertical_panel.hpp"
-  "lib/gui/widget.hpp"
-  "lib/gui/window.cpp"
-  "lib/gui/window.hpp"
   "lib/icons.cpp"
   "lib/icons.hpp"
   "lib/map.hpp"
@@ -367,35 +353,49 @@ if(TIBIARC_HAVE_CRYPTO AND (NOT EMSCRIPTEN))
 endif()
 
 # ########################################################################### #
-## GUI
+## Player
 # ########################################################################### #
 
 if(SDL2_FOUND)
-  add_executable(gui
-    "gui/builder.cpp"
-    "gui/builder.hpp"
-    "gui/builder_chat.cpp"
-    "gui/builder_chat.hpp"
-    "gui/builder_game.cpp"
-    "gui/builder_game.hpp"
-    "gui/builder_sidebar.cpp"
-    "gui/builder_sidebar.hpp"
-    "gui/gui.cpp"
-    "gui/playback.cpp"
-    "gui/playback.hpp"
-    "gui/state.hpp"
+  add_executable(player
+    "player/builder.cpp"
+    "player/builder.hpp"
+    "player/builder_chat.cpp"
+    "player/builder_chat.hpp"
+    "player/builder_game.cpp"
+    "player/builder_game.hpp"
+    "player/builder_sidebar.cpp"
+    "player/builder_sidebar.hpp"
+    "player/player.cpp"
+    "player/playback.cpp"
+    "player/playback.hpp"
+    "player/player_state.hpp"
+    "player/gui/border.cpp"
+    "player/gui/border.hpp"
+    "player/gui/button.cpp"
+    "player/gui/button.hpp"
+    "player/gui/common.hpp"
+    "player/gui/panel.cpp"
+    "player/gui/panel.hpp"
+    "player/gui/position.hpp"
+    "player/gui/state.hpp"
+    "player/gui/vertical_panel.cpp"
+    "player/gui/vertical_panel.hpp"
+    "player/gui/widget.hpp"
+    "player/gui/window.cpp"
+    "player/gui/window.hpp"
     "utils/memoryfile.cpp"
     "utils/memoryfile.hpp"
   )
-  target_include_directories(gui PRIVATE "gui" "utils" ${SDL2_INCLUDE_DIRS})
-  target_link_libraries(gui PRIVATE tibiarc ${SDL2_LIBRARIES})
+  target_include_directories(player PRIVATE "player" "utils" ${SDL2_INCLUDE_DIRS})
+  target_link_libraries(player PRIVATE tibiarc ${SDL2_LIBRARIES})
 
   # Ensure that SDL2 does not swallow console output on Windows. This is only
   # useful for debugging and may cause crashes on its own as SDL2 assumes
   # -mwindows
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-      target_link_options(gui PRIVATE -mconsole)
+      target_link_options(player PRIVATE -mconsole)
     endif()
   endif()
 endif()

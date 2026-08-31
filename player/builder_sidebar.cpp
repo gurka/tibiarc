@@ -28,7 +28,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include "state.hpp"
+#include "player_state.hpp"
 
 #include "gui/border.hpp"
 #include "gui/button.hpp"
