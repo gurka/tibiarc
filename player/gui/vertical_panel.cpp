@@ -90,7 +90,7 @@ void VerticalPanel::Update(State &state, Position offset) {
             widget->SetHeight(Height - y);
         }
         widget->Update(state, offset + Position(0, y));
-        y += widget->Height;
+        y += widget->GetHeight();
     }
 
     // If a widget is being dragged, check if we need to shift any
@@ -104,25 +104,25 @@ void VerticalPanel::Update(State &state, Position offset) {
             if (widget.get() == Drag.Target) {
                 otherIsAbove = false;
             } else if (AreasIntersect(Drag.CurrentPosition,
-                                      Drag.Target->Width,
-                                      Drag.Target->Height,
+                                      Drag.Target->GetWidth(),
+                                      Drag.Target->GetHeight(),
                                       Position(0, otherY),
-                                      widget->Width,
-                                      widget->Height)) {
+                                      widget->GetWidth(),
+                                      widget->GetHeight())) {
                 otherWidget = widget.get();
                 break;
             }
-            otherY += widget->Height;
+            otherY += widget->GetHeight();
         }
 
         if (otherWidget != nullptr) {
             // Don't swap with the last widget if StretchLastChild is true
             if (!StretchLastChild ||
                 otherWidget != Widgets[Widgets.size() - 1].get()) {
-                const auto otherMidY = otherY + (otherWidget->Height / 2);
+                const auto otherMidY = otherY + (otherWidget->GetHeight() / 2);
                 if ((otherIsAbove && Drag.CurrentPosition.Y < otherMidY) ||
                     (!otherIsAbove &&
-                     Drag.CurrentPosition.Y + Drag.Target->Height > otherMidY)) {
+                     Drag.CurrentPosition.Y + Drag.Target->GetHeight() > otherMidY)) {
                     std::swap(Widgets[GetWidgetIndex(Drag.Target)],
                               Widgets[GetWidgetIndex(otherWidget)]);
                 }
@@ -144,7 +144,7 @@ void VerticalPanel::Render(Canvas &canvas, Position offset) {
         if (widget.get() != Drag.Target) {
             widget->Render(canvas, offset + gui::Position(0, y));
         }
-        y += widget->Height;
+        y += widget->GetHeight();
     }
     if (Drag.Active()) {
         Drag.Target->Render(canvas, offset + Drag.CurrentPosition);
@@ -162,8 +162,8 @@ Widget::MouseEventResult VerticalPanel::OnMouseEvent(MouseEvent event, Position 
             }
             if (PointInsideArea(position,
                                 Position(0, y),
-                                widget->Width,
-                                widget->Height)) {
+                                widget->GetWidth(),
+                                widget->GetHeight())) {
                 const auto result = widget->OnMouseEvent(event, position - Position(0, y));
                 if (result == Widget::MouseEventResult::StartDrag) {
                     Drag.Begin(widget.get(), Position(0, y), position);
@@ -179,7 +179,7 @@ Widget::MouseEventResult VerticalPanel::OnMouseEvent(MouseEvent event, Position 
                 return Widget::MouseEventResult::Handled;
             }
 
-            y += widget->Height;
+            y += widget->GetHeight();
         }
 
         return Widget::MouseEventResult::NotHandled;
@@ -196,10 +196,10 @@ Widget::MouseEventResult VerticalPanel::OnMouseEvent(MouseEvent event, Position 
             if (!widget->Visible) {
                 continue;
             }
-            if (PointInsideArea(position, Position(0, y), widget->Width, widget->Height)) {
+            if (PointInsideArea(position, Position(0, y), widget->GetWidth(), widget->GetHeight())) {
                 return widget->OnMouseEvent(event, position - Position(0, y));
             }
-            y += widget->Height;
+            y += widget->GetHeight();
         }
         return Widget::MouseEventResult::NotHandled;
     }
@@ -212,7 +212,7 @@ int VerticalPanel::GetWidgetY(const Widget *widget) const {
             return y;
         }
         if (w->Visible) {
-            y += w->Height;
+            y += w->GetHeight();
         }
     }
     std::terminate();

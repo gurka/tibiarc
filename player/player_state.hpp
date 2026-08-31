@@ -26,15 +26,33 @@
 using MouseCursor = trc::gui::State::MouseCursor;
 
 struct GuiState : public trc::gui::State {
-    int MouseX = 0;
-    int MouseY = 0;
-    bool _MouseLeftDown = false;
-    MouseCursor CurrentCursor = MouseCursor::Default;
-    MouseCursor RequestedCursor = MouseCursor::Default;
-
     bool SkillsWindowVisible = true;
     bool BattleWindowVisible = true;
     bool VIPWindowVisible = false;
+
+    void SetMousePosition(int x, int y) {
+        MouseX = x;
+        MouseY = y;
+    }
+
+    void SetMouseLeftDown(bool down) {
+        _MouseLeftDown = down;
+    }
+
+    void ResetRequestedCursor() {
+        RequestedCursor = MouseCursor::Default;
+    }
+
+    // Returns the cursor that was requested since the last ResetRequestedCursor(),
+    // and whether it differs from the currently active cursor.
+    bool ConsumeCursorChange(MouseCursor &cursor) {
+        if (RequestedCursor == CurrentCursor) {
+            return false;
+        }
+        cursor = RequestedCursor;
+        CurrentCursor = RequestedCursor;
+        return true;
+    }
 
     trc::gui::Position MousePosition(trc::gui::Position offset) const override {
         return trc::gui::Position(MouseX, MouseY) - offset;
@@ -47,6 +65,13 @@ struct GuiState : public trc::gui::State {
     void RequestMouseCursor(MouseCursor cursor) override {
         RequestedCursor = cursor;
     }
+
+private:
+    int MouseX = 0;
+    int MouseY = 0;
+    bool _MouseLeftDown = false;
+    MouseCursor CurrentCursor = MouseCursor::Default;
+    MouseCursor RequestedCursor = MouseCursor::Default;
 };
 
 #endif // __TRC_PLAYER_STATE_HPP__

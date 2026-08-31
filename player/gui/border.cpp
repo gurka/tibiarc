@@ -41,8 +41,8 @@ void Border::Update(State &state, Position offset) {
     Child->Update(state, offset + Position(BorderWidth(), BorderWidth()));
 
     // Propagate child size changes upward (bottom-up)
-    Width  = BorderWidth() * 2 + Child->Width;
-    Height = BorderWidth() * 2 + Child->Height;
+    Width  = BorderWidth() * 2 + Child->GetWidth();
+    Height = BorderWidth() * 2 + Child->GetHeight();
 }
 
 void Border::Render(Canvas &canvas, Position offset) {

@@ -79,6 +79,11 @@ Window::Window(int width,
     CloseButton.SetOnClick(CloseOnClick);
 }
 
+void Window::SetContent(std::unique_ptr<Widget> content) {
+    Content = std::move(content);
+    Content->SetWidth(std::max(0, Width - 8));
+}
+
 int Window::ContentViewportHeight() const {
     return std::max(0, Height - 15 - 4);
 }
@@ -87,7 +92,7 @@ int Window::MaxScrollOffset() const {
     if (!Content) {
         return 0;
     }
-    return std::max(0, Content->Height - ContentViewportHeight());
+    return std::max(0, Content->GetHeight() - ContentViewportHeight());
 }
 
 void Window::ClampScrollOffset() {
@@ -106,7 +111,7 @@ bool Window::GetScrollbarThumbMetrics(int &thumbOffset, int &thumbHeight) const 
     }
 
     thumbHeight = std::clamp(
-            (scrollbarHeight * ContentViewportHeight()) / Content->Height,
+            (scrollbarHeight * ContentViewportHeight()) / Content->GetHeight(),
             _Version->Icons.ScrollbarThumb.Height,
             scrollbarHeight);
 
@@ -151,15 +156,15 @@ void Window::Update(State &state, Position offset) {
         Content->Update(state, offset + Position(4, 15));
 
         // Re-create content canvas if content size has changed
-        if (!ContentCanvas || (Content->Width != ContentCanvas->Width ||
-                               Content->Height != ContentCanvas->Height)) {
+        if (!ContentCanvas || (Content->GetWidth() != ContentCanvas->Width ||
+                               Content->GetHeight() != ContentCanvas->Height)) {
             ContentCanvas =
-                    std::make_unique<Canvas>(Content->Width, Content->Height);
+                    std::make_unique<Canvas>(Content->GetWidth(), Content->GetHeight());
         }
 
         if (WindowType == Type::Sidebar) {
             // Set MaxHeight based on content size
-            MaxHeight = Content->Height + 19;
+            MaxHeight = Content->GetHeight() + 19;
         }
     }
 
@@ -197,7 +202,7 @@ void Window::Update(State &state, Position offset) {
     MinimizeButton.Update(state, offset + MinimizeButtonPosition);
     CloseButton.Update(state, offset + CloseButtonPosition);
 
-    if (!MinimizeButton.Toggled &&
+    if (!MinimizeButton.IsToggled() &&
         PointInsideWidget(state.MousePosition(offset), *this) &&
         state.MousePosition(offset).Y >= Height - 4) {
         state.RequestMouseCursor(State::MouseCursor::Resize);
@@ -231,7 +236,7 @@ void Window::Render(Canvas &canvas, Position offset) {
     MinimizeButton.Render(canvas, offset + MinimizeButtonPosition);
     CloseButton.Render(canvas, offset + CloseButtonPosition);
 
-    if (MinimizeButton.Toggled) {
+    if (MinimizeButton.IsToggled()) {
         // Bottom
         canvas.Draw(icons.WindowBottomLeft, offset.X, offset.Y + Height - 4);
         canvas.DrawTiled(icons.WindowBottom,
@@ -246,7 +251,7 @@ void Window::Render(Canvas &canvas, Position offset) {
     }
 
     if (Content) {
-        if (Content->Visible && Content->Height > 0) {
+        if (Content->Visible && Content->GetHeight() > 0) {
             // Render on content canvas first
             ContentCanvas->Wipe();
             Content->Render(*ContentCanvas, Position(0, 0));
@@ -263,13 +268,13 @@ void Window::Render(Canvas &canvas, Position offset) {
                          offset.Y + 15);
         }
 
-        if (WindowType == Type::SidebarNoMaxHeight && (!Content->Visible || Content->Height < Height - 15 - 4)) {
+        if (WindowType == Type::SidebarNoMaxHeight && (!Content->Visible || Content->GetHeight() < Height - 15 - 4)) {
             // If the content is smaller than the window, then fill the rest
             // with background
             // Note: this will only look good if the content uses the same background as the window
             canvas.DrawTiled(icons.ClientBackground,
                              offset.X + 4,
-                             offset.Y + 15 + (Content->Visible ? Content->Height : 0),
+                             offset.Y + 15 + (Content->Visible ? Content->GetHeight() : 0),
                              offset.X + Width - 4,
                              offset.Y + Height - 4);
 
@@ -393,7 +398,7 @@ Widget::MouseEventResult Window::OnMouseEvent(MouseEvent event, Position positio
         }
 
         // If click is on the bottom, then start resize action
-        if (!MinimizeButton.Toggled && position.Y >= Height - 4) {
+        if (!MinimizeButton.IsToggled() && position.Y >= Height - 4) {
             return Widget::MouseEventResult::Resize;
         }
 
@@ -437,7 +442,7 @@ Widget::MouseEventResult Window::OnMouseEvent(MouseEvent event, Position positio
 void Window::MinimizeOnClick() {
     ScrollbarThumbPressed = false;
 
-    if (MinimizeButton.Toggled) {
+    if (MinimizeButton.IsToggled()) {
         MaximizedHeight = Height;
         Height = 19;
     } else {

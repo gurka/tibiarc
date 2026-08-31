@@ -48,12 +48,26 @@ struct RootPanel : public trc::gui::Panel {
 struct Gui {
     std::unique_ptr<RootPanel> Root;
 
+    Gui(std::unique_ptr<RootPanel> root, int gamestateX, int gamestateY, int gamestateWidth, int gamestateHeight)
+        : Root(std::move(root)),
+          GamestateX(gamestateX),
+          GamestateY(gamestateY),
+          GamestateWidth(gamestateWidth),
+          GamestateHeight(gamestateHeight) {
+    }
+
+    int GetGamestateX() const { return GamestateX; }
+    int GetGamestateY() const { return GamestateY; }
+    int GetGamestateWidth() const { return GamestateWidth; }
+    int GetGamestateHeight() const { return GamestateHeight; }
+
+    void Relayout(int windowWidth, int windowHeight);
+
+private:
     int GamestateX;
     int GamestateY;
     int GamestateWidth;
     int GamestateHeight;
-
-    void Relayout(int windowWidth, int windowHeight);
 };
 
 std::unique_ptr<Gui> BuildGui(int windowWidth,

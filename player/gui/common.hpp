@@ -72,8 +72,8 @@ struct DragState {
             return false;
         }
         CurrentPosition = InitialPosition + mousePos - MouseInitialPosition;
-        CurrentPosition.X = std::clamp(CurrentPosition.X, 0, containerW - Target->Width);
-        CurrentPosition.Y = std::clamp(CurrentPosition.Y, 0, containerH - Target->Height);
+        CurrentPosition.X = std::clamp(CurrentPosition.X, 0, containerW - Target->GetWidth());
+        CurrentPosition.Y = std::clamp(CurrentPosition.Y, 0, containerH - Target->GetHeight());
         return true;
     }
 };
@@ -90,7 +90,7 @@ struct ResizeState {
 
     void Begin(Widget *target, Position mousePos) {
         Target = target;
-        InitialHeight = target->Height;
+        InitialHeight = target->GetHeight();
         MouseInitialPosition = mousePos;
     }
 
@@ -106,22 +106,22 @@ struct ResizeState {
         }
         Target->SetHeight(
                 std::clamp(InitialHeight + mousePos.Y - MouseInitialPosition.Y,
-                           Target->MinHeight,
-                           std::min(Target->MaxHeight, maxHeightFromPanel)));
+                           Target->GetMinHeight(),
+                           std::min(Target->GetMaxHeight(), maxHeightFromPanel)));
     }
 };
 
 inline bool PointInsideWidget(Position position, const Widget &widget) {
     // Note: assumes that position is relative to the widget
-    return position.X >= 0 && position.X < widget.Width && position.Y >= 0 &&
-           position.Y < widget.Height;
+    return position.X >= 0 && position.X < widget.GetWidth() && position.Y >= 0 &&
+           position.Y < widget.GetHeight();
 }
 
 inline bool PointInsideWidget(Position position, const PlacedWidget<> &pw) {
     return position.X >= pw.Position.X &&
-           position.X < pw.Position.X + pw.Widget->Width &&
+           position.X < pw.Position.X + pw.Widget->GetWidth() &&
            position.Y >= pw.Position.Y &&
-           position.Y < pw.Position.Y + pw.Widget->Height;
+           position.Y < pw.Position.Y + pw.Widget->GetHeight();
 }
 
 inline bool PointInsideArea(Position position,
@@ -136,8 +136,8 @@ inline bool WidgetsIntersect(const Widget &wa,
                              Position pa,
                              const Widget &wb,
                              Position pb) {
-    return pa.X < pb.X + wb.Width && pa.X + wa.Width > pb.X &&
-           pa.Y < pb.Y + wb.Height && pa.Y + wa.Height > pb.Y;
+    return pa.X < pb.X + wb.GetWidth() && pa.X + wa.GetWidth() > pb.X &&
+           pa.Y < pb.Y + wb.GetHeight() && pa.Y + wa.GetHeight() > pb.Y;
 }
 
 inline bool WidgetsIntersect(const PlacedWidget<> &pwa, const PlacedWidget<> &pwb) {

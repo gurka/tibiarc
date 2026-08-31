@@ -184,7 +184,7 @@ struct SidebarInventory : public gui::Widget {
                          &gamestate->Version.Icons.Maximize,
                          &gamestate->Version.Icons.MaximizePressed) {
         MinimizeButton.SetOnClick(
-                [this]() { Height = MinimizeButton.Toggled ? 48 : 155; });
+                [this]() { Height = MinimizeButton.IsToggled() ? 48 : 155; });
     }
 
     void Update(gui::State &state, gui::Position offset) override {
@@ -195,7 +195,7 @@ struct SidebarInventory : public gui::Widget {
         const auto &icons = _Gamestate->Version.Icons;
         const auto &fonts = _Gamestate->Version.Fonts;
 
-        if (!MinimizeButton.Toggled) {
+        if (!MinimizeButton.IsToggled()) {
             canvas.DrawTiled(icons.ClientBackground,
                              offset.X,
                              offset.Y,
@@ -342,8 +342,8 @@ struct SidebarInventory : public gui::Widget {
     MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
         if (event == gui::Widget::MouseEvent::LeftDown) {
             MinimizeButtonPressed = false;
-            if (position.X >= 8 && position.X < 8 + MinimizeButton.Width &&
-                position.Y >= 4 && position.Y < 4 + MinimizeButton.Height) {
+            if (position.X >= 8 && position.X < 8 + MinimizeButton.GetWidth() &&
+                position.Y >= 4 && position.Y < 4 + MinimizeButton.GetHeight()) {
                 MinimizeButton.OnMouseEvent(event, position - gui::Position(8, 4));
                 MinimizeButtonPressed = true;
                 return MouseEventResult::Handled;
@@ -381,7 +381,7 @@ struct SidebarButtons : public gui::Widget {
         skillsButton->SetOnClick([this]() {
             _GuiState->SkillsWindowVisible = !_GuiState->SkillsWindowVisible;
         });
-        skillsButton->Toggled = _GuiState->SkillsWindowVisible;
+        skillsButton->SetToggled(_GuiState->SkillsWindowVisible);
         SkillsButton.Widget = std::move(skillsButton);
         SkillsButton.Position = gui::Position(8, 3);
 
@@ -411,13 +411,13 @@ struct SidebarButtons : public gui::Widget {
     }
 
     void Update(gui::State &state, gui::Position offset) override {
-        SkillsButton.Widget->Toggled = _GuiState->SkillsWindowVisible;
+        SkillsButton.Widget->SetToggled(_GuiState->SkillsWindowVisible);
         SkillsButton.Widget->Update(state, offset + SkillsButton.Position);
 
-        BattleButton.Widget->Toggled = _GuiState->BattleWindowVisible;
+        BattleButton.Widget->SetToggled(_GuiState->BattleWindowVisible);
         BattleButton.Widget->Update(state, offset + BattleButton.Position);
 
-        VIPButton.Widget->Toggled = _GuiState->VIPWindowVisible;
+        VIPButton.Widget->SetToggled(_GuiState->VIPWindowVisible);
         VIPButton.Widget->Update(state, offset + VIPButton.Position);
     }
 
@@ -449,9 +449,9 @@ struct SidebarButtons : public gui::Widget {
         if (event == gui::Widget::MouseEvent::LeftDown) {
             for (auto *widget : {&SkillsButton, &BattleButton, &VIPButton}) {
                 if (position.X >= widget->Position.X &&
-                    position.X < widget->Position.X + widget->Widget->Width &&
+                    position.X < widget->Position.X + widget->Widget->GetWidth() &&
                     position.Y >= widget->Position.Y &&
-                    position.Y < widget->Position.Y + widget->Widget->Height) {
+                    position.Y < widget->Position.Y + widget->Widget->GetHeight()) {
                     if (widget->Widget->OnMouseEvent(event, position - widget->Position) ==
                         gui::Widget::MouseEventResult::Handled) {
                         WidgetPressed = widget;
@@ -787,10 +787,10 @@ struct SidebarBottom : public gui::VerticalPanel {
           _Gamestate(gamestate),
           _GuiState(guiState),
           WindowsPanel(nullptr) {
-        StretchLastChild = true;
+        SetStretchLastChild(true);
 
         auto windowsPanel = std::make_unique<gui::VerticalPanel>(176, 0);
-        windowsPanel->DynamicHeight = true;
+        windowsPanel->SetDynamicHeight(true);
         WindowsPanel = windowsPanel.get();
 
         // Windows
@@ -802,8 +802,8 @@ struct SidebarBottom : public gui::VerticalPanel {
                 &gamestate->Version.Icons.SkillsIcon,
                 "Skills",
                 [this]() { _GuiState->SkillsWindowVisible = false; }));
-        SkillsWindow->Content =
-                std::make_unique<SidebarSkillsContent>(gamestate);
+        SkillsWindow->SetContent(
+                std::make_unique<SidebarSkillsContent>(gamestate));
 
         BattleWindow = &WindowsPanel->Add(std::make_unique<gui::Window>(
                 176,
@@ -813,8 +813,8 @@ struct SidebarBottom : public gui::VerticalPanel {
                 &gamestate->Version.Icons.BattleIcon,
                 "Battle",
                 [this]() { _GuiState->BattleWindowVisible = false; }));
-        BattleWindow->Content =
-                std::make_unique<SidebarBattleContent>(gamestate);
+        BattleWindow->SetContent(
+                std::make_unique<SidebarBattleContent>(gamestate));
 
         Add(std::move(windowsPanel));
 
@@ -837,8 +837,8 @@ struct SidebarBottom : public gui::VerticalPanel {
                                 .FrameGroups->Sprites[0],
                         trc::Capitalize(container.Name),
                         [this, containerId]() { HideContainerWindow(containerId); });
-                window->Content =
-                        std::make_unique<SidebarContainerContent>(_Gamestate, containerId);
+                window->SetContent(
+                        std::make_unique<SidebarContainerContent>(_Gamestate, containerId));
                 auto *windowPtr = window.get();
                 WindowsPanel->Add(std::move(window));
                 ContainerWindows[containerId] = windowPtr;
@@ -891,13 +891,13 @@ std::unique_ptr<gui::Widget> Builder::BuildSidebar(int height,
     // Sidebar
     // Always the same height (window/gui height)
     auto sidebar = std::make_unique<gui::VerticalPanel>(176, height);
-    sidebar->StretchLastChild = true;
+    sidebar->SetStretchLastChild(true);
 
     // Sidebar top
     // Dynamic size based on content (SidebarInventory can be
     // minimized/maximized)
     auto sidebarTop = std::make_unique<gui::VerticalPanel>(172, 0);
-    sidebarTop->DynamicHeight = true;
+    sidebarTop->SetDynamicHeight(true);
     sidebarTop->Add(std::make_unique<SidebarMinimap>(gamestate));
     sidebarTop->Add(std::make_unique<SidebarResources>(gamestate));
     sidebarTop->Add(std::make_unique<SidebarInventory>(gamestate));

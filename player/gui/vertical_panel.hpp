@@ -36,15 +36,15 @@ namespace gui {
 struct State;
 
 struct VerticalPanel : public Widget {
+    VerticalPanel(int width, int height);
+
     // Whether the panel should automatically adjust its height based on the height
     // of all widgets
-    bool DynamicHeight;
+    void SetDynamicHeight(bool dynamicHeight) { DynamicHeight = dynamicHeight; }
 
     // Whether the last widget should be stretched to fill the remaining
     // space in the panel
-    bool StretchLastChild;
-
-    VerticalPanel(int width, int height);
+    void SetStretchLastChild(bool stretchLastChild) { StretchLastChild = stretchLastChild; }
 
     template<typename T>
     T &Add(std::unique_ptr<T> widget) {
@@ -63,6 +63,9 @@ struct VerticalPanel : public Widget {
     MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
 private:
+    bool DynamicHeight;
+    bool StretchLastChild;
+
     std::vector<std::unique_ptr<Widget>> Widgets;
 
     DragState Drag;

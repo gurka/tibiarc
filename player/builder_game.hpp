@@ -33,14 +33,23 @@ struct Gamestate;
 namespace Builder {
 
 struct GamePanel : public trc::gui::Panel {
-    trc::gui::Widget *GamestateBorder = nullptr;
-    trc::gui::Widget *GamestateWidget = nullptr;
-
     GamePanel(int width, int height)
         : Panel(width, height) {
     }
 
     void SetGamestateBounds(int x, int y, int width, int height);
+
+private:
+    friend std::unique_ptr<GamePanel> BuildGame(int width,
+                                                int height,
+                                                trc::Gamestate *gamestate,
+                                                int gamestateX,
+                                                int gamestateY,
+                                                int gamestateWidth,
+                                                int gamestateHeight);
+
+    trc::gui::Widget *GamestateBorder = nullptr;
+    trc::gui::Widget *GamestateWidget = nullptr;
 };
 
 std::unique_ptr<GamePanel> BuildGame(int width,

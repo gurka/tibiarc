@@ -82,7 +82,7 @@ struct ChatBottom : public gui::Widget {
 void Builder::ChatPanel::SetLayoutSize(int width, int height) {
     Panel::SetLayoutSize(width, height);
     Top->SetLayoutSize(width, 21);
-    Bottom->Child->SetLayoutSize(width - 4, height - 21 - 4);
+    Bottom->GetChild().SetLayoutSize(width - 4, height - 21 - 4);
 }
 
 std::unique_ptr<Builder::ChatPanel> Builder::BuildChat(int width,

@@ -29,20 +29,21 @@ namespace trc {
 namespace gui {
 
 struct Border : Widget {
-    const Icons *_Icons;
     enum class BorderType {
         Sunken, // 1px
         Raised, // 2px
-    } Type;
-    std::unique_ptr<Widget> Child;
+    };
 
     Border(const Icons *icons, BorderType type, std::unique_ptr<Widget> child)
-        : Widget(BorderWidth(type) * 2 + child->Width,
-                 BorderWidth(type) * 2 + child->Height),
+        : Widget(BorderWidth(type) * 2 + child->GetWidth(),
+                 BorderWidth(type) * 2 + child->GetHeight()),
           _Icons(icons),
           Type(type),
           Child(std::move(child)) {
     }
+
+    Widget &GetChild() { return *Child; }
+    const Widget &GetChild() const { return *Child; }
 
     void SetWidth(int w) override;
     void SetHeight(int h) override;
@@ -53,6 +54,10 @@ struct Border : Widget {
 
 private:
     bool ChildPressed = false;
+
+    const Icons *_Icons;
+    BorderType Type;
+    std::unique_ptr<Widget> Child;
 
     void RenderSunkenBorder(Canvas &canvas, Position offset);
     void RenderRaisedBorder(Canvas &canvas, Position offset);

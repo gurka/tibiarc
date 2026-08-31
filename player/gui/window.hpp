@@ -38,8 +38,6 @@ struct Version;
 namespace gui {
 
 struct Window : public Widget {
-    std::unique_ptr<Widget> Content;
-
     using OnClickHandler = std::function<void()>;
 
     enum class Type {
@@ -55,6 +53,8 @@ struct Window : public Widget {
            const std::string &title,
            const OnClickHandler &closeOnClick);
 
+    void SetContent(std::unique_ptr<Widget> content);
+
     void SetWidth(int w) override;
     void SetHeight(int h) override;
 
@@ -64,6 +64,7 @@ struct Window : public Widget {
     MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
 private:
+    std::unique_ptr<Widget> Content;
     const Version *_Version;
     Type WindowType;
     const Sprite *Icon;

@@ -36,6 +36,22 @@ class Playback {
     void Stabilize();
 
 public:
+    Playback(const DataReader &file,
+             const std::filesystem::path &name,
+             const DataReader &pic,
+             const DataReader &spr,
+             const DataReader &dat,
+             const VersionTriplet &version);
+
+    trc::Gamestate &GetGamestate() { return *Gamestate; }
+
+    int64_t GetPlaybackTick() const;
+    void ProcessPackets();
+    void Toggle();
+    void SetSpeed(float speed);
+    void Skip(int64_t by);
+
+private:
     std::unique_ptr<const trc::Version> Version;
     std::unique_ptr<trc::Gamestate> Gamestate;
     std::unique_ptr<Recordings::Recording> Recording;
@@ -44,19 +60,6 @@ public:
     int64_t BaseTick;
     int64_t ScaleTick;
     float Scale;
-
-    Playback(const DataReader &file,
-             const std::filesystem::path &name,
-             const DataReader &pic,
-             const DataReader &spr,
-             const DataReader &dat,
-             const VersionTriplet &version);
-
-    int64_t GetPlaybackTick() const;
-    void ProcessPackets();
-    void Toggle();
-    void SetSpeed(float speed);
-    void Skip(int64_t by);
 };
 }; // namespace trc
 

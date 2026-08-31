@@ -153,11 +153,9 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
     root->Game = game.get();
     root->Add(std::move(game), gui::Position(0, 0));
 
-    auto gui = std::make_unique<Builder::Gui>(Builder::Gui{std::move(root),
-                                                           layout.GamestateX,
-                                                           layout.GamestateY,
-                                                           layout.GamestateWidth,
-                                                           layout.GamestateHeight});
-
-    return gui;
+    return std::make_unique<Builder::Gui>(std::move(root),
+                                          layout.GamestateX,
+                                          layout.GamestateY,
+                                          layout.GamestateWidth,
+                                          layout.GamestateHeight);
 }

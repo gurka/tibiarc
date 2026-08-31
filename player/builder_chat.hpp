@@ -41,7 +41,7 @@ public:
               std::unique_ptr<trc::gui::Border> bottom)
         : Panel(width, height), Top(top.get()), Bottom(bottom.get()) {
         Add(std::move(top), trc::gui::Position(0, 0));
-        Add(std::move(bottom), trc::gui::Position(0, Top->Height));
+        Add(std::move(bottom), trc::gui::Position(0, Top->GetHeight()));
     }
 
     void SetLayoutSize(int width, int height) override;

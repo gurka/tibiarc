@@ -98,7 +98,7 @@ void handle_resize() {
     SDL_SetTextureBlendMode(GuiTexture.get(), SDL_BLENDMODE_BLEND);
 
     if (!Gui) {
-        Gui = Builder::BuildGui(width, height, _Playback->Gamestate.get(), &State);
+        Gui = Builder::BuildGui(width, height, &_Playback->GetGamestate(), &State);
     } else {
         Gui->Relayout(width, height);
     }
@@ -116,14 +116,14 @@ void handle_resize() {
         SDL_SetTextureBlendMode(GameTexture.get(), SDL_BLENDMODE_BLEND);
     }
 
-    OverlayCanvas = std::make_unique<Canvas>(Gui->GamestateWidth,
-                                             Gui->GamestateHeight,
+    OverlayCanvas = std::make_unique<Canvas>(Gui->GetGamestateWidth(),
+                                             Gui->GetGamestateHeight(),
                                              Canvas::Type::External);
     OverlayTexture.reset(SDL_CreateTexture(_Renderer.get(),
                                            SDL_PIXELFORMAT_RGBA32,
                                            SDL_TEXTUREACCESS_STREAMING,
-                                           Gui->GamestateWidth,
-                                           Gui->GamestateHeight));
+                                           Gui->GetGamestateWidth(),
+                                           Gui->GetGamestateHeight()));
     SDL_SetTextureBlendMode(OverlayTexture.get(), SDL_BLENDMODE_BLEND);
 }
 
@@ -138,14 +138,14 @@ void handle_input() {
             break;
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
-                State._MouseLeftDown = true;
+                State.SetMouseLeftDown(true);
                 Gui->Root->OnMouseEvent(gui::Widget::MouseEvent::LeftDown,
                                         gui::Position(event.button.x, event.button.y));
             }
             break;
         case SDL_MOUSEBUTTONUP:
             if (event.button.button == SDL_BUTTON_LEFT) {
-                State._MouseLeftDown = false;
+                State.SetMouseLeftDown(false);
                 Gui->Root->OnMouseEvent(gui::Widget::MouseEvent::LeftUp,
                                         gui::Position(event.button.x, event.button.y));
             }
@@ -179,13 +179,16 @@ void main_loop() {
     handle_input();
 
     // Update widgets
-    SDL_GetMouseState(&State.MouseX, &State.MouseY);
-    State.RequestedCursor = GuiState::MouseCursor::Default;
+    int mouseX = 0, mouseY = 0;
+    SDL_GetMouseState(&mouseX, &mouseY);
+    State.SetMousePosition(mouseX, mouseY);
+    State.ResetRequestedCursor();
     Gui->Root->Update(State, gui::Position(0, 0));
 
     // Set cursor if requested
-    if (State.RequestedCursor != State.CurrentCursor) {
-        switch (State.RequestedCursor) {
+    GuiState::MouseCursor newCursor;
+    if (State.ConsumeCursorChange(newCursor)) {
+        switch (newCursor) {
         case GuiState::MouseCursor::Default:
             if (!DefaultCursor) {
                 DefaultCursor.reset(
@@ -204,7 +207,6 @@ void main_loop() {
             SDL_SetCursor(ResizeCursor.get());
             break;
         }
-        State.CurrentCursor = State.RequestedCursor;
     }
 
     // Render gui to texture
@@ -230,9 +232,9 @@ void main_loop() {
         exit(1);
     }
     GameCanvas->Wipe();
-    Renderer::Update(Renderer::Options(), *_Playback->Gamestate);
+    Renderer::Update(Renderer::Options(), _Playback->GetGamestate());
     Renderer::DrawGamestate(Renderer::Options(),
-                            *_Playback->Gamestate,
+                            _Playback->GetGamestate(),
                             *GameCanvas);
     SDL_UnlockTexture(GameTexture.get());
 
@@ -246,15 +248,15 @@ void main_loop() {
     }
     OverlayCanvas->Wipe();
     Renderer::DrawOverlay(Renderer::Options(),
-                          *_Playback->Gamestate,
+                          _Playback->GetGamestate(),
                           *OverlayCanvas);
     SDL_UnlockTexture(OverlayTexture.get());
 
     // Render textures to window
-    SDL_Rect gamestateDest = {Gui->GamestateX,
-                              Gui->GamestateY,
-                              Gui->GamestateWidth,
-                              Gui->GamestateHeight};
+    SDL_Rect gamestateDest = {Gui->GetGamestateX(),
+                              Gui->GetGamestateY(),
+                              Gui->GetGamestateWidth(),
+                              Gui->GetGamestateHeight()};
     SDL_RenderCopy(_Renderer.get(), GuiTexture.get(), nullptr, nullptr);
     SDL_RenderCopy(_Renderer.get(), GameTexture.get(), nullptr, &gamestateDest);
     SDL_RenderCopy(_Renderer.get(), OverlayTexture.get(), nullptr, &gamestateDest);

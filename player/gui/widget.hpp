@@ -45,21 +45,18 @@ struct Widget {
         WheelDown,
     };
 
-    int Width;
-    int Height;
-
-    // Only used if the widget is resizable, otherwise they should be equal
-    // to Height
-    int MinHeight;
-    int MaxHeight;
-
     bool Visible = true;
 
     Widget(int width, int height)
         : Width(width), Height(height), MinHeight(height), MaxHeight(height) {
     }
 
-    virtual ~Widget() = default; 
+    virtual ~Widget() = default;
+
+    int GetWidth() const { return Width; }
+    int GetHeight() const { return Height; }
+    int GetMinHeight() const { return MinHeight; }
+    int GetMaxHeight() const { return MaxHeight; }
 
     // Called by a parent/container to assign this widget a specific width.
     // Wrapper widgets (e.g. Border) should override this to propagate the
@@ -88,6 +85,15 @@ struct Widget {
     virtual MouseEventResult OnMouseEvent(MouseEvent event, Position position) {
         return MouseEventResult::NotHandled;
     }
+
+protected:
+    int Width;
+    int Height;
+
+    // Only used if the widget is resizable, otherwise they should be equal
+    // to Height
+    int MinHeight;
+    int MaxHeight;
 };
 
 } // namespace gui

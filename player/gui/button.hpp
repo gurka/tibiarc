@@ -41,20 +41,6 @@ struct State;
 struct Button : public Widget {
     using OnClickHandler = std::function<void()>;
 
-    const Sprite *Normal;
-    const Sprite *Pressed;
-
-    std::string Text;
-    Pixel TextColor;
-    const Font *TextFont;
-    OnClickHandler OnClick;
-
-    // Whether to render normal or pressed sprite
-    bool RenderPressed;
-
-    // Left mouse has been pressed on the button, but not released yet
-    bool IsPressed;
-
     Button(const Sprite *spriteNormal, const Sprite *spritePressed)
         : Widget(spriteNormal->Width, spriteNormal->Height),
           Normal(spriteNormal),
@@ -83,15 +69,24 @@ struct Button : public Widget {
     MouseEventResult OnMouseEvent(MouseEvent event, Position position) override;
 
 protected:
+    const Sprite *Normal;
+    const Sprite *Pressed;
+
+    std::string Text;
+    Pixel TextColor;
+    const Font *TextFont;
+    OnClickHandler OnClick;
+
+    // Whether to render normal or pressed sprite
+    bool RenderPressed;
+
+    // Left mouse has been pressed on the button, but not released yet
+    bool IsPressed;
+
     virtual void HandleClick();
 };
 
 struct ToggleButton : public Button {
-    const Sprite *ToggledNormal;
-    const Sprite *ToggledPressed;
-
-    bool Toggled;
-
     ToggleButton(const Sprite *spriteNormal,
                  const Sprite *spritePressed,
                  const Sprite *spriteToggledNormal = nullptr,
@@ -102,11 +97,19 @@ struct ToggleButton : public Button {
           Toggled(false) {
     }
 
+    bool IsToggled() const { return Toggled; }
+    void SetToggled(bool toggled) { Toggled = toggled; }
+
     void Update(State &state, Position offset) override;
     void Render(Canvas &canvas, Position offset) override;
 
 protected:
     void HandleClick() override;
+
+private:
+    const Sprite *ToggledNormal;
+    const Sprite *ToggledPressed;
+    bool Toggled;
 };
 
 } // namespace gui
