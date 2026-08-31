@@ -21,7 +21,6 @@
 #ifndef PLAYER_PLAYBACK_H
 #define PLAYER_PLAYBACK_H
 
-#include "memoryfile.hpp"
 #include "datareader.hpp"
 #include "versions.hpp"
 #include "recordings.hpp"
@@ -29,6 +28,8 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <list>
+#include <memory>
 
 namespace trc {
 class Playback {

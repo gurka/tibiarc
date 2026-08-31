@@ -21,8 +21,6 @@
 
 #include <memory>
 
-#include "state.hpp"
-
 #include <gui/border.hpp>
 #include "gui/panel.hpp"
 #include "gui/widget.hpp"
@@ -89,8 +87,7 @@ void Builder::ChatPanel::SetLayoutSize(int width, int height) {
 
 std::unique_ptr<Builder::ChatPanel> Builder::BuildChat(int width,
                                                        int height,
-                                                       Gamestate *gamestate,
-                                                       GuiState *guiState) {
+                                                       Gamestate *gamestate) {
     // Chat consists of:
     // - ChatPanel, Panel (root)
     //   - ChatTop, Widget (top part with channels and buttons)

@@ -138,8 +138,7 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
 
     auto chat = Builder::BuildChat(layout.ChatWidth,
                                    layout.ChatHeight,
-                                   gamestate,
-                                   guiState);
+                                   gamestate);
     root->Chat = chat.get();
     root->Add(std::move(chat),
               gui::Position(0, windowHeight - layout.ChatHeight));
@@ -147,7 +146,6 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
     auto game = Builder::BuildGame(layout.GameWidth,
                                    layout.GameHeight,
                                    gamestate,
-                                   guiState,
                                    layout.GamestateX,
                                    layout.GamestateY,
                                    layout.GamestateWidth,

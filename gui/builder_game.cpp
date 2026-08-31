@@ -19,17 +19,13 @@
 
 #include "builder_game.hpp"
 
-#include <algorithm>
 #include <memory>
-
-#include "state.hpp"
 
 #include "gui/border.hpp"
 #include "gui/panel.hpp"
 #include "gui/widget.hpp"
 #include "canvas.hpp"
 #include "gamestate.hpp"
-#include "renderer.hpp"
 #include "versions.hpp"
 
 using namespace trc;
@@ -59,7 +55,6 @@ void Builder::GamePanel::SetGamestateBounds(int x,
 std::unique_ptr<Builder::GamePanel> Builder::BuildGame(int width,
                                                        int height,
                                                        trc::Gamestate *gamestate,
-                                                       GuiState *guiState,
                                                        int gamestateX,
                                                        int gamestateY,
                                                        int gamestateWidth,

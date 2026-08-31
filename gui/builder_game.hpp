@@ -22,11 +22,13 @@
 
 #include <memory>
 
-#include "state.hpp"
-
 #include "gui/panel.hpp"
-#include "gui/widget.hpp"
-#include "gamestate.hpp"
+
+struct GuiState;
+
+namespace trc {
+struct Gamestate;
+}
 
 namespace Builder {
 
@@ -44,7 +46,6 @@ struct GamePanel : public trc::gui::Panel {
 std::unique_ptr<GamePanel> BuildGame(int width,
                                      int height,
                                      trc::Gamestate *gamestate,
-                                     GuiState *guiState,
                                      int gamestateX,
                                      int gamestateY,
                                      int gamestateWidth,

@@ -33,6 +33,8 @@ struct State {
         Resize,
     };
 
+    virtual ~State() = default;
+
     // Get the current (relative) mouse position
     virtual Position MousePosition(Position offset) const = 0;
 

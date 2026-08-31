@@ -22,12 +22,14 @@
 
 #include <memory>
 
-#include "state.hpp"
-
 #include "gui/border.hpp"
 #include "gui/panel.hpp"
-#include "gui/widget.hpp"
-#include "gamestate.hpp"
+
+struct GuiState;
+
+namespace trc {
+struct Gamestate;
+}
 
 namespace Builder {
 
@@ -51,8 +53,7 @@ private:
 
 std::unique_ptr<ChatPanel> BuildChat(int width,
                                      int height,
-                                     trc::Gamestate *gamestate,
-                                     GuiState *guiState);
+                                     trc::Gamestate *gamestate);
 
 } // namespace Builder
 
