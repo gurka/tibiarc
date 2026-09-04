@@ -27,6 +27,7 @@
 #include "canvas.hpp"
 #include "gamestate.hpp"
 #include "versions.hpp"
+#include "textrenderer.hpp"
 
 using namespace trc;
 
@@ -72,10 +73,65 @@ struct ChatTop : public gui::Widget {
 
 struct ChatBottom : public gui::Widget {
 
-    ChatBottom(int width, int height) : Widget(width, height) {
+    Gamestate *gamestate;
+
+    ChatBottom(int width, int height, Gamestate *gamestate)
+        : Widget(width, height), gamestate(gamestate) {
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
+        const auto &icons = gamestate->Version.Icons;
+        const auto &fonts = gamestate->Version.Fonts;
+
+        // Channels
+        // TODO: Order and active channel
+        auto x = offset.X + 18;
+        for (const auto &[id, channel] : gamestate->Channels) {
+            canvas.Draw(icons.ChatChannelBoxActive, x, offset.Y + 5);
+            TextRenderer::DrawCenteredString(fonts.Game,
+                                             Pixel(0xDF, 0xDF, 0xDF),
+                                             x + 48,
+                                             offset.Y + 10,
+                                             channel.Name,
+                                             canvas);
+
+            x += 100;
+        }
+
+        // Chat window
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X + 2,
+                         offset.Y + 23,
+                         offset.X + Width - 2,
+                         offset.Y + Height - 2);
+        canvas.Draw(icons.ChatMessageBorderTopLeft,
+                    offset.X + 4,
+                    offset.Y + 26);
+        canvas.DrawTiled(icons.ChatMessageBorderHorizontal,
+                         offset.X + 7,
+                         offset.Y + 26,
+                         offset.X + Width - 7,
+                         offset.Y + 29);
+        canvas.Draw(icons.ChatMessageBorderTopRight, offset.X + Width - 7, offset.Y + 26);
+        canvas.DrawTiled(icons.ChatMessageBorderVertical,
+                               offset.X + 4,
+                               offset.Y + 29,
+                               offset.X + 7,
+                               offset.Y + Height - 25);
+        canvas.DrawTiled(icons.ChatMessageBorderVertical,
+                               offset.X + Width - 7,
+                               offset.Y + 29,
+                               offset.X + Width - 4,
+                               offset.Y + Height - 25);
+        canvas.Draw(icons.ChatMessageBorderBottomLeft, offset.X + 4, offset.Y + Height - 25);
+        canvas.DrawTiled(icons.ChatMessageBorderHorizontal,
+                               offset.X + 7,
+                               offset.Y + Height - 25,
+                               offset.X + Width - 7,
+                               offset.Y + Height - 22);
+        canvas.Draw(icons.ChatMessageBorderBottomRight,
+                     offset.X + Width - 7,
+                     offset.Y + Height - 25);
     }
 };
 
@@ -98,7 +154,7 @@ std::unique_ptr<Builder::ChatPanel> Builder::BuildChat(int width,
             &gamestate->Version.Icons,
             gui::Border::BorderType::Raised,
             std::move(
-                    std::make_unique<ChatBottom>(width - 4, height - 21 - 4)));
+                    std::make_unique<ChatBottom>(width - 4, height - 21 - 4, gamestate)));
 
     auto panel = std::make_unique<Builder::ChatPanel>(width,
                                                       height,

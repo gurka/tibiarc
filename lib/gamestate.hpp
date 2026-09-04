@@ -25,6 +25,7 @@
 
 #include "versions_decl.hpp"
 
+#include "channel.hpp"
 #include "container.hpp"
 #include "creature.hpp"
 #include "map.hpp"
@@ -49,6 +50,7 @@ struct Gamestate {
     std::unordered_map<uint32_t, Container> Containers;
     std::unordered_map<uint32_t, Creature> Creatures;
     MessageList Messages;
+    std::unordered_map<uint16_t, Channel> Channels;
 
     /* FIXME: C++ migration. */
     unsigned MissileIndex = 0;

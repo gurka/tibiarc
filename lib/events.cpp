@@ -358,17 +358,27 @@ void CreatureSpokeOnMap::Update(Gamestate &gamestate) const {
     gamestate.AddTextMessage(Mode, Message, AuthorName, Position);
 }
 
-void CreatureSpokeInChannel::Update(
-        [[maybe_unused]] Gamestate &gamestate) const {
+void CreatureSpokeInChannel::Update(Gamestate &gamestate) const {
+    // Maybe this is OK?
+    AbortUnless(gamestate.Channels.count(ChannelId) > 0);
+
+    auto &channel = gamestate.Channels.at(ChannelId);
+    channel.Messages.emplace_back(MessageId,
+                                  Mode,
+                                  AuthorName,
+                                  AuthorLevel,
+                                  Message);
 }
 
 void ChannelListUpdated::Update([[maybe_unused]] Gamestate &gamestate) const {
 }
 
-void ChannelOpened::Update([[maybe_unused]] Gamestate &gamestate) const {
+void ChannelOpened::Update(Gamestate &gamestate) const {
+    gamestate.Channels.emplace(Id, Channel(Id, Name));
 }
 
-void ChannelClosed::Update([[maybe_unused]] Gamestate &gamestate) const {
+void ChannelClosed::Update(Gamestate &gamestate) const {
+    gamestate.Channels.erase(Id);
 }
 
 void PrivateConversationOpened::Update(

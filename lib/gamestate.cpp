@@ -51,6 +51,7 @@ void Gamestate::Reset() {
     Creatures.clear();
     Messages.Clear();
     Map.Clear();
+    Channels.clear();
 }
 
 Gamestate::Gamestate(const trc::Version &version) : Version(version) {
