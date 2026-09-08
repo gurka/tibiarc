@@ -32,12 +32,11 @@ struct Gamestate;
 
 namespace Builder {
 
-struct ChatPanel;
 struct GamePanel;
 
 struct RootPanel : public trc::gui::Panel {
     trc::gui::Widget *Sidebar = nullptr;
-    ChatPanel *Chat = nullptr;
+    trc::gui::Widget *Chat = nullptr;
     GamePanel *Game = nullptr;
 
     RootPanel(int width, int height)

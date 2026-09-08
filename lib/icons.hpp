@@ -119,6 +119,7 @@ public:
     Sprite ChatChannelButton;
     Sprite ChatIgnoreButton;
     Sprite ChatChannelBoxActive;
+    Sprite ChatChannelBoxInactive;
     Sprite ChatMessageBorderVertical;
     Sprite ChatMessageBorderHorizontal;
     Sprite ChatMessageBorderTopLeft;

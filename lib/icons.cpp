@@ -187,6 +187,7 @@ Icons::Icons(const Version &version)
       ChatChannelButton(Canvas, 224, 146, 16, 16),
       ChatIgnoreButton(Canvas, 288, 146, 16, 16),
       ChatChannelBoxActive(Canvas, 114, 200, 96, 18),
+      ChatChannelBoxInactive(Canvas, 210, 200, 96, 16),
       ChatMessageBorderVertical(Canvas, 260, 0, 3, 96),
       ChatMessageBorderHorizontal(Canvas, 2, 211, 96, 3),
       ChatMessageBorderTopLeft(Canvas, 98, 201, 3, 3),

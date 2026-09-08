@@ -22,38 +22,24 @@
 
 #include <memory>
 
-#include "gui/border.hpp"
-#include "gui/panel.hpp"
-
 struct GuiState;
 
 namespace trc {
+
 struct Gamestate;
+
+namespace gui {
+
+struct Widget;
+
+}
 }
 
 namespace Builder {
 
-struct ChatPanel : public trc::gui::Panel {
-public:
-    ChatPanel(int width,
-              int height,
-              std::unique_ptr<Widget> top,
-              std::unique_ptr<trc::gui::Border> bottom)
-        : Panel(width, height), Top(top.get()), Bottom(bottom.get()) {
-        Add(std::move(top), trc::gui::Position(0, 0));
-        Add(std::move(bottom), trc::gui::Position(0, Top->GetHeight()));
-    }
-
-    void SetLayoutSize(int width, int height) override;
-
-private:
-    trc::gui::Widget *Top;
-    trc::gui::Border *Bottom;
-};
-
-std::unique_ptr<ChatPanel> BuildChat(int width,
-                                     int height,
-                                     trc::Gamestate *gamestate);
+std::unique_ptr<trc::gui::Widget> BuildChat(int width,
+                                            int height,
+                                            trc::Gamestate *gamestate);
 
 } // namespace Builder
 

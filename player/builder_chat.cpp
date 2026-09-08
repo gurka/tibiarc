@@ -19,6 +19,7 @@
 
 #include "builder_chat.hpp"
 
+#include <cstdint>
 #include <memory>
 
 #include <gui/border.hpp>
@@ -31,16 +32,76 @@
 
 using namespace trc;
 
-struct ChatTop : public gui::Widget {
-
-    Gamestate *gamestate;
-  
-    ChatTop(int width, int height, Gamestate *gamestate)
-        : Widget(width, height), gamestate(gamestate) {
+struct DummyWidget : public gui::Widget {
+    DummyWidget(int width, int height) : Widget(width, height) {
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
-        const auto &icons = gamestate->Version.Icons;
+    }
+};
+
+struct Chat : public gui::Widget {
+
+    Gamestate *Gamestate_;
+    gui::Border MessagesBorder;
+
+    // I have no idea if 0 or 65535 are valid values, so just use a "random" value here...
+    static constexpr uint16_t NO_ACTIVE_CHANNEL = 12345;
+    uint16_t ActiveChannelId = NO_ACTIVE_CHANNEL;
+    std::vector<uint16_t> ChannelOrder;
+  
+    Chat(int width, int height, Gamestate *gamestate)
+        : Widget(width, height),
+          Gamestate_(gamestate),
+          MessagesBorder(&gamestate->Version.Icons,
+                         gui::Border::BorderType::Raised,
+                         std::make_unique<DummyWidget>(width - 4, height - 4 - 21)) {
+    }
+
+    void Update(gui::State &state, gui::Position offset) override {
+        // Quick check to see if any channel has been opened or closed
+        bool channelsChanged = ChannelOrder.size() != Gamestate_->Channels.size();
+        if (!channelsChanged) {
+            for (const auto channelId : ChannelOrder) {
+                if (Gamestate_->Channels.count(channelId) == 0) {
+                    channelsChanged = true;
+                    break;
+                }
+            }
+        }
+        if (!channelsChanged) {
+            return;
+        }
+
+        // Remove any channels that have been closed
+        for (auto it = ChannelOrder.begin(); it != ChannelOrder.end();) {
+            if (Gamestate_->Channels.count(*it) == 0) {
+                if (ActiveChannelId == *it) {
+                    ActiveChannelId = NO_ACTIVE_CHANNEL;
+                }
+                it = ChannelOrder.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // Add any channels that have been opened
+        for (const auto &[id, channel] : Gamestate_->Channels) {
+            if (std::find(ChannelOrder.begin(), ChannelOrder.end(), id) == ChannelOrder.end()) {
+                ChannelOrder.push_back(id);
+            }
+        }
+
+        // If we don't have an active channel, set the first one as active
+        if (ActiveChannelId == NO_ACTIVE_CHANNEL && !ChannelOrder.empty()) {
+            ActiveChannelId = ChannelOrder.front();
+        }
+    }
+
+    void Render(Canvas &canvas, gui::Position offset) override {
+        const auto &fonts = Gamestate_->Version.Fonts;
+        const auto &icons = Gamestate_->Version.Icons;
+
         // Top border
         canvas.DrawTiled(icons.BorderHorizontalLight,
                          offset.X,
@@ -68,34 +129,23 @@ struct ChatTop : public gui::Widget {
         canvas.Draw(icons.ChatIgnoreButton,
                     offset.X + Width - 16,
                     offset.Y + 5);
-    }
-};
 
-struct ChatBottom : public gui::Widget {
-
-    Gamestate *gamestate;
-
-    ChatBottom(int width, int height, Gamestate *gamestate)
-        : Widget(width, height), gamestate(gamestate) {
-    }
-
-    void Render(Canvas &canvas, gui::Position offset) override {
-        const auto &icons = gamestate->Version.Icons;
-        const auto &fonts = gamestate->Version.Fonts;
+        // Channels border
+        MessagesBorder.Render(canvas, gui::Position(offset.X, offset.Y + 21));
 
         // Channels
-        // TODO: Order and active channel
         auto x = offset.X + 18;
-        for (const auto &[id, channel] : gamestate->Channels) {
-            canvas.Draw(icons.ChatChannelBoxActive, x, offset.Y + 5);
+        for (const auto channelId : ChannelOrder) {
+            const auto &channel = Gamestate_->Channels.at(channelId);
+            canvas.Draw(channelId == ActiveChannelId ? icons.ChatChannelBoxActive : icons.ChatChannelBoxInactive, x, offset.Y + 5);
             TextRenderer::DrawCenteredString(fonts.Game,
-                                             Pixel(0xDF, 0xDF, 0xDF),
+                                             channelId == ActiveChannelId ? Pixel(0xDF, 0xDF, 0xDF) : Pixel(0x80, 0x80, 0x80),
                                              x + 48,
-                                             offset.Y + 10,
+                                             offset.Y + 9,
                                              channel.Name,
                                              canvas);
 
-            x += 100;
+            x += 96;
         }
 
         // Chat window
@@ -135,32 +185,31 @@ struct ChatBottom : public gui::Widget {
     }
 };
 
-void Builder::ChatPanel::SetLayoutSize(int width, int height) {
-    Panel::SetLayoutSize(width, height);
-    Top->SetLayoutSize(width, 21);
-    Bottom->GetChild().SetLayoutSize(width - 4, height - 21 - 4);
-}
+struct ChatPanel : public gui::Panel {
 
-std::unique_ptr<Builder::ChatPanel> Builder::BuildChat(int width,
-                                                       int height,
-                                                       Gamestate *gamestate) {
-    // Chat consists of:
-    // - ChatPanel, Panel (root)
-    //   - ChatTop, Widget (top part with channels and buttons)
-    //   - Border
-    //     - ChatBottom, Widget (bottom part with chat and input box)
-    auto chatTop = std::make_unique<ChatTop>(width, 21, gamestate);
-    auto chatBottom = std::make_unique<gui::Border>(
-            &gamestate->Version.Icons,
-            gui::Border::BorderType::Raised,
-            std::move(
-                    std::make_unique<ChatBottom>(width - 4, height - 21 - 4, gamestate)));
+    Chat *Chat_;
 
-    auto panel = std::make_unique<Builder::ChatPanel>(width,
-                                                      height,
-                                                      std::move(chatTop),
-                                                      std::move(chatBottom));
-    panel->SetBackground(&gamestate->Version.Icons.ClientBackground);
+    ChatPanel(int width,
+              int height,
+              Gamestate *gamestate,
+              std::unique_ptr<Chat> chat)
+        : Panel(width, height), Chat_(chat.get()) {
+        Add(std::move(chat), gui::Position(0, 0));
+        SetBackground(&gamestate->Version.Icons.ClientBackground);
+    }
 
-    return panel;
+    void SetLayoutSize(int width, int height) override {
+        Panel::SetLayoutSize(width, height);
+        Chat_->SetLayoutSize(width, height);
+    }
+};
+
+std::unique_ptr<gui::Widget> Builder::BuildChat(int width,
+                                                int height,
+                                                Gamestate *gamestate) {
+    return std::make_unique<ChatPanel>(
+            width,
+            height,
+            gamestate,
+            std::make_unique<Chat>(width, height, gamestate));
 }
