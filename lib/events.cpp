@@ -351,11 +351,11 @@ void PvPSituationsChanged::Update(Gamestate &gamestate) const {
 }
 
 void CreatureSpoke::Update(Gamestate &gamestate) const {
-    gamestate.AddTextMessage(Mode, Message, AuthorName);
+    gamestate.AddTextMessage(Mode, Message, AuthorName, Position(), AuthorLevel);
 }
 
 void CreatureSpokeOnMap::Update(Gamestate &gamestate) const {
-    gamestate.AddTextMessage(Mode, Message, AuthorName, Position);
+    gamestate.AddTextMessage(Mode, Message, AuthorName, Position, AuthorLevel);
 }
 
 void CreatureSpokeInChannel::Update(Gamestate &gamestate) const {
@@ -499,7 +499,7 @@ void StatusMessageReceived::Update(Gamestate &gamestate) const {
         /* These are not shown in the viewport. */
         break;
     default:
-        gamestate.AddTextMessage(Mode, Message);
+        gamestate.AddTextMessage(Mode, Message, std::string(), Position(), 0);
         break;
     }
 }

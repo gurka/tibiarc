@@ -32,30 +32,22 @@
 
 using namespace trc;
 
-struct DummyWidget : public gui::Widget {
-    DummyWidget(int width, int height) : Widget(width, height) {
-    }
-
-    void Render(Canvas &canvas, gui::Position offset) override {
-    }
-};
-
 struct Chat : public gui::Widget {
 
     Gamestate *Gamestate_;
-    gui::Border MessagesBorder;
 
-    // I have no idea if 0 or 65535 are valid values, so just use a "random" value here...
-    static constexpr uint16_t NO_ACTIVE_CHANNEL = 12345;
-    uint16_t ActiveChannelId = NO_ACTIVE_CHANNEL;
+    uint16_t ActiveChannelId = Gamestate::DefaultChannelId;
     std::vector<uint16_t> ChannelOrder;
+
+    // Separate canvas for messages to avoid redrawing the entire chat window
+    // every frame, to support scrolling, etc
+    Canvas MessagesCanvas;
   
     Chat(int width, int height, Gamestate *gamestate)
         : Widget(width, height),
           Gamestate_(gamestate),
-          MessagesBorder(&gamestate->Version.Icons,
-                         gui::Border::BorderType::Raised,
-                         std::make_unique<DummyWidget>(width - 4, height - 4 - 21)) {
+          ChannelOrder({Gamestate::DefaultChannelId}),
+          MessagesCanvas(width - 14, 14 * 100 /* 14 pixels per line, 100 lines in scrollback */) {
     }
 
     void Update(gui::State &state, gui::Position offset) override {
@@ -77,7 +69,7 @@ struct Chat : public gui::Widget {
         for (auto it = ChannelOrder.begin(); it != ChannelOrder.end();) {
             if (Gamestate_->Channels.count(*it) == 0) {
                 if (ActiveChannelId == *it) {
-                    ActiveChannelId = NO_ACTIVE_CHANNEL;
+                    ActiveChannelId = Gamestate::DefaultChannelId;
                 }
                 it = ChannelOrder.erase(it);
             } else {
@@ -90,11 +82,6 @@ struct Chat : public gui::Widget {
             if (std::find(ChannelOrder.begin(), ChannelOrder.end(), id) == ChannelOrder.end()) {
                 ChannelOrder.push_back(id);
             }
-        }
-
-        // If we don't have an active channel, set the first one as active
-        if (ActiveChannelId == NO_ACTIVE_CHANNEL && !ChannelOrder.empty()) {
-            ActiveChannelId = ChannelOrder.front();
         }
     }
 
@@ -131,7 +118,11 @@ struct Chat : public gui::Widget {
                     offset.Y + 5);
 
         // Channels border
-        MessagesBorder.Render(canvas, gui::Position(offset.X, offset.Y + 21));
+        gui::Border::RenderRaisedBorder(icons,
+                                        canvas,
+                                        gui::Position(offset.X, offset.Y + 21),
+                                        Width,
+                                        Height - 21);
 
         // Channels
         auto x = offset.X + 18;
@@ -149,11 +140,6 @@ struct Chat : public gui::Widget {
         }
 
         // Chat window
-        canvas.DrawTiled(icons.ClientBackground,
-                         offset.X + 2,
-                         offset.Y + 23,
-                         offset.X + Width - 2,
-                         offset.Y + Height - 2);
         canvas.Draw(icons.ChatMessageBorderTopLeft,
                     offset.X + 4,
                     offset.Y + 26);
@@ -182,6 +168,81 @@ struct Chat : public gui::Widget {
         canvas.Draw(icons.ChatMessageBorderBottomRight,
                      offset.X + Width - 7,
                      offset.Y + Height - 25);
+
+        // Chat messages
+        // For now, always re-render MessagesCanvas, which probably should be converted to a Widget
+        // so that we can implement scrolling
+        MessagesCanvas.Wipe();
+        MessagesCanvas.DrawTiled(icons.ClientBackground,
+                                 0,
+                                 0,
+                                 MessagesCanvas.Width,
+                                 MessagesCanvas.Height);
+
+        // For now, render all messages to MessageCanvas (max 100 lines)
+        // 14 pixels between rows, 2 pixels from the left edge
+        int y = 14 * 100 - 14;
+        const auto &channel = Gamestate_->Channels.at(ActiveChannelId);
+        for (auto it = channel.Messages.rbegin(); it != channel.Messages.rend(); ++it) {
+            const auto textColor = [&]() -> Pixel {
+                switch (it->Mode) {
+                case MessageMode::Say:
+                case MessageMode::Whisper:
+                case MessageMode::Yell:
+                    return Pixel(0xEF, 0xEF, 0x00);
+                case MessageMode::PrivateIn:
+                case MessageMode::PrivateOut:
+                    return Pixel(0x9F, 0x9F, 0xFE);
+                case MessageMode::Loot:
+                    return Pixel(0x00, 0xEF, 0x00);
+                default:
+                    return Pixel(0xDF, 0xDF, 0xDF);
+                }
+            }();
+            TextRenderer::DrawString(fonts.Game,
+                                     textColor,
+                                     2,
+                                     y,
+                                     (it->AuthorName.empty() ? "" : (it->AuthorName + ": ")) + it->Message,
+                                     MessagesCanvas);
+            y -= 14;
+            if (y < 0) {
+                break;
+            }
+        }
+
+        // Calculate how much room we have
+        int availableHeight = Height - 54;
+        if (availableHeight > MessagesCanvas.Height) {
+            availableHeight = MessagesCanvas.Height;
+        }
+        Canvas::Copy(canvas,
+                     MessagesCanvas,
+                     0,
+                     MessagesCanvas.Height - availableHeight,
+                     MessagesCanvas.Width,
+                     MessagesCanvas.Height,
+                     offset.X + 7,
+                     offset.Y + 29);
+
+        // Chat input box
+        canvas.Draw(icons.ChatTalkButton, 5, offset.Y + Height - 20);
+        gui::Border::RenderSunkenBorder(
+                icons,
+                canvas,
+                gui::Position(offset.X + 23, offset.Y + Height - 20),
+                Width - 27,
+                16);
+        canvas.DrawRectangle(Pixel(0x36, 0x36, 0x36),
+                              offset.X + 24,
+                              offset.Y + Height - 19,
+                              Width - 29,
+                              14);
+    }
+
+    void SetLayoutSize(int width, int height) {
+        Widget::SetLayoutSize(width, height);
+        MessagesCanvas = Canvas(width - 14, 14 * 100);
     }
 };
 

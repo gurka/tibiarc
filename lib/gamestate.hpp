@@ -38,6 +38,7 @@
 namespace trc {
 struct Gamestate {
     static constexpr int MaxMissiles = 64;
+    static constexpr uint16_t DefaultChannelId = 0;
 
     const trc::Version &Version;
 
@@ -73,8 +74,9 @@ struct Gamestate {
                           uint8_t missileId);
     void AddTextMessage(MessageMode messageType,
                         const std::string &message,
-                        const std::string &author = std::string(),
-                        const Position &position = Position());
+                        const std::string &author,
+                        const Position &position,
+                        int authorLevel);
 
     void Reset();
 };

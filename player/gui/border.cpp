@@ -48,10 +48,10 @@ void Border::Update(State &state, Position offset) {
 void Border::Render(Canvas &canvas, Position offset) {
     switch (Type) {
     case BorderType::Sunken:
-        RenderSunkenBorder(canvas, offset);
+        RenderSunkenBorder(*_Icons, canvas, offset, Width, Height);
         break;
     case BorderType::Raised:
-        RenderRaisedBorder(canvas, offset);
+        RenderRaisedBorder(*_Icons, canvas, offset, Width, Height);
         break;
     }
     Child->Render(canvas, offset + Position(BorderWidth(), BorderWidth()));
@@ -87,70 +87,70 @@ Border::MouseEventResult Border::OnMouseEvent(MouseEvent event, Position positio
     }
 }
 
-void Border::RenderSunkenBorder(Canvas &canvas, Position offset) {
-    canvas.DrawTiled(_Icons->BorderHorizontalDark,
+void Border::RenderSunkenBorder(const Icons &icons, Canvas &canvas, Position offset, int width, int height) {
+    canvas.DrawTiled(icons.BorderHorizontalDark,
                      offset.X,
                      offset.Y,
-                     offset.X + Width,
+                     offset.X + width,
                      offset.Y + 1);
-    canvas.DrawTiled(_Icons->BorderVerticalDark,
+    canvas.DrawTiled(icons.BorderVerticalDark,
                      offset.X,
                      offset.Y + 1,
                      offset.X + 1,
-                     offset.Y + Height - 1);
-    canvas.DrawTiled(_Icons->BorderVerticalLight,
-                     offset.X + Width - 1,
+                     offset.Y + height - 1);
+    canvas.DrawTiled(icons.BorderVerticalLight,
+                     offset.X + width - 1,
                      offset.Y + 1,
-                     offset.X + Width,
-                     offset.Y + Height - 1);
-    canvas.DrawTiled(_Icons->BorderHorizontalLight,
+                     offset.X + width,
+                     offset.Y + height - 1);
+    canvas.DrawTiled(icons.BorderHorizontalLight,
                      offset.X,
-                     offset.Y + Height - 1,
-                     offset.X + Width,
-                     offset.Y + Height);
+                     offset.Y + height - 1,
+                     offset.X + width,
+                     offset.Y + height);
 }
 
-void Border::RenderRaisedBorder(Canvas &canvas, Position offset) {
-    canvas.DrawTiled(_Icons->BorderCornerLight,
+void Border::RenderRaisedBorder(const Icons &icons, Canvas &canvas, Position offset, int width, int height) {
+    canvas.DrawTiled(icons.BorderCornerLight,
                      offset.X,
                      offset.Y,
                      offset.X + 2,
                      offset.Y + 2);
-    canvas.DrawTiled(_Icons->BorderHorizontalLight,
+    canvas.DrawTiled(icons.BorderHorizontalLight,
                      offset.X + 2,
                      offset.Y,
-                     offset.X + Width - 2,
+                     offset.X + width - 2,
                      offset.Y + 2);
-    canvas.DrawTiled(_Icons->BorderCornerLightDark,
-                     offset.X + Width - 2,
+    canvas.DrawTiled(icons.BorderCornerLightDark,
+                     offset.X + width - 2,
                      offset.Y,
-                     offset.X + Width,
+                     offset.X + width,
                      offset.Y + 2);
-    canvas.DrawTiled(_Icons->BorderVerticalLight,
+    canvas.DrawTiled(icons.BorderVerticalLight,
                      offset.X,
                      offset.Y + 2,
                      offset.X + 2,
-                     offset.Y + Height - 2);
-    canvas.DrawTiled(_Icons->BorderVerticalDark,
-                     offset.X + Width - 2,
+                     offset.Y + height - 2);
+    canvas.DrawTiled(icons.BorderVerticalDark,
+                     offset.X + width - 2,
                      offset.Y + 2,
-                     offset.X + Width,
-                     offset.Y + Height - 2);
-    canvas.DrawTiled(_Icons->BorderCornerLightDark,
+                     offset.X + width,
+                     offset.Y + height - 2);
+    canvas.DrawTiled(icons.BorderCornerLightDark,
                      offset.X,
-                     offset.Y + Height - 2,
+                     offset.Y + height - 2,
                      offset.X + 2,
-                     offset.Y + Height);
-    canvas.DrawTiled(_Icons->BorderHorizontalDark,
+                     offset.Y + height);
+    canvas.DrawTiled(icons.BorderHorizontalDark,
                      offset.X + 2,
-                     offset.Y + Height - 2,
-                     offset.X + Width - 2,
-                     offset.Y + Height);
-    canvas.DrawTiled(_Icons->BorderCornerDark,
-                     offset.X + Width - 2,
-                     offset.Y + Height - 2,
-                     offset.X + Width,
-                     offset.Y + Height);
+                     offset.Y + height - 2,
+                     offset.X + width - 2,
+                     offset.Y + height);
+    canvas.DrawTiled(icons.BorderCornerDark,
+                     offset.X + width - 2,
+                     offset.Y + height - 2,
+                     offset.X + width,
+                     offset.Y + height);
 }
 
 } // namespace gui
