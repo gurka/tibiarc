@@ -212,6 +212,42 @@ std::pair<size_t, size_t> MeasureBounds(const Font &font,
     return std::make_pair(textWidth, textHeight);
 }
 
+size_t CountFittingCharacters(const Font &font,
+                              const size_t maxWidth,
+                              const std::string &text) {
+    if (text.size() == 0) {
+        return 0;
+    }
+
+    TextRenderState state = {.Transform = TextTransform::None,
+                             .Font = font,
+                             .DrawRaw = CharacterSet::IsUpper(text.front()),
+                             .Uppercase = !CharacterSet::IsUpper(text.front()),
+                             .Highlight = 0};
+
+    size_t textWidth = 0;
+
+    for (size_t idx = 0; idx < text.size(); idx++) {
+        uint8_t printable;
+
+        if (text[idx] == '\n') {
+            return idx;
+        }
+
+        if (Transform(state, text[idx], printable)) {
+            const size_t characterWidth = state.Font.Characters[printable].Width;
+
+            if (textWidth + characterWidth > maxWidth) {
+                return idx;
+            }
+
+            textWidth += characterWidth;
+        }
+    }
+
+    return text.size();
+}
+
 void Render(const Font &font,
             const TextAlignment alignment,
             const TextTransform transform,

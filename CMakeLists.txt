@@ -115,14 +115,6 @@ if(NOT TIBIARC_NO_ZLIB)
   endif()
 endif()
 
-option(TIBIARC_NO_QT "Explicitly disable Qt support" OFF)
-if(NOT TIBIARC_NO_QT)
-  find_package(Qt6 COMPONENTS Concurrent Widgets QUIET)
-  if(Qt6Widgets_VERSION VERSION_LESS 6.9.0)
-    set(Qt6Widgets_FOUND FALSE)
-  endif()
-endif()
-
 # ########################################################################### #
 ## `tibiarc` library
 # ########################################################################### #
@@ -244,37 +236,23 @@ if(BCRYPT_FOUND)
   target_link_libraries(tibiarc PRIVATE bcrypt)
 
   target_compile_definitions(tibiarc PRIVATE DISABLE_OPENSSL_CRYPTO)
-  target_compile_definitions(tibiarc PRIVATE DISABLE_QT_CRYPTO)
   set(TIBIARC_HAVE_CRYPTO TRUE)
-else()
-  if(OPENSSL_FOUND)
-    target_include_directories(tibiarc PRIVATE ${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(tibiarc PRIVATE OpenSSL::Crypto)
+elseif(OPENSSL_FOUND)
+  target_include_directories(tibiarc PRIVATE ${OPENSSL_INCLUDE_DIR})
+  target_link_libraries(tibiarc PRIVATE OpenSSL::Crypto)
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      target_link_libraries(tibiarc PRIVATE crypt32 ws2_32)
-    endif()
-
-    target_compile_definitions(tibiarc PRIVATE DISABLE_BCRYPT_CRYPTO)
-    target_compile_definitions(tibiarc PRIVATE DISABLE_QT_CRYPTO)
-    set(TIBIARC_HAVE_CRYPTO TRUE)
-  else()
-    if(Qt6Core_FOUND)
-      target_include_directories(tibiarc PRIVATE ${QT6_INCLUDE_DIRS})
-      target_link_libraries(tibiarc PUBLIC Qt6::Core)
-
-      target_compile_definitions(tibiarc PRIVATE DISABLE_BCRYPT_CRYPTO)
-      target_compile_definitions(tibiarc PRIVATE DISABLE_OPENSSL_CRYPTO)
-      set(TIBIARC_HAVE_CRYPTO TRUE)
-    endif()
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_link_libraries(tibiarc PRIVATE crypt32 ws2_32)
   endif()
+
+  target_compile_definitions(tibiarc PRIVATE DISABLE_BCRYPT_CRYPTO)
+  set(TIBIARC_HAVE_CRYPTO TRUE)
 endif()
 
 if(NOT TIBIARC_HAVE_CRYPTO)
   message(WARNING "No supported crypto library found, tibiarc will be built without .rec support")
   target_compile_definitions(tibiarc PRIVATE DISABLE_BCRYPT_CRYPTO)
   target_compile_definitions(tibiarc PRIVATE DISABLE_OPENSSL_CRYPTO)
-  target_compile_definitions(tibiarc PRIVATE DISABLE_QT_CRYPTO)
 endif()
 
 if(fmt_FOUND)
@@ -374,50 +352,51 @@ if(TIBIARC_HAVE_CRYPTO AND (NOT EMSCRIPTEN))
   endif()
 endif()
 
-if(Qt6Widgets_FOUND AND (EMSCRIPTEN OR Qt6Concurrent_FOUND))
-  qt_standard_project_setup()
+# ########################################################################### #
+## Player
+# ########################################################################### #
 
-  qt_add_executable(gui
-    "deps/json.hpp"
-    "gui/collection.cpp"
-    "gui/collection.hpp"
-    "gui/database.cpp"
-    "gui/database.hpp"
-    "gui/main.cpp"
-    "gui/mediacontrols.cpp"
-    "gui/mediacontrols.hpp"
-    "gui/player.cpp"
-    "gui/player.hpp"
-    "gui/window.cpp"
-    "gui/window.hpp"
-    "utils/collation.cpp"
-    "utils/collation.hpp"
+if(SDL2_FOUND)
+  add_executable(player
+    "player/builder.cpp"
+    "player/builder.hpp"
+    "player/builder_chat.cpp"
+    "player/builder_chat.hpp"
+    "player/builder_game.cpp"
+    "player/builder_game.hpp"
+    "player/builder_sidebar.cpp"
+    "player/builder_sidebar.hpp"
+    "player/player.cpp"
+    "player/playback.cpp"
+    "player/playback.hpp"
+    "player/player_state.hpp"
+    "player/gui/border.cpp"
+    "player/gui/border.hpp"
+    "player/gui/button.cpp"
+    "player/gui/button.hpp"
+    "player/gui/common.hpp"
+    "player/gui/panel.cpp"
+    "player/gui/panel.hpp"
+    "player/gui/position.hpp"
+    "player/gui/state.hpp"
+    "player/gui/vertical_panel.cpp"
+    "player/gui/vertical_panel.hpp"
+    "player/gui/widget.hpp"
+    "player/gui/window.cpp"
+    "player/gui/window.hpp"
     "utils/memoryfile.cpp"
     "utils/memoryfile.hpp"
   )
+  target_include_directories(player PRIVATE "player" "utils" ${SDL2_INCLUDE_DIRS})
+  target_link_libraries(player PRIVATE tibiarc ${SDL2_LIBRARIES})
 
-  target_include_directories(gui PRIVATE "gui"
-                                         "deps"
-                                         "utils"
-                                         ${QT6_INCLUDE_DIRS})
-  target_link_libraries(gui PRIVATE tibiarc Qt6::Widgets)
-
-  if(Qt6Concurrent_FOUND AND (NOT EMSCRIPTEN))
-    target_link_libraries(gui PRIVATE Qt6::Concurrent)
-  else()
-    # QtConcurrent does not work well with emscripten, regardless of whether
-    # it's in multi- or single-threaded mode.
-    target_compile_definitions(gui PRIVATE DISABLE_QT_CONCURRENT)
-  endif()
-
-  if(EMSCRIPTEN)
-    target_link_options(gui PUBLIC -sASSERTIONS
-                                   -sNO_DISABLE_EXCEPTION_CATCHING
-                                   -Os)
-    target_link_options(gui PRIVATE
-                          --pre-js ${CMAKE_SOURCE_DIR}/gui/presettings.js)
-    target_link_options(gui PRIVATE "SHELL:-s FORCE_FILESYSTEM=1 ")
-    target_link_libraries(gui PRIVATE idbfs.js)
+  # Ensure that SDL2 does not swallow console output on Windows. This is only
+  # useful for debugging and may cause crashes on its own as SDL2 assumes
+  # -mwindows
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      target_link_options(player PRIVATE -mconsole)
+    endif()
   endif()
 endif()
 

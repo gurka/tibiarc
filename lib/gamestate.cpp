@@ -40,8 +40,19 @@ void Gamestate::AddMissileEffect(const trc::Position &origin,
 void Gamestate::AddTextMessage(MessageMode type,
                                const std::string &message,
                                const std::string &author,
-                               const Position &position) {
+                               const Position &position,
+                               int authorLevel) {
     Messages.AddMessage(type, position, author, message, CurrentTick);
+
+    // TODO: Probably many more messages should not be added to the Default channel
+    if (type == MessageMode::Failure) {
+        return;
+    }
+
+    if (Channels.count(DefaultChannelId) == 0) {
+        Channels.emplace(DefaultChannelId, Channel(DefaultChannelId, "Default"));
+    }
+    Channels.at(DefaultChannelId).Messages.emplace_back(0, type, author, authorLevel, message);
 }
 
 void Gamestate::Reset() {
@@ -51,6 +62,7 @@ void Gamestate::Reset() {
     Creatures.clear();
     Messages.Clear();
     Map.Clear();
+    Channels.clear();
 }
 
 Gamestate::Gamestate(const trc::Version &version) : Version(version) {

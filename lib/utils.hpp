@@ -21,6 +21,7 @@
 #ifndef __TRC_COMMON_HPP__
 #define __TRC_COMMON_HPP__
 
+#include <cstdint>
 #include <exception>
 #include <string>
 #include <type_traits>
@@ -85,6 +86,29 @@ struct NotSupportedError : public ErrorBase {
         return "unsupported operation";
     }
 };
+
+template <typename T>
+std::string ThousandSeparators(T value) {
+    auto str = std::to_string(value);
+    int len = str.length();
+    int dlen = 3;
+    while (len > dlen) {
+        str.insert(len - dlen, 1, ',');
+        dlen += 4;
+        len += 1;
+    }
+    return str;
+}
+
+std::string Capitalize(const auto &str) {
+    if (str.empty()) {
+        return str;
+    }
+    std::string result = str;
+    result[0] = static_cast<char>(std::toupper(result[0]));
+    return result;
+}
+
 } // namespace trc
 
 /* Compatibility shim for the lack of std::format under MinGW, using the

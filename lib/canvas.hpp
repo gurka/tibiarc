@@ -77,7 +77,45 @@ public:
                        int x,
                        int y);
 
+    void Draw(const Sprite &sprite, int x, int y);
     void Draw(const Sprite &sprite, int x, int y, int width, int height);
+
+    void DrawScaled(const Sprite &sprite,
+                    const int x,
+                    const int y,
+                    const int targetWidth,
+                    const int targetHeight);
+
+    void DrawTiled(const Sprite &sprite,
+                   int leftX,
+                   int topY,
+                   int rightX,
+                   int bottomY);
+    void DrawTiledBottomUp(const Sprite &sprite,
+                           int leftX,
+                           int topY,
+                           int rightX,
+                           int bottomY);
+
+    static void Copy(Canvas &dest,
+                     const Canvas &source,
+                     int sourceLeftX,
+                     int sourceTopY,
+                     int sourceRightX,
+                     int sourceBottomY,
+                     int destLeftX,
+                     int destTopY);
+
+    static void CopyScaled(Canvas &dest,
+                           const Canvas &source,
+                           int sourceLeftX,
+                           int sourceTopY,
+                           int sourceRightX,
+                           int sourceBottomY,
+                           int destLeftX,
+                           int destTopY,
+                           int targetWidth,
+                           int targetHeight);
 
     void Tint(const Sprite &sprite,
               int x,
