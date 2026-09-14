@@ -157,9 +157,15 @@ struct ChatChannelWindow : public gui::Widget {
 
 struct Chat : public gui::Widget {
 
+    static constexpr int ChannelTabsX = 18;
+    static constexpr int ChannelTabsY = 5;
+    static constexpr int ChannelTabStride = 96;
+
     Gamestate *Gamestate_;
 
     uint16_t ActiveChannelId = Gamestate::DefaultChannelId;
+    uint16_t PressedChannelId = ~0;
+
     std::vector<uint16_t> ChannelOrder;
     std::unordered_map<uint16_t, std::unique_ptr<ChatChannelWindow>> ChannelWidgets;
 
@@ -259,13 +265,13 @@ struct Chat : public gui::Widget {
                                         Height - 21);
 
         // Channels
-        auto x = offset.X + 18;
+        auto x = offset.X + ChannelTabsX;
         for (const auto channelId : ChannelOrder) {
             canvas.Draw(channelId == ActiveChannelId
                                 ? icons.ChatChannelBoxActive
                                 : icons.ChatChannelBoxInactive,
                         x,
-                        offset.Y + 5);
+                        offset.Y + ChannelTabsY);
             TextRenderer::DrawCenteredString(
                     fonts.Game,
                     channelId == ActiveChannelId ? Pixel(0xDF, 0xDF, 0xDF)
@@ -275,7 +281,7 @@ struct Chat : public gui::Widget {
                     Gamestate_->Channels.at(channelId).Name,
                     canvas);
 
-            x += 96;
+            x += ChannelTabStride;
         }
 
         ChannelWidgets.at(ActiveChannelId)
@@ -294,6 +300,43 @@ struct Chat : public gui::Widget {
                              offset.Y + Height - 19,
                              Width - 29,
                              14);
+    }
+
+    MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event,
+                                  gui::Position position) override {
+        const auto hitTestChannel = [&](gui::Position p) -> const uint16_t * {
+            int x = ChannelTabsX;
+            for (const auto &channelId : ChannelOrder) {
+                if (p.X >= x && p.X < x + 96 && p.Y >= ChannelTabsY &&
+                    p.Y < ChannelTabsY + 18) {
+                    return &channelId;
+                }
+                x += ChannelTabStride;
+            }
+            return nullptr;
+        };
+
+        if (event == gui::Widget::MouseEvent::LeftDown) {
+            PressedChannelId = ~0;
+            if (const auto *channelId = hitTestChannel(position)) {
+                PressedChannelId = *channelId;
+                return MouseEventResult::Handled;
+            }
+            return MouseEventResult::NotHandled;
+        }
+
+        if (event == gui::Widget::MouseEvent::LeftUp) {
+            if (PressedChannelId != ~0) {
+                const auto *channelId = hitTestChannel(position);
+                if (channelId != nullptr && *channelId == PressedChannelId) {
+                    ActiveChannelId = PressedChannelId;
+                }
+            }
+            PressedChannelId = ~0;
+            return MouseEventResult::Handled;
+        }
+
+        return MouseEventResult::NotHandled;
     }
 
     void SetLayoutSize(int width, int height) override {
