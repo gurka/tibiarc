@@ -26,7 +26,9 @@
 #include <vector>
 
 #include <gui/border.hpp>
+#include "gui/common.hpp"
 #include "gui/panel.hpp"
+#include "gui/scrollable_widget.hpp"
 #include "gui/widget.hpp"
 #include "canvas.hpp"
 #include "gamestate.hpp"
@@ -35,28 +37,80 @@
 
 using namespace trc;
 
-struct ChatChannelWindow : public gui::Widget {
+struct ChatChannelWindow : public gui::ScrollableWidget {
 
     static constexpr int MaxMessageRows = 100;
     static constexpr int MessageRowHeight = 14;
     static constexpr int BorderThickness = 3;
+    static constexpr int ScrollbarWidth = 12;
 
     Gamestate *Gamestate_;
     uint16_t ChannelId_;
 
     Canvas MessagesCanvas;
+    size_t LastMessageCount = 0;
+    int VisibleMessageRows = 0;
 
     ChatChannelWindow(int width,
                       int height,
                       Gamestate *gamestate,
                       uint16_t channelId)
-        : Widget(width, height),
+        : ScrollableWidget(width, height, &gamestate->Version),
           Gamestate_(gamestate),
           ChannelId_(channelId),
-          MessagesCanvas(width - (2 * BorderThickness), MessageRowHeight * MaxMessageRows) {
+          MessagesCanvas(width - (2 * BorderThickness) - ScrollbarWidth,
+                        MessageRowHeight * MaxMessageRows) {
     }
 
-    void Update(gui::State &, gui::Position) override {
+    void Update(gui::State &state, gui::Position offset) override {
+        const auto &channel = Gamestate_->Channels.at(ChannelId_);
+        const size_t messageCount = channel.Messages.size();
+        if (messageCount != LastMessageCount) {
+            const bool wasAtBottom = ScrollOffset >= MaxScrollOffset();
+            LastMessageCount = messageCount;
+            VisibleMessageRows = static_cast<int>(std::min<size_t>(messageCount, MaxMessageRows));
+            if (wasAtBottom) {
+                ScrollOffset = MaxScrollOffset();
+            }
+        }
+
+        UpdateScrollbar(state, offset);
+    }
+
+    gui::Widget::MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event,
+                                               gui::Position position) override {
+        return OnScrollbarMouseEvent(event, position);
+    }
+
+    int GetScrollContentHeight() const override {
+        return VisibleMessageRows * MessageRowHeight;
+    }
+
+    int GetScrollViewportHeight() const override {
+        return std::max(0, Height - (2 * BorderThickness));
+    }
+
+    gui::Position GetScrollUpButtonPosition() const override {
+        return gui::Position(Width - BorderThickness - ScrollbarWidth,
+                             BorderThickness);
+    }
+
+    gui::Position GetScrollDownButtonPosition() const override {
+        return gui::Position(Width - BorderThickness - ScrollbarWidth,
+                             Height - BorderThickness - ScrollbarWidth);
+    }
+
+    int GetScrollbarTrackTop() const override {
+        return BorderThickness + ScrollbarWidth;
+    }
+
+    int GetScrollbarTrackHeight() const override {
+        return std::max(0,
+                        Height - (2 * BorderThickness) - (2 * ScrollbarWidth));
+    }
+
+    int GetScrollbarX() const override {
+        return Width - BorderThickness - ScrollbarWidth;
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -136,23 +190,37 @@ struct ChatChannelWindow : public gui::Widget {
             }
         }
 
-        int availableHeight = Height - (2 * BorderThickness);
-        if (availableHeight > MessagesCanvas.Height) {
-            availableHeight = MessagesCanvas.Height;
+        int viewportHeight = GetScrollViewportHeight();
+        int availableHeight = std::min(viewportHeight, GetScrollContentHeight());
+        int contentTop = MessagesCanvas.Height - GetScrollContentHeight();
+        int sourceTop = contentTop + ScrollOffset;
+        int destTop = offset.Y + BorderThickness + (viewportHeight - availableHeight);
+
+        if (viewportHeight > availableHeight) {
+            canvas.DrawTiled(icons.ClientBackground,
+                             offset.X + BorderThickness,
+                             offset.Y + BorderThickness,
+                             offset.X + Width - BorderThickness,
+                             destTop);
         }
+
         Canvas::Copy(canvas,
                      MessagesCanvas,
                      0,
-                     MessagesCanvas.Height - availableHeight,
+                     sourceTop,
                      MessagesCanvas.Width,
-                     MessagesCanvas.Height,
+                     sourceTop + availableHeight,
                      offset.X + BorderThickness,
-                     offset.Y + BorderThickness);
+                     destTop);
+
+        RenderScrollbar(canvas, offset);
     }
 
     void SetLayoutSize(int width, int height) override {
         Widget::SetLayoutSize(width, height);
-        MessagesCanvas = Canvas(width - (2 * BorderThickness), MessageRowHeight * MaxMessageRows);
+        MessagesCanvas = Canvas(width - (2 * BorderThickness) - ScrollbarWidth,
+                                MessageRowHeight * MaxMessageRows);
+        ClampScrollOffset();
     }
 };
 
@@ -161,6 +229,8 @@ struct Chat : public gui::Widget {
     static constexpr int ChannelTabsX = 18;
     static constexpr int ChannelTabsY = 5;
     static constexpr int ChannelTabStride = 96;
+
+    static constexpr gui::Position ChannelWindowPosition = gui::Position(4, 26);
 
     Gamestate *Gamestate_;
 
@@ -223,7 +293,8 @@ struct Chat : public gui::Widget {
             }
         }
 
-        ChannelWidgets.at(ActiveChannelId)->Update(state, offset);
+        ChannelWidgets.at(ActiveChannelId)
+                ->Update(state, offset + ChannelWindowPosition);
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -286,7 +357,7 @@ struct Chat : public gui::Widget {
         }
 
         ChannelWidgets.at(ActiveChannelId)
-                ->Render(canvas, offset + gui::Position(4, 26));
+                ->Render(canvas, offset + ChannelWindowPosition);
 
         // Chat input box
         canvas.Draw(icons.ChatTalkButton, 5, offset.Y + Height - 20);
@@ -323,7 +394,6 @@ struct Chat : public gui::Widget {
                 PressedChannelId = *channelId;
                 return MouseEventResult::Handled;
             }
-            return MouseEventResult::NotHandled;
         }
 
         if (event == gui::Widget::MouseEvent::LeftUp) {
@@ -332,11 +402,18 @@ struct Chat : public gui::Widget {
                 if (channelId != nullptr && *channelId == PressedChannelId) {
                     ActiveChannelId = PressedChannelId;
                 }
+                PressedChannelId = ~0;
+                return MouseEventResult::Handled;
             }
-            PressedChannelId = ~0;
-            return MouseEventResult::Handled;
         }
 
+        const auto &channelWindow = *ChannelWidgets.at(ActiveChannelId);
+        if (PointInsideWidget(position - ChannelWindowPosition,
+                              channelWindow)) {
+            return ChannelWidgets.at(ActiveChannelId)
+                    ->OnMouseEvent(event, position - ChannelWindowPosition);
+        }
+        
         return MouseEventResult::NotHandled;
     }
 

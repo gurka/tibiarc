@@ -26,6 +26,7 @@
 
 #include "gui/button.hpp"
 #include "gui/position.hpp"
+#include "gui/scrollable_widget.hpp"
 #include "gui/state.hpp"
 #include "gui/widget.hpp"
 
@@ -37,7 +38,7 @@ struct Version;
 
 namespace gui {
 
-struct Window : public Widget {
+struct Window : public ScrollableWidget {
     using OnClickHandler = std::function<void()>;
 
     enum class Type {
@@ -73,11 +74,6 @@ private:
 
     // Note: Content should be 8x19 pixels smaller than the window, to perfectly fit
     std::unique_ptr<Canvas> ContentCanvas;
-    int ScrollOffset;
-    Button ScrollUpButton;
-    Position ScrollUpButtonPosition;
-    Button ScrollDownButton;
-    Position ScrollDownButtonPosition;
 
     int MaximizedHeight;
     ToggleButton MinimizeButton;
@@ -87,14 +83,16 @@ private:
 
     Button *PressedButton = nullptr;
 
-    bool ScrollbarThumbPressed = false;
-    int ScrollbarThumbDragOffsetY = 0;
-
     int ContentViewportHeight() const;
-    int MaxScrollOffset() const;
-    void ClampScrollOffset();
-    bool CanScroll() const;
-    bool GetScrollbarThumbMetrics(int &thumbOffset, int &thumbHeight) const;
+
+    // ScrollableWidget geometry hooks
+    int GetScrollContentHeight() const override;
+    int GetScrollViewportHeight() const override;
+    Position GetScrollUpButtonPosition() const override;
+    Position GetScrollDownButtonPosition() const override;
+    int GetScrollbarTrackTop() const override;
+    int GetScrollbarTrackHeight() const override;
+    int GetScrollbarX() const override;
 
     void MinimizeOnClick();
 };

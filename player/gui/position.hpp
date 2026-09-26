@@ -27,7 +27,7 @@ struct Position {
     int X;
     int Y;
 
-    Position(int x, int y)
+    constexpr Position(int x, int y)
         : X(x), Y(y) {
     }
 

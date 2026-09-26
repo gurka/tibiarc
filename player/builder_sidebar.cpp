@@ -172,6 +172,8 @@ struct SidebarResources : public gui::Widget {
 };
 
 struct SidebarInventory : public gui::Widget {
+    static constexpr gui::Position MinimizeButtonPosition = gui::Position(8, 4);
+
     Gamestate *_Gamestate;
     gui::ToggleButton MinimizeButton;
     bool MinimizeButtonPressed = false;
@@ -188,7 +190,7 @@ struct SidebarInventory : public gui::Widget {
     }
 
     void Update(gui::State &state, gui::Position offset) override {
-        MinimizeButton.Update(state, offset + gui::Position(8, 4));
+        MinimizeButton.Update(state, offset + MinimizeButtonPosition);
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -203,7 +205,7 @@ struct SidebarInventory : public gui::Widget {
                              offset.Y + 155);
 
             // Inventory
-            MinimizeButton.Render(canvas, offset + gui::Position(8, 4));
+            MinimizeButton.Render(canvas, offset + MinimizeButtonPosition);
 
             for (const auto &[slot, x, y] :
                  std::initializer_list<std::tuple<InventorySlot, int, int>>{
@@ -305,7 +307,7 @@ struct SidebarInventory : public gui::Widget {
                              offset.Y + 48);
 
             // Inventory
-            MinimizeButton.Render(canvas, offset + gui::Position(8, 4));
+            MinimizeButton.Render(canvas, offset + MinimizeButtonPosition);
 
             // Status background
             canvas.Draw(icons.MinimizedInventoryStatusBackground,
@@ -342,9 +344,9 @@ struct SidebarInventory : public gui::Widget {
     MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
         if (event == gui::Widget::MouseEvent::LeftDown) {
             MinimizeButtonPressed = false;
-            if (position.X >= 8 && position.X < 8 + MinimizeButton.GetWidth() &&
-                position.Y >= 4 && position.Y < 4 + MinimizeButton.GetHeight()) {
-                MinimizeButton.OnMouseEvent(event, position - gui::Position(8, 4));
+            if (position.X >= MinimizeButtonPosition.X && position.X < MinimizeButtonPosition.X + MinimizeButton.GetWidth() &&
+                position.Y >= MinimizeButtonPosition.Y && position.Y < MinimizeButtonPosition.Y + MinimizeButton.GetHeight()) {
+                MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
                 MinimizeButtonPressed = true;
                 return MouseEventResult::Handled;
             }
@@ -352,7 +354,7 @@ struct SidebarInventory : public gui::Widget {
         } else if (event == gui::Widget::MouseEvent::LeftUp) {
             if (MinimizeButtonPressed) {
                 MinimizeButtonPressed = false;
-                MinimizeButton.OnMouseEvent(event, position - gui::Position(8, 4));
+                MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
             }
             return MouseEventResult::Handled;
         }

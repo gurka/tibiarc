@@ -355,7 +355,7 @@ int main(int argc, char *argv[]) {
 
     handle_resize();
 
-    _Playback->Skip(20000);
+    _Playback->Skip(120000);
 
     emscripten_set_main_loop(main_loop, 0, 1);
 

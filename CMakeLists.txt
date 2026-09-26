@@ -378,6 +378,8 @@ if(SDL2_FOUND)
     "player/gui/panel.cpp"
     "player/gui/panel.hpp"
     "player/gui/position.hpp"
+    "player/gui/scrollable_widget.cpp"
+    "player/gui/scrollable_widget.hpp"
     "player/gui/state.hpp"
     "player/gui/vertical_panel.cpp"
     "player/gui/vertical_panel.hpp"
