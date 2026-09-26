@@ -113,6 +113,7 @@ struct ChatChannelWindow : public gui::Widget {
                 case MessageMode::Say:
                 case MessageMode::Whisper:
                 case MessageMode::Yell:
+                case MessageMode::ChannelYellow:
                     return Pixel(0xEF, 0xEF, 0x00);
                 case MessageMode::PrivateIn:
                 case MessageMode::PrivateOut:
