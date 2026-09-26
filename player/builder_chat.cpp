@@ -66,9 +66,9 @@ struct ChatChannelWindow : public gui::ScrollableWidget {
     void Update(gui::State &state, gui::Position offset) override {
         const auto &channel = Gamestate_->Channels.at(ChannelId_);
         const size_t messageCount = channel.Messages.size();
+        // note: LastMessageCount is updated in Render()
         if (messageCount != LastMessageCount) {
             const bool wasAtBottom = ScrollOffset >= MaxScrollOffset();
-            LastMessageCount = messageCount;
             VisibleMessageRows = static_cast<int>(std::min<size_t>(messageCount, MaxMessageRows));
             if (wasAtBottom) {
                 ScrollOffset = MaxScrollOffset();
@@ -118,6 +118,46 @@ struct ChatChannelWindow : public gui::ScrollableWidget {
         const auto &fonts = Gamestate_->Version.Fonts;
         const auto &icons = Gamestate_->Version.Icons;
 
+        const auto &channel = Gamestate_->Channels.at(ChannelId_);
+
+        // Re-render MessageCanvas if there are new messages
+        if (channel.Messages.size() != LastMessageCount) {
+            MessagesCanvas.Wipe();
+
+            int y = MessageRowHeight * MaxMessageRows - MessageRowHeight;
+            for (auto it = channel.Messages.rbegin(); it != channel.Messages.rend(); ++it) {
+                const auto textColor = [&]() -> Pixel {
+                    switch (it->Mode) {
+                    // TODO: There are more colors...
+                    case MessageMode::Say:
+                    case MessageMode::Whisper:
+                    case MessageMode::Yell:
+                    case MessageMode::ChannelYellow:
+                        return Pixel(0xEF, 0xEF, 0x00);
+                    case MessageMode::PrivateIn:
+                    case MessageMode::PrivateOut:
+                        return Pixel(0x9F, 0x9F, 0xFE);
+                    case MessageMode::Loot:
+                        return Pixel(0x00, 0xEF, 0x00);
+                    default:
+                        return Pixel(0xDF, 0xDF, 0xDF);
+                    }
+                }();
+                TextRenderer::DrawString(fonts.Game,
+                                         textColor,
+                                         2,
+                                         y,
+                                         (it->AuthorName.empty() ? "" : (it->AuthorName + ": ")) + it->Message,
+                                         MessagesCanvas);
+                y -= MessageRowHeight;
+                if (y < 0) {
+                    break;
+                }
+            }
+        }
+
+        LastMessageCount = channel.Messages.size();
+
         // Chat window border
         canvas.Draw(icons.ChatMessageBorderTopLeft,
                     offset.X,
@@ -152,59 +192,19 @@ struct ChatChannelWindow : public gui::ScrollableWidget {
                     offset.X + Width - BorderThickness,
                     offset.Y + Height - BorderThickness);
 
-        MessagesCanvas.Wipe();
-        MessagesCanvas.DrawTiled(icons.ClientBackground,
-                                 0,
-                                 0,
-                                 MessagesCanvas.Width,
-                                 MessagesCanvas.Height);
+        // Draw messages background
+        canvas.DrawTiled(icons.ClientBackground,
+                         offset.X + BorderThickness,
+                         offset.Y + BorderThickness,
+                         offset.X + Width - BorderThickness,
+                         offset.Y + Height - BorderThickness);
 
-        const auto &channel = Gamestate_->Channels.at(ChannelId_);
-        int y = MessageRowHeight * MaxMessageRows - MessageRowHeight;
-        for (auto it = channel.Messages.rbegin(); it != channel.Messages.rend(); ++it) {
-            const auto textColor = [&]() -> Pixel {
-                switch (it->Mode) {
-                // TODO: There are more colors...
-                case MessageMode::Say:
-                case MessageMode::Whisper:
-                case MessageMode::Yell:
-                case MessageMode::ChannelYellow:
-                    return Pixel(0xEF, 0xEF, 0x00);
-                case MessageMode::PrivateIn:
-                case MessageMode::PrivateOut:
-                    return Pixel(0x9F, 0x9F, 0xFE);
-                case MessageMode::Loot:
-                    return Pixel(0x00, 0xEF, 0x00);
-                default:
-                    return Pixel(0xDF, 0xDF, 0xDF);
-                }
-            }();
-            TextRenderer::DrawString(fonts.Game,
-                                     textColor,
-                                     2,
-                                     y,
-                                     (it->AuthorName.empty() ? "" : (it->AuthorName + ": ")) + it->Message,
-                                     MessagesCanvas);
-            y -= MessageRowHeight;
-            if (y < 0) {
-                break;
-            }
-        }
-
+        // Draw messages, based on scroll position
         int viewportHeight = GetScrollViewportHeight();
         int availableHeight = std::min(viewportHeight, GetScrollContentHeight());
         int contentTop = MessagesCanvas.Height - GetScrollContentHeight();
         int sourceTop = contentTop + ScrollOffset;
         int destTop = offset.Y + BorderThickness + (viewportHeight - availableHeight);
-
-        if (viewportHeight > availableHeight) {
-            canvas.DrawTiled(icons.ClientBackground,
-                             offset.X + BorderThickness,
-                             offset.Y + BorderThickness,
-                             offset.X + Width - BorderThickness,
-                             destTop);
-        }
-
         Canvas::Copy(canvas,
                      MessagesCanvas,
                      0,
@@ -212,7 +212,8 @@ struct ChatChannelWindow : public gui::ScrollableWidget {
                      MessagesCanvas.Width,
                      sourceTop + availableHeight,
                      offset.X + BorderThickness,
-                     destTop);
+                     destTop,
+                     true);
 
         RenderScrollbar(canvas, offset);
     }
@@ -222,6 +223,9 @@ struct ChatChannelWindow : public gui::ScrollableWidget {
         MessagesCanvas = Canvas(width - (2 * BorderThickness) - ScrollbarWidth,
                                 MessageRowHeight * MaxMessageRows);
         ClampScrollOffset();
+
+        // Force re-render of MessagesCanvas on next Update()
+        LastMessageCount = 0;
     }
 };
 

@@ -104,7 +104,8 @@ public:
                      int sourceRightX,
                      int sourceBottomY,
                      int destLeftX,
-                     int destTopY);
+                     int destTopY,
+                     bool blend);
 
     static void CopyScaled(Canvas &dest,
                            const Canvas &source,

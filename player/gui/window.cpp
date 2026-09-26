@@ -209,7 +209,8 @@ void Window::Render(Canvas &canvas, Position offset) {
                          Width - 4 - 16,
                          ScrollOffset + Height - 15 - 4,
                          offset.X + 4,
-                         offset.Y + 15);
+                         offset.Y + 15,
+                         false);
         }
 
         if (WindowType == Type::SidebarNoMaxHeight && (!Content->Visible || Content->GetHeight() < Height - 15 - 4)) {

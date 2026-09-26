@@ -85,7 +85,8 @@ void Panel::Render(Canvas &canvas, Position offset) {
                      CachedBackground->Width,
                      CachedBackground->Height,
                      offset.X,
-                     offset.Y);
+                     offset.Y,
+                     false);
     }
     for (const auto &wap : Widgets) {
         auto &[widget, position] = wap;

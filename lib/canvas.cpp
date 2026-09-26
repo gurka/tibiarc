@@ -443,7 +443,8 @@ void Canvas::Copy(Canvas &dest,
                   int sourceRightX,
                   int sourceBottomY,
                   int destLeftX,
-                  int destTopY) {
+                  int destTopY,
+                  bool blend) {
     // TODO: this can probably be optimized with memcpy
     for (int y = 0; y < (sourceBottomY - sourceTopY); y++) {
         int sourceY = sourceTopY + y;
@@ -461,7 +462,24 @@ void Canvas::Copy(Canvas &dest,
             } else if (sourceX < 0 || destX < 0) {
                 continue;
             }
-            dest.GetPixel(destX, destY) = source.GetPixel(sourceX, sourceY);
+
+            if (blend) {
+                const auto &srcPixel = source.GetPixel(sourceX, sourceY);
+                auto &destPixel = dest.GetPixel(destX, destY);
+                destPixel.Red = (srcPixel.Red * srcPixel.Alpha +
+                                 destPixel.Red * (255 - srcPixel.Alpha)) /
+                                255;
+                destPixel.Green = (srcPixel.Green * srcPixel.Alpha +
+                                   destPixel.Green * (255 - srcPixel.Alpha)) /
+                                  255;
+                destPixel.Blue = (srcPixel.Blue * srcPixel.Alpha +
+                                  destPixel.Blue * (255 - srcPixel.Alpha)) /
+                                 255;
+                destPixel.Alpha = srcPixel.Alpha +
+                                  destPixel.Alpha * (255 - srcPixel.Alpha) / 255;
+            } else {
+                dest.GetPixel(destX, destY) = source.GetPixel(sourceX, sourceY);
+            }
         }
     }
 }
