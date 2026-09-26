@@ -25,6 +25,7 @@
 
 #include "versions_decl.hpp"
 
+#include "channel.hpp"
 #include "container.hpp"
 #include "creature.hpp"
 #include "map.hpp"
@@ -37,6 +38,7 @@
 namespace trc {
 struct Gamestate {
     static constexpr int MaxMissiles = 64;
+    static constexpr uint16_t DefaultChannelId = 0;
 
     const trc::Version &Version;
 
@@ -49,6 +51,7 @@ struct Gamestate {
     std::unordered_map<uint32_t, Container> Containers;
     std::unordered_map<uint32_t, Creature> Creatures;
     MessageList Messages;
+    std::unordered_map<uint16_t, Channel> Channels;
 
     /* FIXME: C++ migration. */
     unsigned MissileIndex = 0;
@@ -71,8 +74,9 @@ struct Gamestate {
                           uint8_t missileId);
     void AddTextMessage(MessageMode messageType,
                         const std::string &message,
-                        const std::string &author = std::string(),
-                        const Position &position = Position());
+                        const std::string &author,
+                        const Position &position,
+                        int authorLevel);
 
     void Reset();
 };

@@ -20,7 +20,9 @@
 
 #include "sprites.hpp"
 
+#include "canvas.hpp"
 #include "datareader.hpp"
+#include "pixel.hpp"
 #include "versions.hpp"
 
 #include "utils.hpp"
@@ -36,8 +38,8 @@ static std::tuple<size_t, size_t, size_t, size_t> MeasureSpriteBounds(
         ptrdiff_t width,
         ptrdiff_t height,
         Sprite::Trim trim) {
-    if (!(CheckRange((x + width), 0, canvas.Width - 1) &&
-          CheckRange((y + height), 0, canvas.Height - 1))) {
+    if (!(CheckRange((x + width), 0, canvas.Width) &&
+          CheckRange((y + height), 0, canvas.Height))) {
         return std::make_tuple(0, 0, 0, 0);
     } else if (trim != Sprite::Trim::None) {
         ptrdiff_t leftX, rightX, bottomY, topY;
@@ -76,151 +78,60 @@ static size_t ExtractSprite(const Canvas &canvas,
                             ptrdiff_t topY,
                             ptrdiff_t rightX,
                             ptrdiff_t bottomY,
-                            uint8_t *buffer) {
+                            Pixel *buffer) {
     if (!(CheckRange(rightX, 0, canvas.Width) &&
           CheckRange(bottomY, 0, canvas.Height))) {
         return 0;
     }
 
-    int bufferIdx, lengthIdx, runLength;
-    bool transparent;
+    const auto width = rightX - leftX;
+    const auto height = bottomY - topY;
 
-    bufferIdx = 2;
-    lengthIdx = 0;
-    runLength = 0;
+    if (!buffer)
+        return width * height;
 
-    transparent = canvas.GetPixel(leftX, topY).IsTransparent();
-
-    /* If the first pixel is solid, we need to emit an empty transparent pixel
-     * block to get things started. */
-    if (!transparent) {
-        if (buffer) {
-            buffer[lengthIdx + 0] = 0;
-            buffer[lengthIdx + 1] = 0;
-        }
-
-        lengthIdx = bufferIdx;
-        bufferIdx += 2;
-    }
-
-    for (ptrdiff_t y = topY; y < bottomY; y++) {
-        for (ptrdiff_t x = leftX; x < rightX; x++) {
-            const Pixel &currentPixel = canvas.GetPixel(x, y);
-
-            if (!currentPixel.IsTransparent()) {
-                if (transparent) {
-                    if (buffer) {
-                        buffer[lengthIdx + 0] = (runLength >> 0) & 0xFF;
-                        buffer[lengthIdx + 1] = (runLength >> 8) & 0xFF;
-                    }
-
-                    lengthIdx = bufferIdx;
-                    bufferIdx += 2;
-
-                    transparent = false;
-                    runLength = 0;
-                }
-
-                static_assert(sizeof(Pixel) == 4 && alignof(Pixel) == 1,
-                              "Pixel struct must be byte-aligned");
-                if (buffer) {
-                    *(Pixel *)&buffer[bufferIdx] = currentPixel;
-                }
-
-                bufferIdx += sizeof(Pixel);
-                runLength++;
-            } else {
-                if (!transparent) {
-                    if (buffer) {
-                        buffer[lengthIdx + 0] = (runLength >> 0) & 0xFF;
-                        buffer[lengthIdx + 1] = (runLength >> 8) & 0xFF;
-                    }
-
-                    lengthIdx = bufferIdx;
-                    bufferIdx += 2;
-
-                    transparent = true;
-                    runLength = 0;
-                }
-
-                runLength++;
-            }
+    for (auto y = topY; y < bottomY; y++) {
+        for (auto x = leftX; x < rightX; x++) {
+            const auto &currentPixel = canvas.GetPixel(x, y);
+            const auto index = ((y - topY) * width + (x - leftX));
+            buffer[index] = currentPixel;
         }
     }
 
-    /* In case we haven't flushed the previous run length yet, do so. */
-    if (runLength > 0) {
-        if (buffer) {
-            buffer[lengthIdx + 0] = (runLength >> 0) & 0xFF;
-            buffer[lengthIdx + 1] = (runLength >> 8) & 0xFF;
-        }
-
-        if (transparent) {
-            if (buffer) {
-                buffer[lengthIdx + 2] = 0;
-                buffer[lengthIdx + 3] = 0;
-            }
-
-            bufferIdx += 2;
-        }
-    }
-
-    return bufferIdx;
+    return width * height;
 }
 
-static std::pair<size_t, uint8_t *> ReadSprite(size_t width,
-                                               size_t height,
-                                               DataReader &reader) {
-    size_t consumed = 0, required = 0;
-
+static std::pair<size_t, Pixel *> ReadSprite(size_t width,
+                                             size_t height,
+                                             DataReader &reader) {
+    const auto totalPixels = width * height;
     auto validator = reader;
 
     while (validator.Remaining() > 0) {
         auto transparent = validator.ReadU16();
         auto opaque = validator.ReadU16();
-
-        consumed += transparent + opaque;
-        required += 4;
-
-        static_assert(sizeof(Pixel) == 4 && alignof(Pixel) == 1,
-                      "Pixel struct must be byte-aligned");
-
         validator.Skip(opaque * 3);
-        required += opaque * 4;
     }
 
-    if (consumed > width * height) {
-        throw InvalidDataError();
-    }
-
-    auto converted = new uint8_t[required];
-
+    auto *converted = new Pixel[totalPixels];
+    auto i = 0;
     for (size_t i = 0; reader.Remaining() > 0;) {
-        uint16_t transparent;
-        uint16_t opaque;
+        uint16_t transparent = reader.ReadU16();
+        uint16_t opaque = reader.ReadU16();
 
-        transparent = reader.ReadU16();
-        converted[i + 0] = ((uint16_t)transparent >> 0x00);
-        converted[i + 1] = ((uint16_t)transparent >> 0x08);
-        i += 2;
-
-        opaque = reader.ReadU16();
-        converted[i + 0] = ((uint16_t)opaque >> 0x00);
-        converted[i + 1] = ((uint16_t)opaque >> 0x08);
-        i += 2;
+        i += transparent;
 
         while (opaque > 0) {
-            converted[i + 0] = reader.ReadU8();
-            converted[i + 1] = reader.ReadU8();
-            converted[i + 2] = reader.ReadU8();
-            converted[i + 3] = 0xFF;
-            i += 4;
-
+            converted[i].Red = reader.ReadU8();
+            converted[i].Green = reader.ReadU8();
+            converted[i].Blue = reader.ReadU8();
+            converted[i].Alpha = 0xFF;
+            i++;
             opaque--;
         }
     }
 
-    return std::make_pair(required, converted);
+    return std::make_pair(totalPixels, converted);
 }
 
 Sprite::Sprite(const Canvas &canvas,
@@ -233,10 +144,10 @@ Sprite::Sprite(const Canvas &canvas,
             MeasureSpriteBounds(canvas, x, y, width, height, trim);
 
     if (leftX < rightX && topY < bottomY) {
-        size_t size = ExtractSprite(canvas, leftX, topY, rightX, bottomY, NULL);
+        size_t size = ExtractSprite(canvas, leftX, topY, rightX, bottomY, nullptr);
 
         if (size > 0) {
-            auto buffer = new uint8_t[size];
+            auto buffer = new Pixel[size];
             (void)ExtractSprite(canvas, leftX, topY, rightX, bottomY, buffer);
             Buffer = buffer;
 

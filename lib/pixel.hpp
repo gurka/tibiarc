@@ -47,6 +47,9 @@ struct
         : Pixel(red, green, blue, 0xFF) {
     }
 
+    Pixel() : Pixel(0, 0, 0, 0) {
+    }
+
     bool IsTransparent() const {
         return Alpha != 0xFF;
     }

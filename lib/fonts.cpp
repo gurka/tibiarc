@@ -56,12 +56,12 @@ Fonts::Fonts(const Version &version)
       InterfaceSmall(version.Pictures.Get(PictureIndex::FontInterfaceSmall),
                      8,
                      8,
-                     1,
+                     0,
                      false),
       InterfaceLarge(version.Pictures.Get(PictureIndex::FontInterfaceLarge),
                      8,
                      16,
-                     2,
+                     1,
                      false) {
 }
 

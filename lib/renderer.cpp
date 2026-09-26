@@ -50,7 +50,7 @@ static Pixel Convert8BitColor(uint8_t color) {
                  ((color % 6) * 51));
 }
 
-static Pixel GetCreatureInfoColor(int healthPercentage, int isObscured) {
+Pixel GetCreatureInfoColor(int healthPercentage, int isObscured) {
     if (isObscured) {
         return Pixel(192, 192, 192);
     } else if (healthPercentage < 4) {
@@ -461,17 +461,93 @@ static bool DrawOutfit(const Creature &creature,
     return true;
 }
 
-static void DrawItem(const Version &version,
-                     const Object &item,
-                     const EntityType &type,
-                     int rightX,
-                     int bottomY,
-                     uint32_t tick,
-                     const Position &position,
-                     int horizontal,
-                     int vertical,
-                     int isInInventory,
-                     Canvas &canvas) {
+static bool DrawOutfitStaticSouth(const Creature &creature,
+                                  const EntityType &type,
+                                  int rightX,
+                                  int bottomY,
+                                  Canvas &canvas) {
+    constexpr int southDirectionMod =
+            std::to_underlying(Creature::Direction::South);
+    const auto &frameGroup =
+            type.FrameGroups[std::to_underlying(FrameGroupIndex::Idle)];
+
+    for (int addonIdx = 0; addonIdx < frameGroup.YDiv; addonIdx++) {
+        if ((addonIdx == 0) ||
+            (creature.Outfit.Addons & (1 << (addonIdx - 1)))) {
+            DrawType(frameGroup,
+                     rightX,
+                     bottomY,
+                     0,
+                     southDirectionMod,
+                     addonIdx,
+                     0,
+                     0,
+                     canvas);
+
+            if (frameGroup.LayerCount == 2) {
+                TintType(frameGroup,
+                         creature.Outfit.HeadColor,
+                         creature.Outfit.PrimaryColor,
+                         creature.Outfit.SecondaryColor,
+                         creature.Outfit.DetailColor,
+                         rightX,
+                         bottomY,
+                         1,
+                         southDirectionMod,
+                         addonIdx,
+                         0,
+                         0,
+                         canvas);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool DrawOutfitStaticSouth(const Creature &creature,
+                           const EntityType &type,
+                           int leftX,
+                           int topY,
+                           int targetWidth,
+                           int targetHeight,
+                           Canvas &canvas) {
+    static constexpr int nativeSize = 32;
+
+    static thread_local Canvas source(nativeSize, nativeSize);
+    source.Wipe();
+
+    DrawOutfitStaticSouth(creature,
+                          type,
+                          nativeSize,
+                          nativeSize,
+                          source);
+
+    Canvas::CopyScaled(canvas,
+                       source,
+                       0,
+                       0,
+                       nativeSize,
+                       nativeSize,
+                       leftX,
+                       topY,
+                       targetWidth,
+                       targetHeight);
+
+    return true;
+}
+
+void Renderer::DrawItem(const Version &version,
+                        const Object &item,
+                        const EntityType &type,
+                        int rightX,
+                        int bottomY,
+                        uint32_t tick,
+                        const Position &position,
+                        int horizontal,
+                        int vertical,
+                        int isInInventory,
+                        Canvas &canvas) {
     int frame, xMod, yMod, zMod;
 
     const auto &frameGroup =
@@ -972,8 +1048,8 @@ static void DrawInventoryItem(const Gamestate &gamestate,
         DrawItem(gamestate.Version,
                  item,
                  type,
-                 X + 32,
-                 Y + 32,
+                 X + 33,
+                 Y + 33,
                  gamestate.CurrentTick,
                  Position(),
                  0,
@@ -993,11 +1069,11 @@ static void DrawInventoryItem(const Gamestate &gamestate,
     }
 }
 
-static void DrawInventorySlot(const Gamestate &gamestate,
-                              InventorySlot slot,
-                              int X,
-                              int Y,
-                              Canvas &canvas) {
+void DrawInventorySlot(const Gamestate &gamestate,
+                       InventorySlot slot,
+                       int X,
+                       int Y,
+                       Canvas &canvas) {
     const Version &version = gamestate.Version;
 
     const Object &object = gamestate.Player.Inventory(slot);
@@ -1006,7 +1082,7 @@ static void DrawInventorySlot(const Gamestate &gamestate,
 
     if (object.Id == 0) {
         const auto &sprite = version.Icons.GetInventorySlot(slot);
-        canvas.Draw(sprite, X, Y, sprite.Width, sprite.Height);
+        canvas.Draw(sprite, X + 1, Y + 1, sprite.Width, sprite.Height);
     }
 }
 
