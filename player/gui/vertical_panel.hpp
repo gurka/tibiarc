@@ -71,9 +71,6 @@ private:
     DragState Drag;
     ResizeState Resize;
 
-    Widget *PressedWidget = nullptr;
-    int PressedWidgetY = 0;
-
     int GetWidgetY(const Widget *widget) const;
     int GetWidgetIndex(const Widget *widget) const;
 };

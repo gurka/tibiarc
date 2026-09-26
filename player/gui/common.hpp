@@ -117,7 +117,8 @@ inline bool PointInsideWidget(Position position, const Widget &widget) {
            position.Y < widget.GetHeight();
 }
 
-inline bool PointInsideWidget(Position position, const PlacedWidget<> &pw) {
+template <std::derived_from<Widget> T>
+inline bool PointInsideWidget(Position position, const PlacedWidget<T> &pw) {
     return position.X >= pw.Position.X &&
            position.X < pw.Position.X + pw.Widget->GetWidth() &&
            position.Y >= pw.Position.Y &&

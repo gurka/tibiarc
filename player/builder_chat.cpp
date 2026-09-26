@@ -29,6 +29,7 @@
 #include "gui/common.hpp"
 #include "gui/panel.hpp"
 #include "gui/scrollable_widget.hpp"
+#include "gui/state.hpp"
 #include "gui/widget.hpp"
 #include "canvas.hpp"
 #include "gamestate.hpp"
@@ -295,6 +296,10 @@ struct Chat : public gui::Widget {
 
         ChannelWidgets.at(ActiveChannelId)
                 ->Update(state, offset + ChannelWindowPosition);
+
+        if (PressedChannelId != ~0 && !state.MouseLeftDown()) {
+            PressedChannelId = ~0;
+        }
     }
 
     void Render(Canvas &canvas, gui::Position offset) override {
@@ -397,12 +402,14 @@ struct Chat : public gui::Widget {
         }
 
         if (event == gui::Widget::MouseEvent::LeftUp) {
-            if (PressedChannelId != ~0) {
-                const auto *channelId = hitTestChannel(position);
-                if (channelId != nullptr && *channelId == PressedChannelId) {
-                    ActiveChannelId = PressedChannelId;
-                }
+            const auto *channelId = hitTestChannel(position);
+            if (PressedChannelId != ~0 && channelId != nullptr &&
+                *channelId == PressedChannelId) {
+                ActiveChannelId = PressedChannelId;
                 PressedChannelId = ~0;
+                return MouseEventResult::Handled;
+            }
+            if (channelId != nullptr) {
                 return MouseEventResult::Handled;
             }
         }

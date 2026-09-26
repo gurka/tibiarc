@@ -56,8 +56,6 @@ struct Border : Widget {
     static void RenderRaisedBorder(const Icons &icons, Canvas &canvas, Position offset, int width, int height);
 
 private:
-    bool ChildPressed = false;
-
     const Icons *_Icons;
     BorderType Type;
     std::unique_ptr<Widget> Child;

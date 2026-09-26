@@ -81,8 +81,6 @@ private:
     Button CloseButton;
     Position CloseButtonPosition;
 
-    Button *PressedButton = nullptr;
-
     int ContentViewportHeight() const;
 
     // ScrollableWidget geometry hooks

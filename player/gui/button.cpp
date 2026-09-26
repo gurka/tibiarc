@@ -31,6 +31,10 @@ namespace trc {
 namespace gui {
 
 void Button::Update(State &state, Position offset) {
+    if (IsPressed && !state.MouseLeftDown()) {
+        IsPressed = false;
+    }
+
     RenderPressed =
             IsPressed && PointInsideWidget(state.MousePosition(offset), *this);
 }

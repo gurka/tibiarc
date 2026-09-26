@@ -262,25 +262,21 @@ void Window::Render(Canvas &canvas, Position offset) {
 }
 
 Widget::MouseEventResult Window::OnMouseEvent(MouseEvent event, Position position) {
+    Widget::MouseEventResult scrollbarResult =
+            OnScrollbarMouseEvent(event, position);
+    if (scrollbarResult != Widget::MouseEventResult::NotHandled) {
+        return scrollbarResult;
+    }
+
+    if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
+        return MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
+    }
+
+    if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
+        return CloseButton.OnMouseEvent(event, position - CloseButtonPosition);
+    }
+
     if (event == MouseEvent::LeftDown) {
-        PressedButton = nullptr;
-
-        Widget::MouseEventResult scrollbarResult =
-                OnScrollbarMouseEvent(event, position);
-        if (scrollbarResult != Widget::MouseEventResult::NotHandled) {
-            return scrollbarResult;
-        }
-
-        if (PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
-            PressedButton = &MinimizeButton;
-            return MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
-        }
-
-        if (PointInsideWidget(position - CloseButtonPosition, CloseButton)) {
-            PressedButton = &CloseButton;
-            return CloseButton.OnMouseEvent(event, position - CloseButtonPosition);
-        }
-
         // If click is on the header, then start drag action
         if (position.Y < 15) {
             return Widget::MouseEventResult::StartDrag;
@@ -290,26 +286,9 @@ Widget::MouseEventResult Window::OnMouseEvent(MouseEvent event, Position positio
         if (!MinimizeButton.IsToggled() && position.Y >= Height - 4) {
             return Widget::MouseEventResult::Resize;
         }
-
-        return Widget::MouseEventResult::NotHandled;
-    } else if (event == MouseEvent::LeftUp) {
-        if (PressedButton != nullptr) {
-            const auto &pos = [this]() {
-                if (PressedButton == &MinimizeButton)
-                    return MinimizeButtonPosition;
-                else // CloseButton
-                    return CloseButtonPosition;
-            }();
-            PressedButton->OnMouseEvent(event, position - pos);
-            PressedButton = nullptr;
-        }
-
-        OnScrollbarMouseEvent(event, position);
-        return Widget::MouseEventResult::Handled;
-    } else {
-        // WheelUp/WheelDown
-        return OnScrollbarMouseEvent(event, position);
     }
+
+    return Widget::MouseEventResult::NotHandled;
 }
 
 void Window::MinimizeOnClick() {

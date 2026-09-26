@@ -84,7 +84,6 @@ private:
 
     bool ScrollbarThumbPressed = false;
     int ScrollbarThumbDragOffsetY = 0;
-    Button *PressedScrollButton = nullptr;
 };
 
 } // namespace gui

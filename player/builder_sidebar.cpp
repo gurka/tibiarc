@@ -32,6 +32,7 @@
 
 #include "gui/border.hpp"
 #include "gui/button.hpp"
+#include "gui/common.hpp"
 #include "gui/position.hpp"
 #include "gui/vertical_panel.hpp"
 #include "gui/widget.hpp"
@@ -176,7 +177,6 @@ struct SidebarInventory : public gui::Widget {
 
     Gamestate *_Gamestate;
     gui::ToggleButton MinimizeButton;
-    bool MinimizeButtonPressed = false;
 
     SidebarInventory(Gamestate *gamestate)
         : Widget(172, 155),
@@ -342,21 +342,11 @@ struct SidebarInventory : public gui::Widget {
     }
 
     MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
+        if (gui::PointInsideWidget(position - MinimizeButtonPosition, MinimizeButton)) {
+            return MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
+        }
         if (event == gui::Widget::MouseEvent::LeftDown) {
-            MinimizeButtonPressed = false;
-            if (position.X >= MinimizeButtonPosition.X && position.X < MinimizeButtonPosition.X + MinimizeButton.GetWidth() &&
-                position.Y >= MinimizeButtonPosition.Y && position.Y < MinimizeButtonPosition.Y + MinimizeButton.GetHeight()) {
-                MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
-                MinimizeButtonPressed = true;
-                return MouseEventResult::Handled;
-            }
             return MouseEventResult::StartDrag;
-        } else if (event == gui::Widget::MouseEvent::LeftUp) {
-            if (MinimizeButtonPressed) {
-                MinimizeButtonPressed = false;
-                MinimizeButton.OnMouseEvent(event, position - MinimizeButtonPosition);
-            }
-            return MouseEventResult::Handled;
         }
         return MouseEventResult::NotHandled;
     }
@@ -370,10 +360,8 @@ struct SidebarButtons : public gui::Widget {
     gui::PlacedWidget<gui::ToggleButton> BattleButton;
     gui::PlacedWidget<gui::ToggleButton> VIPButton;
 
-    gui::PlacedWidget<gui::ToggleButton> *WidgetPressed;
-
     SidebarButtons(Gamestate *gamestate, GuiState *guiState)
-        : Widget(172, 26), _Gamestate(gamestate), _GuiState(guiState), WidgetPressed(nullptr) {
+        : Widget(172, 26), _Gamestate(gamestate), _GuiState(guiState) {
         auto skillsButton = std::make_unique<gui::ToggleButton>(
                 &gamestate->Version.Icons.Button34px,
                 &gamestate->Version.Icons.Button34pxPressed);
@@ -448,25 +436,13 @@ struct SidebarButtons : public gui::Widget {
     }
 
     MouseEventResult OnMouseEvent(gui::Widget::MouseEvent event, gui::Position position) override {
-        if (event == gui::Widget::MouseEvent::LeftDown) {
-            for (auto *widget : {&SkillsButton, &BattleButton, &VIPButton}) {
-                if (position.X >= widget->Position.X &&
-                    position.X < widget->Position.X + widget->Widget->GetWidth() &&
-                    position.Y >= widget->Position.Y &&
-                    position.Y < widget->Position.Y + widget->Widget->GetHeight()) {
-                    if (widget->Widget->OnMouseEvent(event, position - widget->Position) ==
-                        gui::Widget::MouseEventResult::Handled) {
-                        WidgetPressed = widget;
-                        return gui::Widget::MouseEventResult::Handled;
-                    }
-                }
+        for (auto *widget : {&SkillsButton, &BattleButton, &VIPButton}) {
+            if (gui::PointInsideWidget(position, *widget)) {
+                return widget->Widget->OnMouseEvent(event, position - widget->Position);
             }
+        }
+        if (event == gui::Widget::MouseEvent::LeftDown) {
             return MouseEventResult::StartDrag;
-        } else if (event == gui::Widget::MouseEvent::LeftUp) {
-            if (WidgetPressed)
-                WidgetPressed->Widget->OnMouseEvent(event, position - WidgetPressed->Position);
-            WidgetPressed = nullptr;
-            return MouseEventResult::Handled;
         }
         return MouseEventResult::NotHandled;
     }

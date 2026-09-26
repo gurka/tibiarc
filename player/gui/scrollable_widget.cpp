@@ -169,22 +169,17 @@ void ScrollableWidget::RenderScrollbar(Canvas &canvas, Position offset) {
 
 Widget::MouseEventResult ScrollableWidget::OnScrollbarMouseEvent(MouseEvent event,
                                                                  Position position) {
+    const Position scrollUpPos = GetScrollUpButtonPosition();
+    if (PointInsideWidget(position - scrollUpPos, ScrollUpButton)) {
+        return ScrollUpButton.OnMouseEvent(event, position - scrollUpPos);
+    }
+
+    const Position scrollDownPos = GetScrollDownButtonPosition();
+    if (PointInsideWidget(position - scrollDownPos, ScrollDownButton)) {
+        return ScrollDownButton.OnMouseEvent(event, position - scrollDownPos);
+    }
+
     if (event == MouseEvent::LeftDown) {
-        PressedScrollButton = nullptr;
-        ScrollbarThumbPressed = false;
-
-        const Position scrollUpPos = GetScrollUpButtonPosition();
-        if (PointInsideWidget(position - scrollUpPos, ScrollUpButton)) {
-            PressedScrollButton = &ScrollUpButton;
-            return ScrollUpButton.OnMouseEvent(event, position - scrollUpPos);
-        }
-
-        const Position scrollDownPos = GetScrollDownButtonPosition();
-        if (PointInsideWidget(position - scrollDownPos, ScrollDownButton)) {
-            PressedScrollButton = &ScrollDownButton;
-            return ScrollDownButton.OnMouseEvent(event, position - scrollDownPos);
-        }
-
         int scrollbarThumbOffset = 0;
         int scrollbarThumbHeight = 0;
         const int scrollbarX = GetScrollbarX();
@@ -201,14 +196,6 @@ Widget::MouseEventResult ScrollableWidget::OnScrollbarMouseEvent(MouseEvent even
 
         return Widget::MouseEventResult::NotHandled;
     } else if (event == MouseEvent::LeftUp) {
-        if (PressedScrollButton != nullptr) {
-            const Position pos = PressedScrollButton == &ScrollUpButton
-                                          ? GetScrollUpButtonPosition()
-                                          : GetScrollDownButtonPosition();
-            PressedScrollButton->OnMouseEvent(event, position - pos);
-            PressedScrollButton = nullptr;
-        }
-
         if (ScrollbarThumbPressed) {
             ScrollbarThumbPressed = false;
             return Widget::MouseEventResult::Handled;

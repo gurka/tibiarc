@@ -19,6 +19,7 @@
 
 #include "border.hpp"
 
+#include "gui/common.hpp"
 #include "gui/state.hpp"
 #include "gui/position.hpp"
 #include "icons.hpp"
@@ -59,32 +60,11 @@ void Border::Render(Canvas &canvas, Position offset) {
 
 Border::MouseEventResult Border::OnMouseEvent(MouseEvent event, Position position) {
     const auto childPos = Position(BorderWidth(), BorderWidth());
-
-    if (event == MouseEvent::LeftDown) {
-        ChildPressed = false;
-        if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
-            position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-            return MouseEventResult::NotHandled;
-        }
-        const auto result = Child->OnMouseEvent(event, position - childPos);
-        if (result != MouseEventResult::NotHandled) {
-            ChildPressed = true;
-        }
-        return result;
-    } else if (event == MouseEvent::LeftUp) {
-        if (ChildPressed) {
-            ChildPressed = false;
-            Child->OnMouseEvent(event, position - childPos);
-        }
-        return MouseEventResult::Handled;
-    } else {
-        // WheelUp / WheelDown
-        if (position.X < BorderWidth() || position.X >= Width - BorderWidth() ||
-            position.Y < BorderWidth() || position.Y >= Height - BorderWidth()) {
-            return MouseEventResult::NotHandled;
-        }
+    if (PointInsideArea(position, childPos, Child->GetWidth(), Child->GetHeight())) {
         return Child->OnMouseEvent(event, position - childPos);
     }
+
+    return MouseEventResult::NotHandled;
 }
 
 void Border::RenderSunkenBorder(const Icons &icons, Canvas &canvas, Position offset, int width, int height) {
