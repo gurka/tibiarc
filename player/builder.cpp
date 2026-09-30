@@ -25,6 +25,7 @@
 #include "builder_sidebar.hpp"
 #include "builder_game.hpp"
 #include "builder_chat.hpp"
+#include "builder_playback.hpp"
 #include "player_state.hpp"
 
 #include "gui/panel.hpp"
@@ -41,6 +42,8 @@ struct LayoutMetrics {
     int SidebarHeight;
     int ChatWidth;
     int ChatHeight;
+    int PlaybackWidth;
+    int PlaybackHeight;
     int GameWidth;
     int GameHeight;
     int GamestateX;
@@ -52,13 +55,15 @@ struct LayoutMetrics {
 LayoutMetrics CalculateLayout(int windowWidth, int windowHeight) {
     constexpr auto SidebarWidth = 176;
     constexpr auto ChatHeight = 174;
+    constexpr auto PlaybackHeight = 48;
     constexpr auto Margin = 4;
     constexpr auto Border = 1;
 
     const auto sidebarHeight = windowHeight;
     const auto chatWidth = std::max(0, windowWidth - SidebarWidth);
+    const auto playbackWidth = chatWidth;
     const auto gameWidth = std::max(0, windowWidth - SidebarWidth);
-    const auto gameHeight = std::max(0, windowHeight - ChatHeight);
+    const auto gameHeight = std::max(0, windowHeight - ChatHeight - PlaybackHeight);
 
     const auto maxWidth = std::max(0, gameWidth - ((Margin + Border) * 2));
     const auto maxHeight = std::max(0, gameHeight - ((Margin + Border) * 2));
@@ -80,6 +85,8 @@ LayoutMetrics CalculateLayout(int windowWidth, int windowHeight) {
                          sidebarHeight,
                          chatWidth,
                          ChatHeight,
+                         playbackWidth,
+                         PlaybackHeight,
                          gameWidth,
                          gameHeight,
                          gamestateX,
@@ -107,6 +114,15 @@ void Builder::Gui::Relayout(int windowWidth, int windowHeight) {
         Root->SetChildPosition(Root->Chat,
                                gui::Position(0,
                                              windowHeight - layout.ChatHeight));
+    }
+
+    if (Root->Playback != nullptr) {
+        Root->Playback->SetLayoutSize(layout.PlaybackWidth,
+                                      layout.PlaybackHeight);
+        Root->SetChildPosition(Root->Playback,
+                               gui::Position(0,
+                                             windowHeight - layout.ChatHeight -
+                                                     layout.PlaybackHeight));
     }
 
     if (Root->Game != nullptr) {
@@ -142,6 +158,15 @@ std::unique_ptr<Builder::Gui> Builder::BuildGui(int windowWidth,
     root->Chat = chat.get();
     root->Add(std::move(chat),
               gui::Position(0, windowHeight - layout.ChatHeight));
+
+    auto playback = Builder::BuildPlayback(layout.PlaybackWidth,
+                                           layout.PlaybackHeight,
+                                           gamestate);
+    root->Playback = playback.get();
+    root->Add(std::move(playback),
+              gui::Position(0,
+                            windowHeight - layout.ChatHeight -
+                                    layout.PlaybackHeight));
 
     auto game = Builder::BuildGame(layout.GameWidth,
                                    layout.GameHeight,

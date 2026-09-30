@@ -362,6 +362,8 @@ if(SDL2_FOUND)
     "player/builder.hpp"
     "player/builder_chat.cpp"
     "player/builder_chat.hpp"
+    "player/builder_playback.cpp"
+    "player/builder_playback.hpp"
     "player/builder_game.cpp"
     "player/builder_game.hpp"
     "player/builder_sidebar.cpp"

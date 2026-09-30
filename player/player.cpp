@@ -267,7 +267,7 @@ void emscripten_set_main_loop(const std::function<void(void)>& main_loop,
                               int fps,
                               int simulate_infinite_loop) {
     if (fps == 0) {
-        fps = 120;
+        fps = 60;
     }
 
     Uint32 ms_per_iteration = 1000 / fps;
